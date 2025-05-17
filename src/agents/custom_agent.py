@@ -8,6 +8,7 @@ from typing import Any
 
 from src.agents.agent import Agent
 from src.agents.slack_agent import SlackAgent
+from src.agents.metrics_agent import MetricsAgent
 
 # adding a custom agent
 # 1. add necessary import for the agent
@@ -17,7 +18,7 @@ from src.agents.slack_agent import SlackAgent
 # 1. set "custom" to "framework"
 # 2  set the custom agent name to "metadata.labels.custom_agent"
 
-custom_agent = { "slack_agent": SlackAgent }
+custom_agent = { "slack_agent": SlackAgent, "metrics_agent": MetricsAgent}
 
 class CustomAgent(Agent):
     """

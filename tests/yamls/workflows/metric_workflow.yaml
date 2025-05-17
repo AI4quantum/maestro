@@ -1,0 +1,22 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: evaluate workflow
+  labels:
+    app: example
+spec:
+  template:
+    metadata:
+      name: maestro-deployment
+      labels:
+        app: test
+        use-case: test
+    agents:
+        - test1
+        - evaluate
+    prompt: What is the capital of the United States？
+    steps:
+      - name: dummy
+        agent: test1
+      - name: metrics
+        agent: evaluate

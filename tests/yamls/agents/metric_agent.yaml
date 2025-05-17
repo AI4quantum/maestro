@@ -1,0 +1,27 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: test1
+  labels:
+    app: test-example
+spec:
+  model: qwen3:latest
+  framework: beeai
+  mode: remote
+  description: this is a test
+  instructions: Concisely answer the question to the best of your ability, and if you are unsure, say "I don't know". 
+
+---
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: evaluate 
+  labels: 
+    app: test-example
+    custom_agent: metrics_agent
+spec:
+  model: qwen3:latest # NOTE: the model is actually used to determine the LLM call, so must be a valid model
+  framework: custom
+  mode: remote
+  description: testing Opik
+  instructions: evaluates the response using Opik
