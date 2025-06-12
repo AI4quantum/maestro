@@ -29,6 +29,19 @@ dependencies = [
     "opik>=1.7.22"
 ]
 
+[project.optional-dependencies]
+scoring = [
+    "crewai",
+    "litellm==1.67.4.post1"
+]
+
+[dependency-groups]
+dev = [
+    "black>=24.10.0",
+    "pytest>=8.3.4",
+    "pytest-mock>=3.14.0"
+]
+
 [project.scripts]
 maestro = "maestro.cli.maestro:__run_cli"
 
