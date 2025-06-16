@@ -6,5 +6,5 @@ mkdir static
 cp /etc/config/workflow ./static/workflow.yaml
 cp /etc/config/agents ./static/agents.yaml
 
-python3.11 api.py
+python3.11 src/api.py
 

@@ -70,15 +70,11 @@ RUN pip3 install --no-cache-dir --upgrade \
 
 COPY ./src ./src
 COPY ./operator/entrypoint_api.sh .
-COPY ./operator/api.py .
-COPY ./deployments/maestro.html ./templates/index.html
-
-# Install maestro package
-RUN cd /usr/src/app && \
-    pip3 install -e .
+COPY ./operator/api.py ./src/api.py
+COPY ./deployments/maestro.html ./src/templates/index.html
 
 RUN chown -R 1000:100 /usr/src/app &&\
-    mkdir /usr/src/app/media && chown 1000:100 /usr/src/app/media
+    mkdir /usr/src/app/src/media && chown 1000:100 /usr/src/app/src/media
 
 EXPOSE 5000
 USER 1000:100
