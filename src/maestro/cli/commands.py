@@ -490,7 +490,7 @@ class MetaAgentsCmd(Command):
     # private    
     def __meta_agents(self, text_file) -> int:
         try:
-            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.getcwd()}/cli/streamlit_meta_agents_deploy.py", text_file]
+            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/cli/streamlit_meta_agents_deploy.py", text_file]
             process = subprocess.Popen(sys.argv)
         except Exception as e:
             self._check_verbose()
