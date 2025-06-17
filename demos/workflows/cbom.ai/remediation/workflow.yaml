@@ -1,0 +1,20 @@
+apiVersion: maestro/v1alpha1
+kind: Workflow
+metadata:
+  name: cbom.ai
+  labels:
+    app: cbom.ai
+spec:
+  template:
+    metadata:
+      labels:
+        app: cbom.ai
+    agents:
+      - fixer-agent
+      - patcher-agent
+    prompt: Use the CBOM to generate a patch to the repo.
+    steps:
+    - name: code_step
+      agent: fixer-agent
+    - name: patch_pull_step
+      agent: patcher-agent

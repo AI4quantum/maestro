@@ -16,8 +16,6 @@ spec:
       - component creator
       - BOM Assembler
       - score
-      - fixer-agent
-      - patcher-agent
     prompt: |
       Use the git fetcher tool to get all the java files from the github repo where the owner is "Mastercard" and the repo is "client-encryption-java", and directly output its result. The output should be *ONLY* a list of URLs, and nothing else.
     steps:
@@ -38,7 +36,3 @@ spec:
         - from: step5
       context:
         - "A correct output should be a json that is structurally valid. Additionally, the CBOM itself should contain libraries themselves that are not quantum safe, which is why it is added to the CBOM. It is ok to have placeholders for missing information within the CBOM itself."
-    - name: code_step
-      agent: fixer-agent
-    - name: patch_pull_step
-      agent: patcher-agent
