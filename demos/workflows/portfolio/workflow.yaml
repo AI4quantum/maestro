@@ -15,7 +15,7 @@ spec:
         - stock
         - portfolio
         - get security tickers
-    prompt: meta,google,international business machines
+    prompt: meta,google,international business machines,iShares Core U.S. Aggregate Bond ETF
     steps:
       - name: step1
         agent: get security tickers

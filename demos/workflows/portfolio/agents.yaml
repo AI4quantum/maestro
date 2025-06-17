@@ -153,7 +153,7 @@ metadata:
   labels:
     app: portfolio optimizer
 spec:
-  model: qwen3:latest
+  model: granite3.2:latest
   framework: beeai
   mode: remote
   description: |
@@ -170,8 +170,8 @@ spec:
     **Task:**
     1. Parse the input into individual securities by splitting on commas.
     2. For each security:
-       - Resolve it into the correct trading symbol (ticker) after verifying with a yahoo finance search of the name.
-       - If you are unsure or cannot find a verified ticker, use the DuckDuckGo tool to find the correct symbol.
+       - Resolve it into the correct trading symbol (ticker) after verifying with a yahoo finance search of the name and google ticker search.
+       - If you are unsure or cannot find a verified ticker, use the DuckDuckGo tool to find the correct symbol, and check it with multiple sources for validation.
     3. Output a JSON array of objects with the following fields:
        - `ticker` (string): the resolved ticker symbol or "UNKNOWN".
 
@@ -193,7 +193,7 @@ spec:
     - Do not make up tickers.
     - Only use tickers you know with high confidence.
     - If you're unsure, use "UNKNOWN" as the resolved symbol.
-    - Output only valid
+    - Output only valid tickers after confirmaing with a search.
   tools:
     - LLM
     - DuckDuckGo
