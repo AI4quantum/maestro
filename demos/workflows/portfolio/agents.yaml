@@ -1,0 +1,200 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: portfolio
+  labels:
+    app: portfolio optimizer
+spec:
+  framework: code
+  mode: local
+  description: portfolio optimizer
+  instructions: call portfolio optimizer with data
+  code: |
+    import pandas as pd
+    from qiskit_ibm_catalog import QiskitFunctionsCatalog
+    
+    class mock_result:
+      def result(self):
+        result = {
+          'time_step_0': {
+            '8801.T': 0.11764705882352941,
+            'ITX.MC': 0.20588235294117646,
+            'META': 0.38235294117647056,
+            'GBPJPY=X': 0.058823529411764705,
+            'TMBMKDE-10Y': 0.0,
+            'CLF': 0.058823529411764705,
+            'XS2239553048': 0.17647058823529413
+          },
+          'time_step_1': {
+            '8801.T': 0.11428571428571428,
+            'ITX.MC': 0.14285714285714285,
+            'META': 0.2,
+            'GBPJPY=X': 0.02857142857142857,
+            'TMBMKDE-10Y': 0.42857142857142855,
+            'CLF': 0.0,
+            'XS2239553048': 0.08571428571428572
+          },
+          'time_step_2': {
+            '8801.T': 0.0,
+            'ITX.MC': 0.09375,
+            'META': 0.3125,
+            'GBPJPY=X': 0.34375,
+            'TMBMKDE-10Y': 0.0,
+            'CLF': 0.0,
+            'XS2239553048': 0.25
+          },
+          'time_step_3': {
+            '8801.T': 0.3939393939393939,
+            'ITX.MC': 0.09090909090909091,
+            'META': 0.12121212121212122,
+            'GBPJPY=X': 0.18181818181818182,
+            'TMBMKDE-10Y': 0.0,
+            'CLF': 0.0,
+            'XS2239553048': 0.21212121212121213
+          }
+        }
+        metadata = {"all_samples_metrics": {"objective_costs": [1.25, 0.98], "states": [[0, 1, 0, 1, 0, 1], [0, 0, 0, 1, 1, 1]], "restriction_breaches": [0.0, 0.25], "sharpe_ratios": [1.1, 0.7], "returns": [0.15, 0.10]}}
+        return {"result": result, "metadata": metadata}
+
+    def mock_run(assets, qubo_settings): 
+      return mock_result()
+
+    # For not mock case
+    #catalog = QiskitFunctionsCatalog(
+    #  channel="ibm_cloud / ibm_quantum / ibm_quantum_platform",
+    #  instance="USER_CRN / HGP",
+    #  token="USER_API_KEY / IQP_API_TOKEN",
+    #) 
+    #dpo_solver = catalog.load("gdq/quantum_portfolio_optimizer")
+
+
+    assets = input[0]
+    qubo_settings = {
+      "nt": 4,
+      "nq": 4,
+      "dt": 30,
+      "max_investment": 25,
+      "risk_aversion": 1000.0,
+      "transaction_fee": 0.01,
+      "restriction_coeff": 1.0,
+    }
+
+    dpo_job = mock_run(
+    # For not mock case
+    #dpo_job = dpo_solver.run(  
+      assets=assets,
+      qubo_settings=qubo_settings,
+    )
+    dpo_result = dpo_job.result()
+
+    # Convert metadata to a DataFrame
+    df = pd.DataFrame(dpo_result["metadata"]["all_samples_metrics"])
+ 
+    # Find the minimum objective cost 
+    min_cost = df["objective_costs"].min()
+    output = f"Minimum Objective Cost Found: {min_cost:.2f}\n"
+ 
+    # Extract the row with the lowest cost
+    best_row = df[df["objective_costs"] == min_cost].iloc[0]
+ 
+    # Display the results associated with the best solution
+    output += "Best Solution:\n"
+    output += f"  - State: {best_row['states']}\n"
+    output += f"  - Restriction Deviation: {best_row['restriction_breaches']}%\n"
+    output += f"  - Sharpe Ratio: {best_row['sharpe_ratios']:.2f}\n"
+    output += f"  - Return: {best_row['returns']}"
+
+---
+
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: stock
+  labels:
+    app: stock historical data
+spec:
+  framework: code
+  mode: local
+  description: stock data
+  instructions: retrive stock historical data
+  code: |
+    import yfinance as yf
+    import pandas as pd
+    import json
+    from datetime import datetime, timedelta
+
+    now = datetime.now()
+    start = now - timedelta(weeks=2)
+    start_date = start.strftime('%Y-%m-%d')
+    end = now - timedelta(days=1)
+    end_date = end.strftime('%Y-%m-%d')
+
+    # Download data (1 week in days)
+    #apple = yf.download('AAPL', start='2021-03-29', end='2021-04-05')
+  
+    all = {}
+    for s in input[0].split(","):
+      symbol = s.strip()
+      df = yf.download(symbol, start=start_date, end=end_date)
+      df.to_csv(symbol+".csv", index=True, header=False)
+      df = pd.read_csv(symbol+".csv", header=None)
+      one = {}
+      for index, row in df.iterrows():
+        one[row[0]]=row[1]
+      all[symbol]=one
+    json_all = json.dumps(all)
+    output = json_all
+
+---
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: get security tickers
+  labels:
+    app: portfolio optimizer
+spec:
+  model: qwen3:latest
+  framework: beeai
+  mode: remote
+  description: |
+    LLM agent to resolve user-provided securities into valid tickers and asset types
+  instructions: |
+    You are the **Security Resolver** agent for a portfolio optimization system.
+
+    **Input:** A single comma-separated string of securities. Each item may be:
+    - a stock ticker
+    - a company name
+    - a bond name
+    - a bond ticker
+
+    **Task:**
+    1. Parse the input into individual securities by splitting on commas.
+    2. For each security:
+       - Resolve it into the correct trading symbol (ticker) after verifying with a yahoo finance search of the name.
+       - If you are unsure or cannot find a verified ticker, use the DuckDuckGo tool to find the correct symbol.
+    3. Output a JSON array of objects with the following fields:
+       - `ticker` (string): the resolved ticker symbol or "UNKNOWN".
+
+    Note: Usually stocks will be very easy to find, bond tickers however are harder and you may need to search websites like yahoo finance to find the correct ticker value.
+    **Example input:**
+    META, Broadcom, Salesforce, 3 month treasury bond etf
+
+    **Example output:**
+    ```json
+    [
+      { "ticker": "META"},
+      {"ticker": "AVGO"},
+      {"ticker":  "CRM"},
+      {"ticker": "I:3MTBRNK"}
+    ]
+    ```
+
+    **Important rules:**
+    - Do not make up tickers.
+    - Only use tickers you know with high confidence.
+    - If you're unsure, use "UNKNOWN" as the resolved symbol.
+    - Output only valid
+  tools:
+    - LLM
+    - DuckDuckGo
+
