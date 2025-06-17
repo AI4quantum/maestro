@@ -18,43 +18,44 @@ import sys
 import os
 import psutil
 
+def find_repo_root(path, marker="pyproject.toml"):
+    while path != "/":
+        if marker in os.listdir(path):
+            return path
+        path = os.path.dirname(path)
+    return None
+
+repo_root = find_repo_root(os.path.dirname(os.path.abspath(__file__)))
+if repo_root:
+    src_dir = os.path.join(repo_root, "src")
+    sys.path.insert(0, src_dir)
+
 import streamlit as st
 import streamlit.web.cli as st_cli
 
 from streamlit import runtime
-from streamlit.runtime.scriptrunner import add_script_run_ctx,get_script_run_ctx
+from streamlit.runtime.scriptrunner import add_script_run_ctx, get_script_run_ctx
 
-from cli.common import parse_yaml
+from maestro.cli.common import parse_yaml
 
 from streamlit_workflow_ui import StreamlitWorkflowUI
 
 sys_stdout = sys.stdout
 
 def deploy_agents_workflow_streamlit(agents_file, workflow_file):
-    """Deploy and run a Maestro workflow using Streamlit UI.
-    
-    Args:
-        agents_file (str): Path to the agents configuration file
-        workflow_file (str): Path to the workflow configuration file
-    """
+    """Deploy and run a Maestro workflow using Streamlit UI."""
     workflow_yaml = parse_yaml(workflow_file)
-    
-    # Set page configuration
+
     st.set_page_config(
         page_title="Maestro Workflow",
         page_icon="🤖",
         layout="centered"
     )
-    
-    # Initialize session state for chat history
+
     if "messages" not in st.session_state:
         st.session_state.messages = [
-            { 
-                "role": "assistant", 
-                "content": "Welcome to Maestro workflow"
-            }]
+            {"role": "assistant", "content": "Welcome to Maestro workflow"}]
 
-    # Page header
     st.image("images/maestro.png", width=200)
     st.title("Maestro workflow")
 
