@@ -14,11 +14,16 @@ spec:
     agents:
         - stock
         - portfolio
-    #prompt: 8801.T, ITX.MC, META, GBPJPY, TMBMKDE, CLF, XS2239553048
-    prompt: 8801.T, ITX.MC, META, GBPJPY=X, CLF
+        - get security tickers
+    prompt: meta,google,international business machines
     steps:
-      - name: stock
-        agent: stock
-      - name: portfolio
-        agent: portfolio
+      - name: step1
+        agent: get security tickers
+
+    # prompt: 8801.T, ITX.MC, META, GBPJPY=X, CLF
+    # steps:
+    #   - name: stock
+    #     agent: stock
+    #   - name: portfolio
+    #     agent: portfolio
 
