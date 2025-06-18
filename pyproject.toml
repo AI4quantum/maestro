@@ -27,8 +27,6 @@ dependencies = [
     "nest-asyncio>=1.6.0",
     "pydantic-ai[logfire]>=0.1.8",
     "opik>=1.7.22",
-    "yfinance>=0.2.63",
-    "qiskit-ibm-catalog>=0.7.0",
 ]
 
 [project.scripts]
