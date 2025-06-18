@@ -1,4 +1,4 @@
-apiVersion: maestro/v1alpha1
+apiVOAersion: maestro/v1alpha1
 kind: Agent
 metadata:
   name: portfolio
@@ -11,8 +11,9 @@ spec:
   instructions: call portfolio optimizer with data
   code: |
     import pandas as pd
+    import json
     from qiskit_ibm_catalog import QiskitFunctionsCatalog
-    
+
     class mock_result:
       def result(self):
         result = {
@@ -59,14 +60,12 @@ spec:
     def mock_run(assets, qubo_settings): 
       return mock_result()
 
+
     # For not mock case
     #catalog = QiskitFunctionsCatalog(
-    #  channel="ibm_cloud / ibm_quantum / ibm_quantum_platform",
-    #  instance="USER_CRN / HGP",
-    #  token="USER_API_KEY / IQP_API_TOKEN",
-    #) 
+    # 	     token='<token>'
+    #)
     #dpo_solver = catalog.load("gdq/quantum_portfolio_optimizer")
-
 
     assets = input[0]
     qubo_settings = {
@@ -89,20 +88,24 @@ spec:
 
     # Convert metadata to a DataFrame
     df = pd.DataFrame(dpo_result["metadata"]["all_samples_metrics"])
- 
+
     # Find the minimum objective cost 
     min_cost = df["objective_costs"].min()
     output = f"Minimum Objective Cost Found: {min_cost:.2f}\n"
- 
+
     # Extract the row with the lowest cost
     best_row = df[df["objective_costs"] == min_cost].iloc[0]
- 
+
     # Display the results associated with the best solution
-    output += "Best Solution:\n"
-    output += f"  - State: {best_row['states']}\n"
-    output += f"  - Restriction Deviation: {best_row['restriction_breaches']}%\n"
-    output += f"  - Sharpe Ratio: {best_row['sharpe_ratios']:.2f}\n"
-    output += f"  - Return: {best_row['returns']}"
+    metadata = ""
+    metadata += "Best Solution:\n"
+    metadata += f"  - State: {best_row['states']}\n"
+    metadata += f"  - Restriction Deviation: {best_row['restriction_breaches']}%\n"
+    metadata += f"  - Sharpe Ratio: {best_row['sharpe_ratios']:.2f}\n"
+    metadata += f"  - Return: {best_row['returns']}"
+
+    json_all = json.dumps({"data": dpo_result["result"], "metadata": metadata})
+    output = json_all
 
 ---
 
@@ -145,3 +148,37 @@ spec:
     json_all = json.dumps(all)
     output = json_all
 
+---
+
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: plot
+  labels:
+    app: plot data
+spec:
+  framework: code
+  mode: local
+  description: stock data
+  instructions: retrive stock historical data
+  code: |
+    import json
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import csv
+    from io import StringIO
+
+    data = json.loads(input[0])["data"]
+    csvfile = StringIO()
+
+    fieldnames = data[list(data.keys())[0]].keys()
+    writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+    writer.writeheader()
+    for time_step in data.keys():
+        writer.writerow(data[time_step])
+
+    csvfile.seek(0)
+    df = pd.read_csv(csvfile)
+    df.plot()
+    plt.show()
+    output = json.loads(input[0])["metadata"]

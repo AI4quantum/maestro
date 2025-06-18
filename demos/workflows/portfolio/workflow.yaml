@@ -14,6 +14,7 @@ spec:
     agents:
         - stock
         - portfolio
+        - plot
     #prompt: 8801.T, ITX.MC, META, GBPJPY, TMBMKDE, CLF, XS2239553048
     prompt: 8801.T, ITX.MC, META, GBPJPY=X, CLF
     steps:
@@ -21,4 +22,6 @@ spec:
         agent: stock
       - name: portfolio
         agent: portfolio
+      - name: plot
+        agent: plot
 
