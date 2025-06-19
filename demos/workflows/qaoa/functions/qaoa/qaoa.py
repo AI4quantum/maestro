@@ -1,3 +1,6 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright © 2025 IBM
+
 from qiskit_aer import AerSimulator
 # General imports
 import numpy as np

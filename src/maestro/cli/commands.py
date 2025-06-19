@@ -1,16 +1,5 @@
+# SPDX-License-Identifier: Apache-2.0
 # Copyright © 2025 IBM
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 """CLI command implementations for Maestro workflow management."""
 import os
@@ -343,7 +332,7 @@ class DeployCmd(Command):
     
     def __deploy_agents_workflow_streamlit(self):
         try:
-            sys.argv = ["streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.getcwd()}/cli/streamlit_deploy.py", self.AGENTS_FILE(), self.WORKFLOW_FILE()]
+            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/streamlit_deploy.py", self.AGENTS_FILE(), self.WORKFLOW_FILE()]
             process = subprocess.Popen(sys.argv)
         except Exception as e:
             self._check_verbose()
@@ -490,7 +479,7 @@ class MetaAgentsCmd(Command):
     # private    
     def __meta_agents(self, text_file) -> int:
         try:
-            sys.argv = ["streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.getcwd()}/cli/streamlit_meta_agents_deploy.py", text_file]
+            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/cli/streamlit_meta_agents_deploy.py", text_file]
             process = subprocess.Popen(sys.argv)
         except Exception as e:
             self._check_verbose()

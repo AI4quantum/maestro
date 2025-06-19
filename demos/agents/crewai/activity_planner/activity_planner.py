@@ -1,4 +1,8 @@
 #!/usr/bin/env python
+
+# SPDX-License-Identifier: Apache-2.0
+# Copyright © 2025 IBM
+
 """
 This script uses the crew.ai framework to find activities suitable for cold or wet weather. 
 

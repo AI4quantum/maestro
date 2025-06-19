@@ -1,5 +1,8 @@
 #! /usr/bin/env python3
 
+# SPDX-License-Identifier: Apache-2.0
+# Copyright © 2025 IBM
+
 from qiskit_serverless import ServerlessClient, QiskitFunction
 import os
 

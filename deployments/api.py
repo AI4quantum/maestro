@@ -1,4 +1,6 @@
-# Assisted by watsonx Code Assistant
+# SPDX-License-Identifier: Apache-2.0
+# Copyright © 2025 IBM
+
 from flask import Flask, request, jsonify, render_template, Response
 import os
 import json
@@ -31,9 +33,6 @@ def generate():
         for line in lines:
             yield f"data: {line}\n\n"
         position = len(message)
-    #if thread and not thread.is_alive():
-    #    text = "data: Thread completed EndEnd\n\n"
-    #    yield text
 
 @app.route('/stream')
 def stream():

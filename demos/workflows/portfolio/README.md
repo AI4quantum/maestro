@@ -38,6 +38,8 @@ This demo shows how to use Maestro to create a portfolio management system.
 ```bash
 cd maestro
 uv pip install -e .
+uv pip install yfinace
+uv pip install qiskit-ibm-catalog
 cd -
 ```
 

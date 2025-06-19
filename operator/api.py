@@ -1,4 +1,6 @@
-# Assisted by watsonx Code Assistant
+# SPDX-License-Identifier: Apache-2.0
+# Copyright © 2025 IBM
+
 from flask import Flask, request, jsonify, render_template, Response
 import os
 import json
