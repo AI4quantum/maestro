@@ -57,6 +57,15 @@ TEST_COUNT_FILE="$TEMP_DIR/test_count.txt"
 echo "0" > "$EXPECTED_TESTS_FILE"
 echo "0" > "$TEST_COUNT_FILE"
 
+# Helper: check if agents.yaml includes a Slack agent
+contains_slack_agent() {
+  local agent_file="$1"
+  if [[ ! -f "$agent_file" ]]; then
+    return 1
+  fi
+  grep -qiE 'name: slack|custom_agent: slack_agent|app: slack-example' "$agent_file"
+}
+
 # Iterate over each demo workflow (skipping the common directory)
 find "$WORKFLOWS_DIR" -mindepth 1 -type d -print0 | while IFS= read -r -d '' demo; do
     if [[ "$demo" == "$COMMON_DIR" ]]; then
@@ -70,6 +79,11 @@ find "$WORKFLOWS_DIR" -mindepth 1 -type d -print0 | while IFS= read -r -d '' dem
     echo "========================================\n"
 
     if [[ -f "$demo/agents.yaml" && -f "$demo/workflow.yaml" ]]; then
+        if contains_slack_agent "$demo/agents.yaml"; then
+            echo "⚠️ Skipping $DEMO_NAME — contains Slack agent"
+            continue
+        fi
+
         echo "🔍 Running tests for demo at: $demo"
         CURRENT_EXPECTED=$(cat "$EXPECTED_TESTS_FILE")
         echo $((CURRENT_EXPECTED + 1)) > "$EXPECTED_TESTS_FILE"
@@ -77,18 +91,14 @@ find "$WORKFLOWS_DIR" -mindepth 1 -type d -print0 | while IFS= read -r -d '' dem
         echo "🩺 Running common doctor.sh for demo..."
         cd "$REPO_ROOT/maestro"
         bash "$COMMON_DIR/doctor.sh" || { echo "❌ doctor.sh failed for demo at $demo"; exit 1; }
-        
+
         cd "$REPO_ROOT/maestro"
 
-        # TODO: Demos may need complex setup/environment. For now they can create their own
-        # test.sh which can call the common one, but do additional steps before/after
-        # ie install libs, set env, Parsing of output to validate the test is working 
         if [[ -x "$demo/test.sh" ]]; then
             echo "🧪 Running custom test.sh for demo..."
             bash "$demo/test.sh" "$COMMON_DIR/test.sh" "$demo" || { echo "❌ custom test.sh failed for demo at $demo"; exit 1; }
         else
             echo "🧪 Running common test.sh for demo..."
-            # Use a here-string to pass empty input while ensuring the environment variable is set
             MAESTRO_DEMO_OLLAMA_MODEL="ollama/llama3.2:3b" bash "$COMMON_DIR/test.sh" "$demo" <<< "" || { echo "❌ test.sh failed for demo at $demo"; exit 1; }
         fi
         
