@@ -16,17 +16,14 @@ spec:
         - portfolio
         - plot
         - get security tickers
-    prompt: meta,google,international business machines,iShares Core U.S. Aggregate Bond ETF
+    prompt: 8801.T, ITX.MC, META, GBPJPY=X, CLF
     steps:
       - name: step1
         agent: get security tickers
-
-    # prompt: 8801.T, ITX.MC, META, GBPJPY=X, CLF
-    # steps:
-    #   - name: stock
-    #     agent: stock
-    #   - name: portfolio
-    #     agent: portfolio
-      - name: plot
-        agent: plot
+      # - name: stock
+      #   agent: stock
+      # - name: portfolio
+      #   agent: portfolio
+      # - name: plot
+      #   agent: plot
 

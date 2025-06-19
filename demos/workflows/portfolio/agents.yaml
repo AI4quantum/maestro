@@ -169,29 +169,26 @@ spec:
     - a company name
     - a bond name
     - a bond ticker
-
+    
     **Task:**
     1. Parse the input into individual securities by splitting on commas.
     2. For each security:
+       - If already in a ticker format, then keep it as is and move on to the next security.
        - Resolve it into the correct trading symbol (ticker) after verifying with a yahoo finance search of the name and google ticker search.
        - If you are unsure or cannot find a verified ticker, use the DuckDuckGo tool to find the correct symbol, and check it with multiple sources for validation.
-    3. Output a JSON array of objects with the following fields:
-       - `ticker` (string): the resolved ticker symbol or "UNKNOWN".
+    3. Output a **single comma-separated string** of tickers.
+      - Exclude "UNKNOWN" values from the output.
+      - Do not include brackets, JSON objects, or extra quotes.
 
     Note: Usually stocks will be very easy to find, bond tickers however are harder and you may need to search websites like yahoo finance to find the correct ticker value.
+    Note: Make sure companies belong to their actual ticker, for example Facebook or FB's ticker is META. 
+    
     **Example input:**
-    META, Broadcom, Salesforce, 3 month treasury bond etf
-
+    Facebook, Broadcom, Salesforce, 3 month treasury bond etf
+    
     **Example output:**
-    ```json
-    [
-      { "ticker": "META"},
-      {"ticker": "AVGO"},
-      {"ticker":  "CRM"},
-      {"ticker": "I:3MTBRNK"}
-    ]
-    ```
-
+    META,AVGO,CRM,I:3MTBRNK
+    
     **Important rules:**
     - Do not make up tickers.
     - Only use tickers you know with high confidence.
@@ -201,7 +198,7 @@ spec:
     - LLM
     - DuckDuckGo
 
-
+---
 apiVersion: maestro/v1alpha1
 kind: Agent
 metadata:
