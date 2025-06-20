@@ -97,7 +97,7 @@ logger = Logger("app", level=logging.DEBUG)
 # local MCP runtime
 server_params = StdioServerParameters(
     command="python",
-    args=[os.path.dirname(os.path.abspath(__file__))+"/../mcptools/qiskitmcp.py"],
+    args=[os.path.dirname(os.path.abspath(__file__))+"/../mcptools/qiskit_mcp.py"],
     env=None
 )
 
