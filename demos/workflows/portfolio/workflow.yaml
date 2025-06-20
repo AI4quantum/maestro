@@ -15,13 +15,15 @@ spec:
         - stock
         - portfolio
         - plot
-    #prompt: 8801.T, ITX.MC, META, GBPJPY, TMBMKDE, CLF, XS2239553048
+        - get security tickers
     prompt: 8801.T, ITX.MC, META, GBPJPY=X, CLF
     steps:
-      - name: stock
-        agent: stock
-      - name: portfolio
-        agent: portfolio
-      - name: plot
-        agent: plot
+      - name: step1
+        agent: get security tickers
+      # - name: stock
+      #   agent: stock
+      # - name: portfolio
+      #   agent: portfolio
+      # - name: plot
+      #   agent: plot
 
