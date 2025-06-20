@@ -14,13 +14,12 @@ cd maestro
 ```bash
 uv venv
 source .venv/bin/activate
-uv pip install -r requirements.txt
 uv pip install -e .
 ```
 
-Note: If using scoring agents, additionally install:
+Note: If using scoring agents, install:
 ```bash
-uv pip install -r requirements-extra.txt
+uv pip install -e .[scoring]
 ```
 
 ## Usage
@@ -44,17 +43,17 @@ uv run maestro validate <path>
 
 1. Install development dependencies:
 ```bash
-uv pip install -e ".[dev]"
+uv pip install -e .
 ```
 
 2. Run tests:
 ```bash
-uv run test
+uv run pytest
 ```
 
 3. Run linter:
 ```bash
-uv run lint
+uv run black
 ```
 
 ## Contributing

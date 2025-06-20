@@ -47,12 +47,12 @@ We use [black](https://github.com/psf/black) for code formatting and [flake8](ht
 
 1. Install development dependencies:
 ```bash
-uv pip install -e ".[dev]"
+uv pip install -e .
 ```
 
 2. Run the linter:
 ```bash
-uv run lint
+uv run black
 ```
 
 ## Commit Messages
@@ -79,14 +79,14 @@ Types:
 
 Example:
 ```bash
-uv run commit "feat(agent): add new agent type"
+git commit -m "feat(agent): add new agent type"
 ```
 
 ## Pull Request Process
 
 1. Ensure all dependencies are installed (`uv pip install -e .`).
-2. Run the test suite (`uv run test`).
-3. Run the linter (`uv run lint`).
+2. Run the test suite (`uv run pytest`).
+3. Run the linter (`uv run black`).
 4. Update documentation if necessary.
 5. Create a pull request with a clear description of the changes.
 
