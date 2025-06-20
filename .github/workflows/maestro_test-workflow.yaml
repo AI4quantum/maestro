@@ -11,7 +11,7 @@ defaults:
     working-directory: demos # run from demo dir rather than root
 
 jobs:
-  release:
+  test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4 # TODO: replace with demo repo once its created
@@ -25,3 +25,5 @@ jobs:
         run: maestro create workflows/simple/agents.yaml
       - name: Run Workflow
         run: maestro run workflows/simple/workflow.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
