@@ -72,7 +72,8 @@ tool_data['get_optimizer_result'] = {
 
 
 class TestMCPToolDefinitions(TestCase):
-    def setUp(self):        
+    def setUp(self):
+        print(os.path.dirname(os.path.abspath(__file__))+"/../mcptools/qiskitmcp.py")
         self.server_params = StdioServerParameters(
             command="python",
             args=[os.path.dirname(os.path.abspath(__file__))+"/../mcptools/qiskitmcp.py"],
