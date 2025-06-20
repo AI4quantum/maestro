@@ -1,7 +1,7 @@
 from typing import Any
 import httpx
 from mcp.server.fastmcp import FastMCP
-from qiskit_ibm_catalog import QiskitFunctionsCatalog
+#from qiskit_ibm_catalog import QiskitFunctionsCatalog
 import json
  
 # Initialize FastMCP server
