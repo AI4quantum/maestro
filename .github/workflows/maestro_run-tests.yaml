@@ -29,7 +29,4 @@ jobs:
         uv pip install -e .[scoring]
     - name: Run tests
       run: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        export PATH=$PATH:$(pwd)/.venv/bin
-        uv pip install -e .[scoring]
         uv run pytest -v
