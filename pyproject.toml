@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-scoring = [
+crewai = [
     "crewai",
     "litellm==1.67.4.post1"
 ]
