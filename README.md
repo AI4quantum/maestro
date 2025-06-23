@@ -32,17 +32,23 @@ maestro validate <path>
 
 ## Development
 
-1. Install development dependencies:
+1. Clone the repository:
+```bash
+git clone https://github.com/AI4quantum/maestro.git
+cd maestro
+```
+
+2. Install development dependencies:
 ```bash
 uv pip install -e .
 ```
 
-2. Run tests:
+3. Run tests:
 ```bash
 uv run pytest
 ```
 
-3. Run linter:
+4. Run linter:
 ```bash
 uv run black
 ```
