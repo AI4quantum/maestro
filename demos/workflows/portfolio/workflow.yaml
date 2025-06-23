@@ -16,14 +16,14 @@ spec:
         - portfolio
         - plot
         - get security tickers
-    prompt: 8801.T, ITX.MC, META, GBPJPY=X, CLF
+    prompt: 8801.T, ITX.MC, META, GBPJPY=X, cleveland-cliffs
     steps:
       - name: step1
         agent: get security tickers
-      # - name: stock
-      #   agent: stock
-      # - name: portfolio
-      #   agent: portfolio
-      # - name: plot
-      #   agent: plot
+      - name: stock
+        agent: stock
+      - name: portfolio
+        agent: portfolio
+      - name: plot
+        agent: plot
 
