@@ -23,8 +23,19 @@ jobs:
       run: |
         curl -LsSf https://astral.sh/uv/install.sh | sh
         echo "$HOME/.cargo/bin" >> $GITHUB_PATH
-    - name: Install dependencies and run tests
+    - name: Install dependencies
       run: |
         uv venv --python 3.12
         uv pip install -e .[crewai]
+    - name: Bootstrap Maestro (deps + venv)
+      shell: bash
+      run: |
+        uv sync
+        uv venv --python 3.12 .venv
+        source .venv/bin/activate
+        uv pip install crewai litellm==1.67.0.post1
+    - name: Run tests
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+        export PATH=$PATH:$(pwd)/.venv/bin
         uv run pytest -v
