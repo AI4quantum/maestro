@@ -26,15 +26,7 @@ jobs:
     - name: Install dependencies
       run: |
         uv venv --python 3.12
-        uv pip install -r requirements.txt
-        uv pip install python-dotenv
-        uv pip install pytest-mock crewai
-        uv pip install -e .
-    - name: Bootstrap Maestro (deps + venv)
-      shell: bash
-      run: |
-        chmod +x ./tools/setup_maestro.sh
-        source ./tools/setup_maestro.sh
+        uv pip install -e .[scoring]
     - name: Run tests
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src

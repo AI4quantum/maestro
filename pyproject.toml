@@ -37,6 +37,7 @@ scoring = [
 
 [dependency-groups]
 dev = [
+    "python-dotenv>=1.1.0",
     "black>=24.10.0",
     "pytest>=8.3.4",
     "pytest-mock>=3.14.0"
