@@ -30,5 +30,4 @@ jobs:
     - name: Run tests
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        export PATH=$PATH:$(pwd)/.venv/bin
         uv run pytest -v

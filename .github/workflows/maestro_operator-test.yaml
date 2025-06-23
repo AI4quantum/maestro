@@ -53,7 +53,6 @@ jobs:
     - name: Deploy test agents, workflow, configmap and workflowrun
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        export PATH=$PATH:$(pwd)/.venv/bin
         maestro create-cr demos/workflows/weather-checker.ai/agents.yaml
         maestro create-cr demos/workflows/weather-checker.ai/workflow.yaml
         kubectl apply -f operator/test/config/test-configmap.yaml
