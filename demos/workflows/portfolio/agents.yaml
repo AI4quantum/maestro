@@ -156,47 +156,50 @@ metadata:
   labels:
     app: portfolio optimizer
 spec:
-  model: granite3.2:latest
-  framework: beeai
-  mode: remote
+  framework: code
+  mode: local
   description: |
-    LLM agent to resolve user-provided securities into valid tickers and asset types
+    Resolves stock/company/bond names or tickers into valid trading symbols using Yahoo Finance API.
   instructions: |
-    You are the **Security Resolver** agent for a portfolio optimization system.
+    Input is a comma-separated string of company names, tickers, or bond names.
+    Output is a clean comma-separated string of resolved ticker symbols.
+  code: |
+    import requests
+    import json
 
-    **Input:** A single comma-separated string of securities. Each item may be:
-    - a stock ticker
-    - a company name
-    - a bond name
-    - a bond ticker
-    
-    **Task:**
-    1. Parse the input into individual securities by splitting on commas.
-    2. For each security:
-       - If already in a ticker format, then keep it as is and move on to the next security.
-       - Resolve it into the correct trading symbol (ticker) after verifying with a yahoo finance search of the name and google ticker search.
-       - If you are unsure or cannot find a verified ticker, use the DuckDuckGo tool to find the correct symbol, and check it with multiple sources for validation.
-    3. Output a **single comma-separated string** of tickers.
-      - Exclude "UNKNOWN" values from the output.
-      - Do not include brackets, JSON objects, or extra quotes.
+    def search_yahoo_finance(query):
+        url = f"https://query2.finance.yahoo.com/v1/finance/search?q={query}"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        try:
+            response = requests.get(url, headers=headers, timeout=5)
+            if response.status_code == 200:
+                results = response.json().get("quotes", [])
+                if results:
+                    return results[0].get("symbol", None)
+        except:
+            pass
+        return None
 
-    Note: Usually stocks will be very easy to find, bond tickers however are harder and you may need to search websites like yahoo finance to find the correct ticker value.
-    Note: Make sure companies belong to their actual ticker, for example Facebook or FB's ticker is META. 
-    
-    **Example input:**
-    Facebook, Broadcom, Salesforce, 3 month treasury bond etf
-    
-    **Example output:**
-    META,AVGO,CRM,I:3MTBRNK
-    
-    **Important rules:**
-    - Do not make up tickers.
-    - Only use tickers you know with high confidence.
-    - If you're unsure, use "UNKNOWN" as the resolved symbol.
-    - Output only valid tickers after confirmaing with a search.
-  tools:
-    - LLM
-    - DuckDuckGo
+    user_input = input[0] if isinstance(input, (list, tuple)) and len(input) > 0 else input
+    items = [x.strip() for x in user_input.split(",")]
+    output_symbols = []
+    for item in items:
+        url = f"https://query1.finance.yahoo.com/v10/finance/quoteSummary/{item}?modules=price"
+        headers = {'User-Agent': 'Mozilla/5.0'}
+        try:
+            r = requests.get(url, headers=headers, timeout=5)
+            if r.status_code == 200:
+                json_data = r.json()
+                if json_data.get("quoteSummary", {}).get("result"):
+                    output_symbols.append(item.upper())
+                    continue
+        except:
+            pass
+
+        resolved = search_yahoo_finance(item)
+        if resolved:
+            output_symbols.append(resolved.upper())
+    output = ",".join(output_symbols)
 
 ---
 apiVersion: maestro/v1alpha1
