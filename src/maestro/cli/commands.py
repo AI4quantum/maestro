@@ -20,6 +20,8 @@ from jsonschema.exceptions import ValidationError, SchemaError
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
+from maestro.db_logger import generate_workflow_id, log_agent_response, log_workflow_run
+
 
 # Root CLI class
 class CLI:
@@ -313,11 +315,35 @@ class RunCmd(Command):
             prompt = self.__read_prompt()
             workflow_yaml[0]['spec']['template']['prompt'] = prompt
 
+        workflow_id = generate_workflow_id()
+
         try:
             self.__run_agents_workflow(agents_yaml, workflow_yaml)
+            workflow_name = workflow_yaml[0]["metadata"]["name"]
+            prompt = workflow_yaml[0]["spec"]["template"].get("prompt", "")
+            models_used = [agent["spec"].get("model") for agent in agents_yaml or []]
+            output = "N/A"  # TODO: update once Workflow output is directly accessible
+            log_workflow_run(
+                workflow_id=workflow_id,
+                workflow_name=workflow_name,
+                prompt=prompt,
+                output=output,
+                models_used=models_used,
+                status="success",
+                relevance_score=None,
+                hallucination_score=None
+            )
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
+            log_workflow_run(
+                workflow_id=workflow_id,
+                workflow_name="UNKNOWN",
+                prompt="",
+                output="",
+                models_used=[],
+                status="error"
+            )
             return 1
         return 0
         
