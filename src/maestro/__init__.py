@@ -15,7 +15,7 @@ from .agents.remote_agent import RemoteAgent
 from .agents.agent import save_agent, restore_agent, remove_agent
 from .deploy import Deploy
 
-__all__ = {
+__all__ = [
     "Workflow",
     "Deploy"
-}
+]

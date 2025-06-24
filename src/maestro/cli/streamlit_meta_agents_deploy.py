@@ -51,7 +51,7 @@ def deploy_meta_agents_streamlit(prompt_text_file):
         ]
 
     # Page header
-    st.image("images/maestro.png", width=200)
+    st.image("https://raw.githubusercontent.com/AI4quantum/maestro/main/images/maestro.png", width=200)
     st.title("Maestro Meta-Agents workflows")
 
     # Set tabs for: Meta-Agents agents and workflow workflows and the generated workflow

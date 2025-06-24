@@ -45,7 +45,7 @@ def deploy_agents_workflow_streamlit(agents_file, workflow_file):
         st.session_state.messages = [
             {"role": "assistant", "content": "Welcome to Maestro workflow"}]
 
-    st.image("images/maestro.png", width=200)
+    st.image("https://raw.githubusercontent.com/AI4quantum/maestro/main/images/maestro.png", width=200)
     st.title("Maestro workflow")
 
     ui = StreamlitWorkflowUI(agents_file, workflow_file, workflow_yaml[0]['spec']['template']['prompt'], 'Maestro workflow')

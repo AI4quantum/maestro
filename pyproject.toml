@@ -44,7 +44,7 @@ dev = [
 ]
 
 [project.scripts]
-maestro = "maestro.cli.maestro:__run_cli"
+maestro = "maestro.cli.run_maestro:__run_cli"
 
 [tool.setuptools.packages.find]
 where = ["src"]
