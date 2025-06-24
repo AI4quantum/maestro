@@ -30,9 +30,9 @@ uv pip install -r requirements-extra.txt
 uv run maestro run <workflow_path>
 ```
 
-2. Run an agent:
+2. Create an agent:
 ```bash
-uv run maestro run <agent_path>
+uv run maestro create <agent_path>
 ```
 
 3. Validate a workflow or agent:
