@@ -9,7 +9,7 @@ def generate_workflow_id():
     """Generate a unique workflow ID."""
     return uuid.uuid4().hex
 
-def log_workflow_run(workflow_id, workflow_name, prompt, output, models_used, status, relevance_score=None, hallucination_score=None):
+def log_workflow_run(workflow_id, workflow_name, prompt, output, models_used, status):
     """Insert a record into the workflow_runs table."""
     conn = sqlite3.connect(DB_FILE)
     c = conn.cursor()
@@ -17,8 +17,8 @@ def log_workflow_run(workflow_id, workflow_name, prompt, output, models_used, st
     c.execute("""
         INSERT INTO workflow_runs (
             workflow_id, timestamp, workflow_name, prompt, output,
-            models_used, status, relevance_score, hallucination_score
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            models_used, status
+        ) VALUES (?, ?, ?, ?, ?, ?,?)
     """, (
         workflow_id,
         datetime.now(UTC).isoformat(),
@@ -26,9 +26,7 @@ def log_workflow_run(workflow_id, workflow_name, prompt, output, models_used, st
         prompt,
         output,
         json.dumps(models_used),  # stored as JSON string
-        status,
-        relevance_score,
-        hallucination_score
+        status
     ))
     
     conn.commit()
