@@ -16,7 +16,10 @@ portfolio->>portfolio: portfolio
 
 ## Getting Started
 
-* Install [maestro](https://github.com/AI4quantum/maestro) dependencies: `cd ../../../maestro && poetry shell && poetry install && cd -`
+* Install [maestro](https://github.com/AI4quantum/maestro):
+   ```bash
+   pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
+   ```
 
 * Configure environmental variables: `cp example.env .env`
 
@@ -36,16 +39,12 @@ This demo shows how to use Maestro to create a portfolio management system.
 
 1. Install dependencies:
 ```bash
-cd maestro
-uv pip install -e .
-uv pip install yfinace
-uv pip install qiskit-ibm-catalog
-cd -
+pip install matplotlib yfinance qiskit-ibm-catalog
 ```
 
 2. Run the demo:
 ```bash
-uv run maestro run agents.yaml workflow.yaml
+maestro run agents.yaml workflow.yaml
 ```
 
 
