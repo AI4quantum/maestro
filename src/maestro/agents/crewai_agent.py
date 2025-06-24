@@ -11,7 +11,7 @@ try:
     enabled=True
     CREWAI_IMPORT_ERROR = None
 except ImportError as e:
-    print("WARNING: Could not import crewai. CrewAI agent support will be disabled. Run `pip install crewai litellm==1.67.0.post1` to enable")
+    print("WARNING: Could not import crewai. CrewAI agent support will be disabled. Run `pip install maestro[crewai]` to enable")
     enabled=False
     CREWAI_IMPORT_ERROR = e # Store the original error
     # Define dummy types to prevent NameErrors later if needed for type hints (though avoided below)

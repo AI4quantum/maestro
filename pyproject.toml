@@ -32,7 +32,7 @@ dependencies = [
 [project.optional-dependencies]
 crewai = [
     "crewai",
-    "litellm==1.67.4.post1"
+    "litellm==1.67.5"
 ]
 
 [dependency-groups]
