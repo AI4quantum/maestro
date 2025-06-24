@@ -17,7 +17,8 @@ CREATE TABLE IF NOT EXISTS workflow_runs (
     output TEXT,
     models_used TEXT,
     status TEXT,
-    score REAL
+    relevance_score REAL,
+    hallucination_score REAL
 )
 """)
 
