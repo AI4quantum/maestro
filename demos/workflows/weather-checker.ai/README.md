@@ -43,7 +43,7 @@ hot_or_not Agent->>hot_or_not Agent: compare_temperature
 
 Assuming you are in maestro level:
 
-Create the agents (and enable the tools): 
+Create the agents (and enable the tools):
 ```bash
 maestro create ./demos/workflows/weather-checker.ai/agents.yaml
 ```

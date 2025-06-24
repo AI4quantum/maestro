@@ -10,15 +10,15 @@ spec:
       name: summary-ai
       labels:
         project: maestro-demo
-    event:
-      cron: "0 0 * * *"
-      name: daily run
-      steps:
-        - All Papers
-        - get metadata
-        - generate summary
+#    event:
+#      cron: "0 0 * * *"
+#      name: daily run
+#      steps:
+#        - All Papers
+#        - get metadata
+#        - generate summary
 #        - slack
-      exit: "True"
+#      exit: "True"
     agents:
       - Query Interpreter
       - All Papers

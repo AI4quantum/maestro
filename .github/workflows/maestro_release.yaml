@@ -25,8 +25,3 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
-#      - uses: actions/upload-artifact@v4
-#        with:
-#          path: dist/*
-#      - name: Publish to PyPi
-#        uses: pypa/gh-action-pypi-publish@release/v1

@@ -10,20 +10,20 @@ spec:
       name: ibm-summary-ai
       labels:
         project: maestro-demo
-    event:
-      cron: "0 0 * * *"
-      name: daily run
-      steps:
-        - Paper Finder
-        - get metadata
-        - generate summary
-        - slack
-      exit: "True"
+#    event:
+#      cron: "0 0 * * *"
+#      name: daily run
+#      steps:
+#        - Paper Finder
+#        - get metadata
+#        - generate summary
+#        - slack
+#      exit: "True"
     agents:
       - Paper Finder
       - get metadata
       - generate summary
-      - slack
+#      - slack
     prompt: find_ibm_papers("stat.ML",30)
     steps:
       - name: Step1
@@ -32,5 +32,5 @@ spec:
         agent: get metadata
       - name: Step3
         agent: generate summary
-      - name: Step4
-        agent: slack
+#      - name: Step4
+#        agent: slack
