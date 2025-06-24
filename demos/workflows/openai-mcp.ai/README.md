@@ -41,7 +41,7 @@ Successful connection should output:
 
 This demo is run from the overall test framework:
 
-* ../.github/workflows/maestro_demo-tests.yaml : This defines the overall trigger and sets up a basic environment including the latest Ollama release
+* .`./.github/workflows/maestro_demo-tests.yaml` : This defines the overall trigger and sets up a basic environment including the latest Ollama release
 * [run-demos.sh](../../../tests/run-demos.sh) : Overall framework. By default only runs a *dry-run*, but if a `.run` file is found in the test directory (ie here for this demo) it will execute a normal run.
 * The [test.sh](test.sh) will
   * download the required ollama model (taken from [agents.yaml](agents.yaml))
