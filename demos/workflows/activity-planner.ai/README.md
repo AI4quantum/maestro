@@ -56,8 +56,6 @@ hot_activities->>hot_activities: exit
    pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
    ```
 
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
+* Configure environmental variables: `cp demos/example.env .env`
 
 * Run the workflow: `./run.sh` (to run for a different city, change the `prompt` field in `workflow.yaml`)

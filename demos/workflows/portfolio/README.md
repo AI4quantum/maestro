@@ -16,14 +16,10 @@ portfolio->>portfolio: portfolio
 
 ## Getting Started
 
-* Install [maestro](https://github.com/AI4quantum/maestro):
+Install [maestro](https://github.com/AI4quantum/maestro):
    ```bash
    pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
    ```
-
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
 
 ## Running the Workflow
 

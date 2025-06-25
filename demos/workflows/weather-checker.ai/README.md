@@ -35,9 +35,7 @@ hot_or_not Agent->>hot_or_not Agent: compare_temperature
 
 * Verify a valid llm is available to bee-stack
 
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
+* Configure environmental variables: `cp demos/example.env .env`
 
 ## Running workflow
 

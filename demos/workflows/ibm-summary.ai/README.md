@@ -37,9 +37,7 @@ end
    pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
    ```
 
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
+* Configure environmental variables: `cp demos/example.env .env`
 
 ## Running the Workflow
 
