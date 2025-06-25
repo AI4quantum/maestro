@@ -1,21 +1,27 @@
 import sqlite3
 import uuid
-from datetime import datetime, UTC
 import json
+from datetime import datetime, UTC
+from threading import Lock
 
 class DbLogger:
-    def __init__(self, db_path="maestro_logs.db"):
-        self._db_path = db_path
-        self._ensure_initialized()
+    _instance = None
+    _lock = Lock()
+
+    def __new__(cls, db_path="maestro_logs.db"):
+        with cls._lock:
+            if cls._instance is None:
+                cls._instance = super(DbLogger, cls).__new__(cls)
+                cls._instance._db_path = db_path
+                cls._instance._ensure_initialized()
+            return cls._instance
 
     def _connect(self):
         return sqlite3.connect(self._db_path)
 
     def _ensure_initialized(self):
-        """Ensure required tables exist."""
         with self._connect() as conn:
             c = conn.cursor()
-
             c.execute("""
                 CREATE TABLE IF NOT EXISTS workflow_runs (
                     workflow_id TEXT PRIMARY KEY,
@@ -27,7 +33,6 @@ class DbLogger:
                     status TEXT
                 )
             """)
-
             c.execute("""
                 CREATE TABLE IF NOT EXISTS agent_responses (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -41,7 +46,6 @@ class DbLogger:
                     duration_ms INTEGER
                 )
             """)
-
             conn.commit()
 
     def generate_workflow_id(self):
