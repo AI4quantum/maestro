@@ -20,7 +20,7 @@ from jsonschema.exceptions import ValidationError, SchemaError
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
-from maestro.db_logger import generate_workflow_id, log_agent_response, log_workflow_run
+from maestro.db_logger import DbLogger
 
 
 # Root CLI class
@@ -306,8 +306,9 @@ class RunCmd(Command):
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
-        agents_yaml, workflow_yaml = None, None
-        workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
+        logger = DbLogger()
+        workflow_id = logger.generate_workflow_id()
+        agents_yaml, workflow_yaml = None, parse_yaml(self.WORKFLOW_FILE())
         agents_file_arg = self.AGENTS_FILE()
         if agents_file_arg is not None and agents_file_arg != 'None':
             agents_yaml = parse_yaml(agents_file_arg)
@@ -323,7 +324,7 @@ class RunCmd(Command):
         if self.prompt():
             prompt = self.__read_prompt()
             workflow_yaml[0]['spec']['template']['prompt'] = prompt
-        workflow_id = generate_workflow_id()
+            
         try:
             workflow = Workflow(agents_yaml, workflow_yaml[0])
             Console.print("[DEBUG] Starting workflow execution")
@@ -334,8 +335,6 @@ class RunCmd(Command):
                 agent["spec"].get("model") or f"code:{agent['metadata']['name']}"
                 for agent in agents_yaml or []
             ]
-
-
             EXCLUDED_CUSTOM_AGENTS = {"slack_agent", "scoring_agent"}
             agent_labels = {}
             if agents_yaml:
@@ -360,8 +359,7 @@ class RunCmd(Command):
                     if step_result and custom_type not in EXCLUDED_CUSTOM_AGENTS:
                         output = step_result
                         break
-
-            log_workflow_run(
+            logger.log_workflow_run(
                 workflow_id=workflow_id,
                 workflow_name=workflow_name,
                 prompt=prompt,
@@ -372,7 +370,7 @@ class RunCmd(Command):
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
-            log_workflow_run(
+            logger.log_workflow_run(
                 workflow_id=workflow_id,
                 workflow_name="UNKNOWN",
                 prompt="",
@@ -382,6 +380,7 @@ class RunCmd(Command):
             )
             return 1
         return 0
+
 
 # Deploy command group
 #  maestro deploy AGENTS_FILE WORKFLOW_FILE [options]
