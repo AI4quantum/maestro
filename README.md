@@ -20,9 +20,9 @@ pip install "maestro[crewai] @ git+https://github.com/AI4quantum/maestro.git@v0.
 maestro run <workflow_path>
 ```
 
-2. Run an agent:
+2. Create an agent:
 ```bash
-maestro run <agent_path>
+maestro create <agent_path>
 ```
 
 3. Validate a workflow or agent:
@@ -59,4 +59,4 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache license- see the [LICENSE](LICENSE) file for details.
