@@ -9,6 +9,7 @@ Demo of how to run QAOA as a Qiskit Pattern on Maestro.
 
 ```bash
 kind create cluster --image kindest/node:v1.32.3
+kubectl label node kind-control-plane has-cpu=cpu
 ```
 
 
@@ -53,5 +54,5 @@ pip install qiskit-serverless qiskit numpy
 ### Run workflow
 
 ```bash
-maestro deploy agents.yaml workflow.yaml
+maestro run agents.yaml workflow.yaml
 ```
