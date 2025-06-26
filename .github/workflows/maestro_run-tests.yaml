@@ -29,6 +29,7 @@ jobs:
         uv pip install -r requirements.txt
         uv pip install python-dotenv
         uv pip install pytest-mock crewai
+	uv pip install qiskit_ibm_catalog
         uv pip install -e .
     - name: Bootstrap Maestro (deps + venv)
       shell: bash
