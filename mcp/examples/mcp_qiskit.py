@@ -25,11 +25,6 @@ from beeai_framework.tools import AnyTool
 from beeai_framework.tools.mcp import MCPTool
 from beeai_framework.tools.code import SandboxTool
 
-# Example prompt
-#
-# solve following cost function and retrive the result {"()": 1,"(0,)": 1.5,"(1,)": 2,"(2,)": 1.3,"(0, 3)": 2.5,"(1, 4)": 3.5,"(0, 1, 2)": 4}
-#
-
 import sys
 
 from pydantic import BaseModel
@@ -95,10 +90,13 @@ reader = ConsoleReader()
 logger = Logger("app", level=logging.DEBUG)
 
 # local MCP runtime
+token = os.getenv("IQP_TOKEN", "None")
+channel = os.getenv("IQP_CHANNEL", "None")
+instance = os.getenv("IQP_INSTANCE", "None")
 server_params = StdioServerParameters(
     command="python",
     args=[os.path.dirname(os.path.abspath(__file__))+"/../mcptools/qiskit_mcp.py"],
-    env=None
+    env={"IQP_TOKEN": token, "IQP_CHANNEL": channel, "IQP_INSTANCE": instance }
 )
 
 async def create_agent(session: ClientSession) -> ReActAgent:
