@@ -20,7 +20,8 @@ from jsonschema.exceptions import ValidationError, SchemaError
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
-from maestro.db_logger import DbLogger
+from maestro.file_logger import FileLogger
+from pathlib import Path
 
 
 # Root CLI class
@@ -306,9 +307,14 @@ class RunCmd(Command):
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
-        logger = DbLogger()
+        workflow_path = Path(self.WORKFLOW_FILE())
+        log_dir = workflow_path.parent
+        logger = FileLogger(log_dir=log_dir)
         workflow_id = logger.generate_workflow_id()
-        agents_yaml, workflow_yaml = None, parse_yaml(self.WORKFLOW_FILE())
+
+        workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
+
+        # --- Load agents.yaml ---
         agents_file_arg = self.AGENTS_FILE()
         if agents_file_arg is not None and agents_file_arg != 'None':
             agents_yaml = parse_yaml(agents_file_arg)
@@ -321,20 +327,25 @@ class RunCmd(Command):
             else:
                 agents_yaml = None
                 Console.warn("⚠️ No agents.yaml path provided or found — skipping custom_agent label handling.")
+
+        # --- Read prompt ---
         if self.prompt():
             prompt = self.__read_prompt()
             workflow_yaml[0]['spec']['template']['prompt'] = prompt
-            
+
         try:
             workflow = Workflow(agents_yaml, workflow_yaml[0])
             Console.print("[DEBUG] Starting workflow execution")
             result = asyncio.run(workflow.run())
+
             workflow_name = workflow_yaml[0]["metadata"]["name"]
             prompt = workflow_yaml[0]["spec"]["template"].get("prompt", "")
             models_used = [
                 agent["spec"].get("model") or f"code:{agent['metadata']['name']}"
                 for agent in agents_yaml or []
             ]
+
+            # --- Final output selection ---
             EXCLUDED_CUSTOM_AGENTS = {"slack_agent", "scoring_agent"}
             agent_labels = {}
             if agents_yaml:
@@ -343,6 +354,7 @@ class RunCmd(Command):
                     custom_agent = agent_def.get("metadata", {}).get("labels", {}).get("custom_agent", "")
                     if name:
                         agent_labels[name.lower()] = custom_agent
+
             output = "N/A"
             if result:
                 for step_name in reversed(list(workflow.steps.keys())):
@@ -359,6 +371,7 @@ class RunCmd(Command):
                     if step_result and custom_type not in EXCLUDED_CUSTOM_AGENTS:
                         output = step_result
                         break
+
             logger.log_workflow_run(
                 workflow_id=workflow_id,
                 workflow_name=workflow_name,
@@ -367,6 +380,7 @@ class RunCmd(Command):
                 models_used=models_used,
                 status="success"
             )
+
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
@@ -379,6 +393,7 @@ class RunCmd(Command):
                 status="error"
             )
             return 1
+
         return 0
 
 
