@@ -23,6 +23,11 @@ source .venv/bin/activate  # On Unix/macOS
 uv pip install -e .
 ```
 
+4. (optional) Enable pre-commit
+```bash
+uv run pre-commit install
+```
+
 ## Development Workflow
 
 1. Create a new branch for your feature or bugfix:
