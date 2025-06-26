@@ -49,6 +49,7 @@ spec:
   code: |
     from qiskit_serverless import ServerlessClient
     from qiskit_serverless.serializers import circuit_deserializer
+    from qiskit.quantum_info import SparsePauliOp
 
     import os
     import time

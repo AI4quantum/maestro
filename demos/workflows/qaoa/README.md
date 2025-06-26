@@ -20,6 +20,9 @@ kind create cluster --image kindest/node:v1.32.3
 helm install qs \
     --set platform=kind \
     --set nginxIngressControllerEnable=false \
+    --set gateway.image.repository=icr.io/quantum-public/qiskit-serverless/gateway \
+    --set gateway.image.tag=0.22.0 \
+    --set gateway.application.ray.nodeImage=icr.io/quantum-public/qiskit-serverless/ray-node:0.22.0 \
     --set gateway.application.ray.cpu=1 \
     --set gateway.application.ray.memory=2 \
     --set gateway.application.debug=1 \
