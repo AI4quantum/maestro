@@ -11,7 +11,6 @@ try:
     enabled=True
     CREWAI_IMPORT_ERROR = None
 except ImportError as e:
-    print("WARNING: Could not import crewai. CrewAI agent support will be disabled. Run `pip install crewai litellm==1.67.0.post1` to enable")
     enabled=False
     CREWAI_IMPORT_ERROR = e # Store the original error
     # Define dummy types to prevent NameErrors later if needed for type hints (though avoided below)
@@ -43,6 +42,7 @@ class CrewAIAgent(BeeAgent):
             raise RuntimeError(
                 f"Cannot initialize CrewAIAgent '{agent.get('metadata', {}).get('name', 'Unknown')}': "
                 f"CrewAI support is disabled because the 'crewai' library could not be imported. "
+                "To enable, run `pip install maestro[crewai]`"
                 f"Original error: {CREWAI_IMPORT_ERROR}"
             )
 
