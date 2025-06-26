@@ -11,7 +11,7 @@ import importlib
 
 # Qiskit Catalog handling
 
-if not os.getenv("DRY_RUN"):
+if os.getenv("IQP_TOKEN") != "None":
     module = importlib.import_module("qiskit_ibm_catalog")
 
 class Job:
