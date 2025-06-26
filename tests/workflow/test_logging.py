@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 from maestro.file_logger import FileLogger
 
