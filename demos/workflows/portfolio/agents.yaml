@@ -12,9 +12,14 @@ spec:
   code: |
     import pandas as pd
     import json
+    import time
     from qiskit_ibm_catalog import QiskitFunctionsCatalog
 
     class mock_result:
+      job_id = "mock_job_id"
+      def status(self):
+         return "DONE"
+
       def result(self):
         result = {
           'time_step_0': {
@@ -54,12 +59,11 @@ spec:
             'XS2239553048': 0.21212121212121213
           }
         }
-        metadata = {"all_samples_metrics": {"objective_costs": [1.25, 0.98], "states": [[0, 1, 0, 1, 0, 1], [0, 0, 0, 1, 1, 1]], "restriction_breaches": [0.0, 0.25], "sharpe_ratios": [1.1, 0.7], "returns": [0.15, 0.10]}}
+        metadata = {"all_samples_metrics": {"objective_costs": [1.25, 0.98], "states": [[0, 1, 0, 1, 0, 1], [0, 0, 0, 1, 1, 1]], "rest_breaches": [0.0, 0.25], "sharpe_ratios": [1.1, 0.7], "returns": [0.15, 0.10]}}
         return {"result": result, "metadata": metadata}
 
-    def mock_run(assets, qubo_settings): 
+    def mock_run(assets, qubo_settings, instance, channel): 
       return mock_result()
-
 
     # For not mock case
     #catalog = QiskitFunctionsCatalog(
@@ -67,10 +71,10 @@ spec:
     #)
     #dpo_solver = catalog.load("gdq/quantum_portfolio_optimizer")
 
-    assets = input[0]
+    assets = json.loads(input[0])
     qubo_settings = {
-      "nt": 4,
-      "nq": 4,
+      "nt": 2,
+      "nq": 2,
       "dt": 30,
       "max_investment": 25,
       "risk_aversion": 1000.0,
@@ -83,29 +87,41 @@ spec:
     #dpo_job = dpo_solver.run(  
       assets=assets,
       qubo_settings=qubo_settings,
+      instance='project-based/internal/functions',
+      channel='ibm_quantum',
     )
-    dpo_result = dpo_job.result()
+    print(f"Job id: {dpo_job.job_id}")
+    dpo_status = dpo_job.status()
+    while dpo_status != "DONE" and dpo_status != "ERROR":
+        dpo_status = dpo_job.status()
+        print(dpo_status)
+        time.sleep(30)
 
-    # Convert metadata to a DataFrame
-    df = pd.DataFrame(dpo_result["metadata"]["all_samples_metrics"])
+    if dpo_status == "ERROR":
+       output = dpo_job.logs()
+       print(dpo_job.result())
+    else:
+       dpo_result = dpo_job.result()
 
-    # Find the minimum objective cost 
-    min_cost = df["objective_costs"].min()
-    output = f"Minimum Objective Cost Found: {min_cost:.2f}\n"
+       # Convert metadata to a DataFrame
+       df = pd.DataFrame(dpo_result["metadata"]["all_samples_metrics"])
 
-    # Extract the row with the lowest cost
-    best_row = df[df["objective_costs"] == min_cost].iloc[0]
+       # Find the minimum objective cost 
+       min_cost = df["objective_costs"].min()
+       metadata = f"Minimum Objective Cost Found: {min_cost:.2f}\n"
 
-    # Display the results associated with the best solution
-    metadata = ""
-    metadata += "Best Solution:\n"
-    metadata += f"  - State: {best_row['states']}\n"
-    metadata += f"  - Restriction Deviation: {best_row['restriction_breaches']}%\n"
-    metadata += f"  - Sharpe Ratio: {best_row['sharpe_ratios']:.2f}\n"
-    metadata += f"  - Return: {best_row['returns']}"
+       # Extract the row with the lowest cost
+       best_row = df[df["objective_costs"] == min_cost].iloc[0]
 
-    json_all = json.dumps({"data": dpo_result["result"], "metadata": metadata})
-    output = json_all
+       # Display the results associated with the best solution
+       metadata += "Best Solution:\n"
+       metadata += f"  - State: {best_row['states']}\n"
+       metadata += f"  - Restriction Deviation: {best_row['rest_breaches']}%\n"
+       metadata += f"  - Sharpe Ratio: {best_row['sharpe_ratios']:.2f}\n"
+       metadata += f"  - Return: {best_row['returns']}"
+
+       json_all = json.dumps({"data": dpo_result["result"], "metadata": metadata})
+       output = json_all
 
 ---
 
@@ -127,7 +143,7 @@ spec:
     from datetime import datetime, timedelta
 
     now = datetime.now()
-    start = now - timedelta(weeks=2)
+    start = now - timedelta(weeks=20)
     start_date = start.strftime('%Y-%m-%d')
     end = now - timedelta(days=1)
     end_date = end.strftime('%Y-%m-%d')
