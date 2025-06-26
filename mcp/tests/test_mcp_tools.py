@@ -46,7 +46,7 @@ class TestMCPToolDefinitions(TestCase):
         self.server_params = StdioServerParameters(
             command="python",
             args=[os.path.dirname(os.path.abspath(__file__))+"/../mcptools/qiskit_mcp.py"],
-            env=None
+            env={"IQP_TOKEN": "None", "IQP_CHANNEL": "None", "IQP_INSTANCE": "None"}
         )
           
     def test_each_tool(self):
