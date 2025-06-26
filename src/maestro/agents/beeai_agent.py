@@ -6,15 +6,16 @@ import asyncio
 import requests
 import json
 
+from beeai_framework.agents.tool_calling import ToolCallingAgent
 from openai import AssistantEventHandler, OpenAI
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.threads.runs import RunStep, RunStepDelta, ToolCall
 
-from typing import Any
+from typing import Any, Callable
 from pydantic import BaseModel
 
 from beeai_framework.adapters.ollama import OllamaChatModel
-from beeai_framework.agents import AgentExecutionConfig
+from beeai_framework.agents import AgentExecutionConfig, AgentMeta
 from beeai_framework.agents.react import ReActAgent
 from beeai_framework.emitter import Emitter, EmitterOptions, EventMeta
 from beeai_framework.errors import FrameworkError
@@ -184,31 +185,17 @@ Use one of the following tools: {{#trim}}{{#tools}}{{name}},{{/tools}}{{/trim}}
 def user_template_func(template: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
     return template.fork(customizer=user_customizer)
 
-def system_template_func(template: PromptTemplateInput[Any], instructions: str) -> PromptTemplateInput[Any]:
-    return template.update(defaults={"instructions": instructions.strip()})
+def get_system_template_func(instructions: str | None) -> Callable[[PromptTemplateInput], PromptTemplateInput[Any]]:
+    def system_template_func(template: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
+        return template.update(defaults={"instructions": instructions or "You are a helpful assistant that uses tools to answer questions."})
+
+    return system_template_func
 
 def tool_no_result_error_template_func(template: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
     return template.fork(customizer=no_result_customizer)
 
 def tool_not_found_error_template_func(template: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
     return template.fork(customizer=not_found_customizer)
-
-def write(role: str, data: str) -> None:
-    """ write message """
-    self.print(f"{role} {data}")
-
-def process_agent_events(data: Any, event: EventMeta) -> None:
-    """Process agent events and log appropriately"""
-
-    if event.name == "error":
-        write("Agent 🤖 : ", FrameworkError.ensure(data.error).explain())
-    elif event.name == "success":
-        write("Agent 🤖 : ", "success")
-
-
-def observer(emitter: Emitter) -> None:
-    """Observer"""
-    emitter.on("*", process_agent_events, EmitterOptions(match_nested=False))
 
 class BeeAILocalAgent(Agent):
     """
@@ -227,23 +214,39 @@ class BeeAILocalAgent(Agent):
         llm = OllamaChatModel(self.agent_model)
 
         templates: dict[str, Any] = {
-            "user": lambda template: template.fork(customizer=user_customizer),
-            "system": lambda template: template.update(
-                defaults={"instructions": "You are a helpful assistant that uses tools to answer questions."}
-            ),
-            "tool_no_result_error": lambda template: template.fork(customizer=no_result_customizer),
-            "tool_not_found_error": lambda template: template.fork(customizer=not_found_customizer),
+            "user": user_template_func,
+            "system": get_system_template_func(self.agent_instr),
+            "tool_no_result_error": tool_no_result_error_template_func,
+            "tool_not_found_error": tool_not_found_error_template_func,
         }
 
         tools: list[AnyTool] = [
-            # WikipediaTool(),
             OpenMeteoTool(),
             DuckDuckGoSearchTool(),
         ]
 
         self.agent = ReActAgent(
-            llm=llm, templates=templates, tools=tools, memory=UnconstrainedMemory()
+            llm=llm, templates=templates, tools=tools, memory=UnconstrainedMemory(),
+            meta=AgentMeta(name=self.agent_name, description=self.agent_desc, tools=tools)
         )
+
+    def process_agent_events(self, data: Any, event: EventMeta) -> None:
+        """Process agent events and log appropriately"""
+
+        if event.name == "error":
+            self.print("Agent 🤖 : {FrameworkError.ensure(data.error).explain()}")
+        elif event.name == "retry":
+            self.print("Agent 🤖 :  retrying the action...")
+        elif event.name == "update":
+            self.print(f"Agent({data.update.key}) 🤖 : {data.update.parsed_value}")
+        elif event.name == "start":
+            self.print("Agent 🤖 :  starting new iteration")
+        elif event.name == "success":
+            self.print("Agent 🤖 :  success")
+
+    def observer(self, emitter: Emitter) -> None:
+        """Observer"""
+        emitter.on("*", self.process_agent_events, EmitterOptions(match_nested=False))
 
     async def run(self, prompt: str) -> str:
         """
@@ -260,7 +263,7 @@ class BeeAILocalAgent(Agent):
                 max_iterations=20
             ),
             signal=AbortSignal.timeout(2 * 60 * 1000),
-        ).observe(observer)
+        ).observe(self.observer)
         answer = response.result.text
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
@@ -280,7 +283,7 @@ class BeeAILocalAgent(Agent):
                 max_iterations=20
             ),
             signal=AbortSignal.timeout(2 * 60 * 1000),
-        ).observe(observer)
+        ).observe(self.observer)
         answer = response.result.text
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
