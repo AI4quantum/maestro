@@ -21,5 +21,5 @@ class FileLogger:
             f.write(f"Models Used   : {models_used}\n")
 
     def log_agent_response(self, agent_name, input_text, response_text):
-        # You can extend this later
+        extend this later
         pass
