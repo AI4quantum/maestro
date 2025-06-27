@@ -17,7 +17,7 @@ uv pip install -e .
 
 3. Activate the virtual environment:
 ```bash
-uv venv
+uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
 .venv\Scripts\activate  # On Windows
@@ -113,6 +113,35 @@ git commit -m "feat(agent): add new agent type"
 │── README.md               # Project documentation
 │── CONTRIBUTING.md         # Contribution guidelines
 ```
+
+---
+
+## Setting Up Your Environment
+
+### 1. Clone the Repository
+
+```bash
+git clone https://github.com/AI4quantum/maestro.git
+cd maestro
+```
+
+### 2. Set Up the Virtual Environment
+
+```bash
+uv venv --python 3.12
+source .venv/bin/activate  # On Unix/macOS
+# or
+.venv\Scripts\activate  # On Windows
+uv pip install -e .
+```
+
+### 3. Configure Environment Variables
+
+- Copy `example.env` and rename it to `.env`:
+
+  ```bash
+  cp example.env .env
+  ```
 
 ---
 

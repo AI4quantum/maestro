@@ -48,7 +48,7 @@ uv pip install -e .
 uv run pytest
 ```
 
-4. Run linter:
+4. Run formatter:
 ```bash
 uv run black
 ```
