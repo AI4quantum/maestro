@@ -94,7 +94,7 @@ Set the script path to run relative to your location, whereever in the terminal:
 
 ```bash
 #!/bin/bash
-export PYTHONPATH="/Users/REPLACEwUser/Desktop/work/bee-hive:$PYTHONPATH"
+export PYTHONPATH="/Users/REPLACEwUser/Desktop/work/maestro:$PYTHONPATH"
 python3 -m maestro.cli.maestro "$@"
 ```
 
