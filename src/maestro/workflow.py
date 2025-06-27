@@ -34,8 +34,8 @@ def create_agents(agent_defs):
             agent_def["spec"]["framework"],
             agent_def["spec"].get("mode")
         )
-        save_agent(cls(agent_def))
-
+        instance = cls(agent_def)
+        save_agent(instance, agent_def)
 
 class Workflow:
     def __init__(self, agent_defs=None, workflow=None):
@@ -76,8 +76,28 @@ class Workflow:
         if self.agent_defs:
             for agent_def in self.agent_defs:
                 if isinstance(agent_def, str):
-                    self.agents[agent_def] = restore_agent(agent_def)
+                    instance, restored = restore_agent(agent_def)
+                    if restored:
+                        self.agents[agent_def] = instance
+                        continue
+                    else:
+                        agent_def = instance
+
+                agent_def["spec"]["framework"] = agent_def["spec"].get(
+                    "framework", AgentFramework.BEEAI
+                )
+                cls = get_agent_class(
+                    agent_def["spec"]["framework"],
+                    agent_def["spec"].get("mode")
+                )
+                self.agents[agent_def["metadata"]["name"]] = cls(agent_def)
+        else:
+            for name in self.workflow["spec"]["template"]["agents"]:
+                instance, restored = restore_agent(name)
+                if restored:
+                    self.agents[name] = instance
                 else:
+                    agent_def = instance
                     agent_def["spec"]["framework"] = agent_def["spec"].get(
                         "framework", AgentFramework.BEEAI
                     )
@@ -86,9 +106,6 @@ class Workflow:
                         agent_def["spec"].get("mode")
                     )
                     self.agents[agent_def["metadata"]["name"]] = cls(agent_def)
-        else:
-            for name in self.workflow["spec"]["template"]["agents"]:
-                self.agents[name] = restore_agent(name)
 
     def find_index(self, steps, name):
         for idx, step in enumerate(steps):
