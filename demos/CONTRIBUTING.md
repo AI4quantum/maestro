@@ -116,35 +116,6 @@ git commit -m "feat(agent): add new agent type"
 
 ---
 
-## Setting Up Your Environment
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/AI4quantum/maestro.git
-cd maestro
-```
-
-### 2. Set Up the Virtual Environment
-
-```bash
-uv venv
-source .venv/bin/activate  # On Unix/macOS
-# or
-.venv\Scripts\activate  # On Windows
-uv pip install -e .
-```
-
-### 3. Configure Environment Variables
-
-- Copy `example.env` and rename it to `.env`:
-
-  ```bash
-  cp example.env .env
-  ```
-
----
-
 ## Validating and Running Demos with Maestro
 
 ### Validate Workflow and Agent YAML Files

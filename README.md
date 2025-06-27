@@ -59,4 +59,4 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 
 ## License
 
-This project is licensed under the Apache license- see the [LICENSE](LICENSE) file for details.
+This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.
