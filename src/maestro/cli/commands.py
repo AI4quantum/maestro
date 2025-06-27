@@ -308,8 +308,7 @@ class RunCmd(Command):
             int: Return code (0 for success, 1 for failure)
         """
         workflow_path = Path(self.WORKFLOW_FILE())
-        log_dir = workflow_path.parent
-        logger = FileLogger(log_dir=log_dir)
+        logger = FileLogger()
         workflow_id = logger.generate_workflow_id()
 
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())

@@ -54,6 +54,15 @@ def test_log_agent_response(tmp_path):
     logger = FileLogger(log_dir=tmp_path)
     workflow_id = logger.generate_workflow_id()
 
+    logger.log_workflow_run(
+        workflow_id=workflow_id,
+        workflow_name="agent_response_workflow",
+        prompt="math test",
+        output="4",
+        models_used=["test-model"],
+        status="success"
+    )
+
     logger.log_agent_response(
         workflow_id=workflow_id,
         step_index=0,
@@ -63,15 +72,6 @@ def test_log_agent_response(tmp_path):
         response_text="4",
         tool_used="calculator",
         duration_ms=123
-    )
-
-    logger.log_workflow_run(
-        workflow_id=workflow_id,
-        workflow_name="agent_response_workflow",
-        prompt="math test",
-        output="4",
-        models_used=["test-model"],
-        status="success"
     )
 
     log_file = _find_log_file_by_workflow_id(tmp_path, workflow_id)

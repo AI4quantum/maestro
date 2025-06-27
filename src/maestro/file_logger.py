@@ -2,9 +2,11 @@ import uuid
 from datetime import datetime, UTC
 from pathlib import Path
 
+DEFAULT_LOG_DIR = Path.home() / ".maestro" / "logs"
+
 class FileLogger:
     def __init__(self, log_dir=None):
-        self.log_dir = Path(log_dir) if log_dir else Path.cwd()
+        self.log_dir = Path(log_dir) if log_dir else DEFAULT_LOG_DIR
         self.log_dir.mkdir(parents=True, exist_ok=True)
 
     def generate_workflow_id(self):
