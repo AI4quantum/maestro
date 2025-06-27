@@ -4,6 +4,7 @@
 from dotenv import load_dotenv
 import asyncio
 import ast
+import time
 from maestro.utils import eval_expression, convert_to_list
 
 load_dotenv()
@@ -29,13 +30,14 @@ class Step:
         self.step_parallel = step.get("parallel")
         self.step_loop     = step.get("loop")
 
-    async def run(self, *args, context=None):
+    async def run(self, *args, context=None, workflow_id=None, step_index=None, logger=None):
         """
         Runs the step, passing along any number of positional arguments
         (from the workflow's `inputs:`), plus an optional `context=`.
 
         Returns always a dict with at least {"prompt": ...} so downstream logic stays the same.
         """
+        start = time.perf_counter()
 
         if self.step_agent:
             if context is None:
@@ -43,8 +45,21 @@ class Step:
             else:
                 res = await self.step_agent.run(*args, context=context)
         else:
-
             res = args[-1] if args else ""
+
+        end = time.perf_counter()
+
+        if logger and self.step_agent:
+            logger.log_agent_response(
+                workflow_id=workflow_id,
+                step_index=step_index,
+                agent_name=getattr(self.step_agent, "agent_name", "unknown"),
+                model=getattr(self.step_agent, "agent_model", "unknown"),
+                input_text=args[0] if args else "",
+                response_text=res,
+                tool_used=None,
+                duration_ms=int((end - start) * 1000)
+            )
 
         if isinstance(res, dict):
             output = res.copy()

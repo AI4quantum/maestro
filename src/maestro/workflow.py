@@ -50,7 +50,7 @@ class Workflow:
             wf = wf[0]
         return Mermaid(wf, kind, orientation).to_markdown()
 
-    async def run(self, prompt=''):
+    async def run(self, prompt='', workflow_id=None, logger=None):
         if prompt:
             self.workflow['spec']['template']['prompt'] = prompt
         self._create_or_restore_agents()
@@ -58,10 +58,10 @@ class Workflow:
         template = self.workflow['spec']['template']
         try:
             if template.get('event'):
-                result = await self._condition()
+                result = await self._condition(workflow_id, logger)
                 return await self.process_event(result)
             else:
-                return await self._condition()
+                return await self._condition(workflow_id, logger)
         except Exception as err:
             exc_def = template.get('exception')
             if exc_def:
@@ -96,7 +96,7 @@ class Workflow:
                 return idx
         return None
 
-    async def _condition(self):
+    async def _condition(self, workflow_id=None, logger=None):
         template = self.workflow["spec"]["template"]
         initial_prompt = template["prompt"]
         steps = template["steps"]
@@ -120,6 +120,7 @@ class Workflow:
         step_results = {}
         current = steps[0]["name"]
         prompt = initial_prompt
+        step_index = 0
 
         while True:
             definition = step_defs[current]
@@ -135,10 +136,21 @@ class Workflow:
                         args.append(step_results[src])
                     else:
                         args.append(src)
-                result = await self.steps[current].run(*args)
+                result = await self.steps[current].run(
+                    *args,
+                    workflow_id=workflow_id,
+                    step_index=step_index,
+                    logger=logger
+                )
             else:
-                result = await self.steps[current].run(prompt)
+                result = await self.steps[current].run(
+                    prompt,
+                    workflow_id=workflow_id,
+                    step_index=step_index,
+                    logger=logger
+                )
 
+            step_index += 1
             prompt = result.get("prompt")
             step_results[current] = prompt
 

@@ -336,7 +336,10 @@ class RunCmd(Command):
         try:
             workflow = Workflow(agents_yaml, workflow_yaml[0])
             Console.print("[DEBUG] Starting workflow execution")
-            result = asyncio.run(workflow.run())
+            result = asyncio.run(workflow.run(
+                workflow_id=workflow_id,
+                logger=logger
+            ))
 
             workflow_name = workflow_yaml[0]["metadata"]["name"]
             prompt = workflow_yaml[0]["spec"]["template"].get("prompt", "")
