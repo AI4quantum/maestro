@@ -67,9 +67,9 @@ spec:
 
     # For not mock case
     #catalog = QiskitFunctionsCatalog(
-    # 	     token='<token>'
+    # 	     token='IQP token'
     #)
-    #dpo_solver = catalog.load("gdq/quantum_portfolio_optimizer")
+    #dpo_solver = catalog.load("global-data-quantum/quantum-portfolio-optimizer")
 
     assets = json.loads(input[0])
     qubo_settings = {
