@@ -4,57 +4,53 @@ Maestro is a tool for managing and running AI agents and workflows.
 
 ## Installation
 
-1. Clone the repository:
 ```bash
-git clone https://github.com/AI4quantum/maestro.git
-cd maestro
+pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
 ```
 
-2. Install dependencies:
+Note: If using scoring or crewai agents, install:
 ```bash
-uv venv
-source .venv/bin/activate
-uv pip install -r requirements.txt
-uv pip install -e .
-```
-
-Note: If using scoring agents, additionally install:
-```bash
-uv pip install -r requirements-extra.txt
+pip install "maestro[crewai] @ git+https://github.com/AI4quantum/maestro.git@v0.1.0"
 ```
 
 ## Usage
 
 1. Run a workflow:
 ```bash
-uv run maestro run <workflow_path>
+maestro run <workflow_path>
 ```
 
 2. Create an agent:
 ```bash
-uv run maestro create <agent_path>
+maestro create <agent_path>
 ```
 
 3. Validate a workflow or agent:
 ```bash
-uv run maestro validate <path>
+maestro validate <path>
 ```
 
 ## Development
 
-1. Install development dependencies:
+1. Clone the repository:
 ```bash
-uv pip install -e ".[dev]"
+git clone https://github.com/AI4quantum/maestro.git
+cd maestro
 ```
 
-2. Run tests:
+2. Install development dependencies:
+```bash
+uv pip install -e .
+```
+
+3. Run tests:
 ```bash
 uv run pytest
 ```
 
-3. Run linter:
+4. Run formatter:
 ```bash
-uv run pylint src/
+uv run black
 ```
 
 ## Contributing

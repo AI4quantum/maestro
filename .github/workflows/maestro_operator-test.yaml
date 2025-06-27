@@ -42,26 +42,16 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    - name: Install uv and activate the environment
+      uses: astral-sh/setup-uv@v6
+      with:
+        activate-environment: true
     - name: Install dependencies
       run: |
-        uv venv --python 3.12
-        uv pip install -r requirements.txt
-        uv pip install python-dotenv
-        uv pip install -e .
-    - name: Bootstrap Maestro (deps + venv)
-      shell: bash
-      run: |
-        chmod +x ./tools/setup_maestro.sh
-        source ./tools/setup_maestro.sh
+        uv pip install -e .[crewai]
     - name: Deploy test agents, workflow, configmap and workflowrun
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        export PATH=$PATH:$(pwd)/.venv/bin
-        uv pip install -e .
         maestro create-cr demos/workflows/weather-checker.ai/agents.yaml
         maestro create-cr demos/workflows/weather-checker.ai/workflow.yaml
         kubectl apply -f operator/test/config/test-configmap.yaml

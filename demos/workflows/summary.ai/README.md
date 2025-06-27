@@ -34,25 +34,32 @@ end
 
 * Verify a valid llm is available to bee-stack
 
-* Install [maestro](https://github.com/AI4quantum/maestro) dependencies: `cd ../../../maestro && uv pip install -e . && cd -`
+* Install [maestro](https://github.com/AI4quantum/maestro): 
+   ```bash
+   pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
+   ```
 
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
+* Configure environmental variables: `cp demos/example.env .env`
 
 ## Running the Workflow
 
 Assuming you are in maestro top level:
 
-* Creating the agents(with the ability to manually add tools): `maestro create ./demos/workflows/summary.ai/agents.yaml`
+Creating the agents(with the ability to manually add tools):
+````bash
+maestro create ./demos/workflows/summary.ai/agents.yaml
+````
 
 To run the workflow:
 
-If you already created the agents and enabled necessary tools: `maestro run ./demos/workflows/summary.ai/workflow.yaml`
+If you already created the agents and enabled necessary tools:
+```bash
+maestro run ./demos/workflows/summary.ai/workflow.yaml
+```
 
 ### NOTE: Custom Tools Required for this Demo
 
-Go into the UI and make 2 tools for this demo:
+Go into the bee-stack UI and make 2 tools for this demo:
 
 #### Name: Fetch Papers
 
@@ -126,52 +133,3 @@ def get_metadata_by_title(title: str) -> Optional[str]:
         "abstract":  result.summary.strip()
     }
 ```
-
-# Summary Demo
-
-This demo shows how to use Maestro to create a workflow that generates summaries of text documents.
-
-## Prerequisites
-
-* Python 3.12 or higher
-* [uv](https://github.com/astral-sh/uv) package manager
-* [maestro](https://github.com/AI4quantum/maestro) installed
-
-## Setup
-
-1. Clone the repository:
-```bash
-git clone https://github.com/AI4quantum/maestro.git
-cd maestro
-```
-
-2. Install dependencies:
-* Install [maestro](https://github.com/AI4quantum/maestro) dependencies: `cd ../../../maestro && uv pip install -e . && cd -`
-
-## Usage
-
-1. Run the workflow:
-```bash
-uv run maestro run workflows/summary.ai
-```
-
-2. The workflow will:
-   * Process input text
-   * Generate a summary
-   * Extract key points
-   * Save the results to `output/summary.txt`
-
-## Output
-
-The output will be saved in `output/summary.txt` and will contain:
-* Main summary
-* Key points
-* Important quotes
-* Related topics
-
-## Customization
-
-You can modify the workflow by editing the YAML files in the `workflows/summary.ai` directory:
-* `workflow.yaml`: Main workflow configuration
-* `agents/`: Directory containing agent configurations
-* `tools/`: Directory containing tool configurations

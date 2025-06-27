@@ -17,7 +17,7 @@ uv pip install -e .
 
 3. Activate the virtual environment:
 ```bash
-uv venv
+uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
 .venv\Scripts\activate  # On Windows
@@ -128,7 +128,7 @@ cd maestro
 ### 2. Set Up the Virtual Environment
 
 ```bash
-uv venv
+uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
 .venv\Scripts\activate  # On Windows

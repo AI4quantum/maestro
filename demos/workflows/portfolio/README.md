@@ -16,11 +16,10 @@ portfolio->>portfolio: portfolio
 
 ## Getting Started
 
-* Install [maestro](https://github.com/AI4quantum/maestro) dependencies: `cd ../../../maestro && uv venv && source .venv/bin/activate && uv pip install -e . && cd -`
-
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
+Install [maestro](https://github.com/AI4quantum/maestro):
+   ```bash
+   pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
+   ```
 
 ## Running the Workflow
 
@@ -36,11 +35,7 @@ This demo shows how to use Maestro to create a portfolio management system.
 
 1. Install dependencies:
 ```bash
-cd maestro
-uv pip install -e .
-uv pip install yfinace
-uv pip install qiskit-ibm-catalog
-cd -
+pip install matplotlib yfinance qiskit-ibm-catalog
 ```
 
 This demo is using a mock function for the Quantum Portfolio Optimizer for easy try.  The following changes are necessary to run the Quantum Portfolio Optimizer in a real quantum computer.

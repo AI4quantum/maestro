@@ -15,7 +15,7 @@ fi
 echo "🔍 Verifying Maestro installation..."
 cd "$REPO_ROOT"
 
-# Test if maestro works with or without poetry
+# Test if maestro works with or without uv
 if uv run maestro --help &>/dev/null; then
     MAESTRO_CMD="uv run maestro"
     echo "✅ Maestro is running correctly using: $MAESTRO_CMD"
