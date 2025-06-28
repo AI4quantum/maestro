@@ -62,7 +62,7 @@ class Workflow:
                 agent_name = exc_def.get('agent')
                 handler = self.agents.get(agent_name)
                 if handler:
-                    await handler.run(err)
+                    await handler.run(err, step_index=-1)
                     return None
             raise err
 
