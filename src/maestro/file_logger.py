@@ -2,7 +2,11 @@ import uuid
 from datetime import datetime, UTC
 from pathlib import Path
 
-DEFAULT_LOG_DIR = Path.home() / ".maestro" / "logs"
+home_path = Path.home()
+if home_path == Path("/"):
+    DEFAULT_LOG_DIR = Path("/app/logs")
+else:
+    DEFAULT_LOG_DIR = home_path / ".maestro" / "logs"
 
 class FileLogger:
     def __init__(self, log_dir=None):
@@ -15,14 +19,12 @@ class FileLogger:
     def log_workflow_run(self, workflow_id, workflow_name, prompt, output, models_used, status):
         log_path = self.log_dir / f"maestro_run_{workflow_id}.log"
         with open(log_path, "a", encoding="utf-8") as f:
-            f.write("\n=== Workflow Summary ===\n")
             f.write(f"Timestamp     : {datetime.now(UTC).isoformat()}\n")
             f.write(f"Workflow Name : {workflow_name}\n")
             f.write(f"Status        : {status}\n")
             f.write(f"Prompt        : {prompt}\n")
             f.write(f"Output        : {output}\n")
             f.write(f"Models Used   : {models_used}\n")
-
 
     def log_agent_response(self, workflow_id, step_index, agent_name, model, input_text, response_text, tool_used=None, duration_ms=None):
         log_path = self.log_dir / f"maestro_run_{workflow_id}.log"
