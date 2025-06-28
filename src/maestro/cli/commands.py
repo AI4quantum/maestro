@@ -20,6 +20,9 @@ from jsonschema.exceptions import ValidationError, SchemaError
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
+from maestro.file_logger import FileLogger
+from pathlib import Path
+
 
 # Root CLI class
 class CLI:
@@ -265,11 +268,10 @@ class CreateCmd(Command):
 #  maestro run AGENTS_FILE WORKFLOW_FILE [options]
 class RunCmd(Command):
     """Command handler for running a workflow with specified agents and workflow files."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
-
     # private
 
     def __run_agents_workflow(self, agents_yaml, workflow_yaml):
@@ -283,7 +285,7 @@ class RunCmd(Command):
 
     def __read_prompt(self):
         return Console.read('Enter your prompt: ')
-
+    
     # public
 
     def AGENTS_FILE(self):
@@ -296,31 +298,46 @@ class RunCmd(Command):
         return self.args.get('--prompt')
 
     def name(self):
-      return "run"
+        return "run"
 
     def run(self):
         """Run a workflow with specified agents and workflow files.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
-        agents_yaml, workflow_yaml = None, None
-        if self.AGENTS_FILE() != None and self.AGENTS_FILE() != 'None':
-            agents_yaml = parse_yaml(self.AGENTS_FILE())
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
+
+        agents_file_arg = self.AGENTS_FILE()
+        if agents_file_arg and agents_file_arg != 'None':
+            agents_yaml = parse_yaml(agents_file_arg)
+        else:
+            inferred_path = os.path.join(os.path.dirname(self.WORKFLOW_FILE()), "agents.yaml")
+            if os.path.exists(inferred_path):
+                agents_yaml = parse_yaml(inferred_path)
+                Console.print(f"[INFO] Auto-loaded agents.yaml from: {inferred_path}")
+            else:
+                agents_yaml = None
+                Console.warn("⚠️ No agents.yaml path provided or found — skipping custom_agent label handling.")
 
         if self.prompt():
             prompt = self.__read_prompt()
             workflow_yaml[0]['spec']['template']['prompt'] = prompt
 
         try:
-            self.__run_agents_workflow(agents_yaml, workflow_yaml)
+            workflow_id = FileLogger().generate_workflow_id()
+            workflow = Workflow(agents_yaml, workflow_yaml[0], workflow_id=workflow_id)
+            Console.print("[DEBUG] Starting workflow execution")
+            result = asyncio.run(workflow.run())
+
+            return 0 if result else 1
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
             return 1
-        return 0
-        
+
+
+
 # Deploy command group
 #  maestro deploy AGENTS_FILE WORKFLOW_FILE [options]
 class DeployCmd(Command):
