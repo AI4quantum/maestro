@@ -1,6 +1,5 @@
-#!/usr/bin/env python3
+#! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
-# Copyright © 2025 IBM
 
 import os
 import time
@@ -45,7 +44,7 @@ class Workflow:
             wf = wf[0]
         return Mermaid(wf, kind, orientation).to_markdown()
 
-    async def run(self, prompt=''):
+    async def run(self, prompt=""):
         if prompt:
             self.workflow['spec']['template']['prompt'] = prompt
         self._create_or_restore_agents()
@@ -130,9 +129,9 @@ class Workflow:
             else:
                 result = await self.steps[current].run(prompt, step_index=step_index)
 
+            step_index += 1
             prompt = result.get("prompt")
             step_results[current] = prompt
-            step_index += 1
 
             if "next" in result:
                 current = result["next"]
@@ -204,9 +203,9 @@ class Workflow:
             else:
                 result = await self.steps[current].run(prompt, step_index=step_index)
 
+            step_index += 1
             prompt = result.get("prompt")
             step_results[current] = prompt
-            step_index += 1
 
             if "next" in result:
                 current = result["next"]
