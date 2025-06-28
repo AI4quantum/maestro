@@ -3,8 +3,6 @@
 
 from dotenv import load_dotenv
 import asyncio
-import ast
-import time
 from maestro.utils import eval_expression, convert_to_list
 
 load_dotenv()
@@ -21,7 +19,6 @@ class Step:
         step_parallel (list): List of Agents to run in parallel.
         step_loop (dict): Loop configuration for this step.
     """
-
     def __init__(self, step):
         self.step_name     = step["name"]
         self.step_agent    = step.get("agent")
@@ -30,37 +27,21 @@ class Step:
         self.step_parallel = step.get("parallel")
         self.step_loop     = step.get("loop")
 
-    async def run(self, *args, context=None, workflow_id=None, step_index=None, logger=None):
+    async def run(self, *args, context=None, step_index=None):
         """
         Runs the step, passing along any number of positional arguments
         (from the workflow's `inputs:`), plus an optional `context=`.
 
         Returns always a dict with at least {"prompt": ...} so downstream logic stays the same.
         """
-        start = time.perf_counter()
 
         if self.step_agent:
             if context is None:
-                res = await self.step_agent.run(*args)
+                res = await self.step_agent.run(*args, step_index=step_index)
             else:
-                res = await self.step_agent.run(*args, context=context)
+                res = await self.step_agent.run(*args, context=context, step_index=step_index)
         else:
             res = args[-1] if args else ""
-
-        end = time.perf_counter()
-
-        if logger and self.step_agent:
-            logger.log_agent_response(
-                workflow_id=workflow_id,
-                step_index=step_index,
-                agent_name=getattr(self.step_agent, "agent_name", "unknown"),
-                model=getattr(self.step_agent, "agent_model", "unknown"),
-                input_text=args[0] if args else "",
-                response_text=res,
-                tool_used=None,
-                duration_ms=int((end - start) * 1000)
-            )
-
         if isinstance(res, dict):
             output = res.copy()
             prompt = output.get("prompt", "")
@@ -111,7 +92,6 @@ class Step:
     def input(self, prompt):
         user_prompt = self.step_input["prompt"].replace("{prompt}", str(prompt))
         template    = self.step_input["template"]
-        # special connector handling
         if "{CONNECTOR}" in template:
             return prompt
         response    = input(user_prompt)
@@ -127,7 +107,6 @@ class Step:
         Returns:
             str: The results of running the agents in parallel as a string.
         """
-
         tasks = []
         if prompt.find("[") != -1:
             args = convert_to_list(prompt)
@@ -148,7 +127,7 @@ class Step:
         Returns:
             str: The final prompt after the loop has completed.
         """
-        until = self.step_loop.get ("until")
+        until = self.step_loop.get("until")
         agent = self.step_loop["agent"]
         prompt = str(prompt)
         if prompt.find("[") != -1:
