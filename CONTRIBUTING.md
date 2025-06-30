@@ -235,3 +235,24 @@ There are a number of tools that make it easier for developers to manage DCO sig
 - GitHub UI integrations for adding the signoff automatically ( <https://github.com/scottrigby/dco-gh-ui> )
 - Chrome - <https://chrome.google.com/webstore/detail/dco-github-ui/onhgmjhnaeipfgacbglaphlmllkpoijo>
 - Firefox - <https://addons.mozilla.org/en-US/firefox/addon/scott-rigby/?src=search>
+
+
+## Releases
+
+A GitHub release of maestro is automatically created when a tag of the format `v*` is pushed.
+
+The CI will automatically generate the build artifacts and changelog for the release, but will not make commits to the repo.
+
+### Preparation
+
+Prior to creating a new release tag, the version needs to be updated in the `pyproject.toml` and `README.md` to match the version of the release tag.
+
+### Testing the release
+
+To test the python package prior to release run the following command:
+
+```bash
+uv build
+```
+
+This will generate an installable package in `dist/` that can be pip installed in a clean python environment for testing.
