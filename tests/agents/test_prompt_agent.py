@@ -5,6 +5,7 @@ import asyncio
 
 from maestro.agents.prompt_agent import PromptAgent
 
+
 def test_prompt_agent_returns_instruction_string():
     """
     Given spec.instructions as a single string,
@@ -16,13 +17,14 @@ def test_prompt_agent_returns_instruction_string():
             "framework": "custom",
             "model": "dummy",
             "description": "desc",
-            "instructions": "This is a test instruction."
-        }
+            "instructions": "This is a test instruction.",
+        },
     }
     agent = PromptAgent(agent_def)
     result = asyncio.run(agent.run("ignored input"))
     assert isinstance(result, str)
     assert result == "This is a test instruction."
+
 
 def test_prompt_agent_returns_instruction_list_joined():
     """
@@ -32,7 +34,7 @@ def test_prompt_agent_returns_instruction_list_joined():
     instructions_list = [
         "First instruction line.",
         "Second instruction line.",
-        "Third instruction."
+        "Third instruction.",
     ]
     agent_def = {
         "metadata": {"name": "test-prompt-agent", "labels": {}},
@@ -40,8 +42,8 @@ def test_prompt_agent_returns_instruction_list_joined():
             "framework": "custom",
             "model": "dummy",
             "description": "desc",
-            "instructions": instructions_list
-        }
+            "instructions": instructions_list,
+        },
     }
     agent = PromptAgent(agent_def)
     result = asyncio.run(agent.run("anything"))

@@ -3,10 +3,10 @@
 
 from dotenv import load_dotenv
 import asyncio
-import ast
 from maestro.utils import eval_expression, convert_to_list
 
 load_dotenv()
+
 
 class Step:
     """
@@ -22,12 +22,12 @@ class Step:
     """
 
     def __init__(self, step):
-        self.step_name     = step["name"]
-        self.step_agent    = step.get("agent")
-        self.step_input    = step.get("input")
-        self.step_condition= step.get("condition")
+        self.step_name = step["name"]
+        self.step_agent = step.get("agent")
+        self.step_input = step.get("input")
+        self.step_condition = step.get("condition")
         self.step_parallel = step.get("parallel")
-        self.step_loop     = step.get("loop")
+        self.step_loop = step.get("loop")
 
     async def run(self, *args, context=None):
         """
@@ -43,7 +43,6 @@ class Step:
             else:
                 res = await self.step_agent.run(*args, context=context)
         else:
-
             res = args[-1] if args else ""
 
         if isinstance(res, dict):
@@ -95,11 +94,11 @@ class Step:
 
     def input(self, prompt):
         user_prompt = self.step_input["prompt"].replace("{prompt}", str(prompt))
-        template    = self.step_input["template"]
+        template = self.step_input["template"]
         # special connector handling
         if "{CONNECTOR}" in template:
             return prompt
-        response    = input(user_prompt)
+        response = input(user_prompt)
         return template.replace("{prompt}", prompt).replace("{response}", response)
 
     async def parallel(self, prompt):
@@ -116,9 +115,14 @@ class Step:
         tasks = []
         if prompt.find("[") != -1:
             args = convert_to_list(prompt)
-            tasks = [asyncio.create_task(agent.run(args[index])) for index, agent in enumerate(self.step_parallel)]
+            tasks = [
+                asyncio.create_task(agent.run(args[index]))
+                for index, agent in enumerate(self.step_parallel)
+            ]
         else:
-            tasks = [asyncio.create_task(agent.run(prompt)) for agent in self.step_parallel]
+            tasks = [
+                asyncio.create_task(agent.run(prompt)) for agent in self.step_parallel
+            ]
         results = await asyncio.gather(*tasks)
         print(results)
         return str(results)
@@ -133,7 +137,7 @@ class Step:
         Returns:
             str: The final prompt after the loop has completed.
         """
-        until = self.step_loop.get ("until")
+        until = self.step_loop.get("until")
         agent = self.step_loop["agent"]
         prompt = str(prompt)
         if prompt.find("[") != -1:

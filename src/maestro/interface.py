@@ -8,6 +8,7 @@ class Message:
     Args:
         messages: data sent to an agent
     """
+
     def __init__(self, messages: Optional[Dict[str, Any]] = None):
         self.messages = messages or {}
 
