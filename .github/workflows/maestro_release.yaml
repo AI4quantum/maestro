@@ -40,6 +40,16 @@ jobs:
       - name: Build Maestro
         shell: bash
         run: uv build
+      - name: Install distribution
+        shell: bash
+        run: pip install dist/*.whl
+      - name: Test distribution
+        working-directory: demos
+        shell: bash
+        run: maestro run workflows/simple/agents.yaml workflows/simple/workflow.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USER: ${{ github.actor }}
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
