@@ -306,80 +306,36 @@ class RunCmd(Command):
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
-        logger = FileLogger()
-        workflow_id = logger.generate_workflow_id()
-
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
-        workflow_def = workflow_yaml[0]
-        workflow_name = workflow_def["metadata"]["name"]
-        prompt = workflow_def["spec"]["template"].get("prompt", "")
 
-        # --- Load agents.yaml ---
-        agents_file = self.AGENTS_FILE()
-        if agents_file and agents_file != 'None':
-            agents_yaml = parse_yaml(agents_file)
+        agents_file_arg = self.AGENTS_FILE()
+        if agents_file_arg and agents_file_arg != 'None':
+            agents_yaml = parse_yaml(agents_file_arg)
         else:
-            inferred = os.path.join(os.path.dirname(self.WORKFLOW_FILE()), "agents.yaml")
-            if os.path.exists(inferred):
-                agents_yaml = parse_yaml(inferred)
-                Console.print(f"[INFO] Auto-loaded agents.yaml from: {inferred}")
+            inferred_path = os.path.join(os.path.dirname(self.WORKFLOW_FILE()), "agents.yaml")
+            if os.path.exists(inferred_path):
+                agents_yaml = parse_yaml(inferred_path)
+                Console.print(f"[INFO] Auto-loaded agents.yaml from: {inferred_path}")
             else:
                 agents_yaml = None
-                Console.warn("⚠️ No agents.yaml found — skipping custom_agent label handling.")
+                Console.warn("⚠️ No agents.yaml path provided or found — skipping custom_agent label handling.")
 
         if self.prompt():
             prompt = self.__read_prompt()
-            workflow_def['spec']['template']['prompt'] = prompt
+            workflow_yaml[0]['spec']['template']['prompt'] = prompt
 
         try:
-            workflow = Workflow(agents_yaml, workflow_def, workflow_id=workflow_id)
+            workflow_id = FileLogger().generate_workflow_id()
+            workflow = Workflow(agents_yaml, workflow_yaml[0], workflow_id=workflow_id)
+            Console.print("[DEBUG] Starting workflow execution")
             result = asyncio.run(workflow.run())
 
-            models_used = [
-                agent["spec"].get("model") or f"code:{agent['metadata']['name']}"
-                for agent in agents_yaml or []
-            ]
-            agent_labels = {
-                agent["metadata"]["name"].lower(): agent.get("metadata", {}).get("labels", {}).get("custom_agent", "")
-                for agent in agents_yaml or []
-            }
-            EXCLUDED_CUSTOM_AGENTS = {"slack_agent", "scoring_agent"}
-
-            output = "N/A"
-            if result:
-                for step_name in reversed(list(workflow.steps.keys())):
-                    step_result = result.get(step_name)
-                    agent_obj = getattr(workflow.steps[step_name], "step_agent", None)
-
-                    if hasattr(agent_obj, "agent_name"):
-                        agent_name = agent_obj.agent_name
-                        if step_result and agent_labels.get(agent_name.lower(), "") not in EXCLUDED_CUSTOM_AGENTS:
-                            output = step_result
-                            break
-
-            logger.log_workflow_run(
-                workflow_id=workflow_id,
-                workflow_name=workflow_name,
-                prompt=prompt,
-                output=output,
-                models_used=models_used,
-                status="success"
-            )
-
+            return 0 if result else 1
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
-            logger.log_workflow_run(
-                workflow_id=workflow_id,
-                workflow_name="UNKNOWN",
-                prompt="",
-                output="",
-                models_used=[],
-                status="error"
-            )
             return 1
 
-        return 0
 
 
 # Deploy command group
