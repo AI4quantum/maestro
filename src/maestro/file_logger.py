@@ -20,6 +20,7 @@ class FileLogger:
     def log_workflow_run(self, workflow_id, workflow_name, prompt, output, models_used, status):
         log_path = self.log_dir / f"maestro_run_{workflow_id}.log"
         with open(log_path, "a", encoding="utf-8") as f:
+            f.write("\n--- Workflow Response ---\n")
             f.write(f"Timestamp     : {datetime.now(UTC).isoformat()}\n")
             f.write(f"Workflow Name : {workflow_name}\n")
             f.write(f"Status        : {status}\n")
@@ -29,6 +30,7 @@ class FileLogger:
 
     def log_agent_response(self, workflow_id, step_index, agent_name, model, input_text, response_text, tool_used=None, duration_ms=None):
         log_path = self.log_dir / f"maestro_run_{workflow_id}.log"
+        print(f"[DEBUG] Logging agent '{agent_name}' (model: {model}) for step {step_index}")
         with open(log_path, "a", encoding="utf-8") as f:
             f.write("\n--- Agent Response ---\n")
             f.write(f"Step Index    : {step_index}\n")
