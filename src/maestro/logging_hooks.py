@@ -1,4 +1,3 @@
-# maestro/logging_hooks.py
 import time
 from maestro.file_logger import FileLogger
 
@@ -12,9 +11,7 @@ def log_agent_run(workflow_id):
                 raise ValueError("Missing step_index for logging.")
 
             start = time.perf_counter()
-
             result = await run_func(self, *args, **kwargs)
-
             end = time.perf_counter()
 
             logger.log_agent_response(
