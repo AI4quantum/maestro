@@ -31,12 +31,13 @@ def create_agents(agent_defs):
 
 
 class Workflow:
-    def __init__(self, agent_defs=None, workflow=None, workflow_id=None):
+    def __init__(self, agent_defs=None, workflow=None, workflow_id=None, logger=None):
         self.agents = {}
         self.steps = {}
         self.agent_defs = agent_defs or []
         self.workflow = workflow or {}
         self.workflow_id = workflow_id
+        self.logger = logger
 
     def to_mermaid(self, kind="sequenceDiagram", orientation="TD") -> str:
         wf = self.workflow
@@ -73,12 +74,20 @@ class Workflow:
                 agent_def["spec"]["framework"] = agent_def["spec"].get("framework", AgentFramework.BEEAI)
                 cls = get_agent_class(agent_def["spec"]["framework"], agent_def["spec"].get("mode"))
                 agent_instance = cls(agent_def)
-                agent_instance.run = log_agent_run(self.workflow_id)(agent_instance.run.__get__(agent_instance))
+                setattr(agent_instance, "agent_name", name)
+                setattr(agent_instance, "agent_model", agent_def["spec"].get("model", f"code:{name}"))
+                original_run = type(agent_instance).run
+                wrapped_run = log_agent_run(self.workflow_id)(original_run)
+                agent_instance.run = wrapped_run.__get__(agent_instance)
                 self.agents[name] = agent_instance
         else:
             for name in self.workflow["spec"]["template"]["agents"]:
                 agent_instance = restore_agent(name)
-                agent_instance.run = log_agent_run(self.workflow_id)(agent_instance.run.__get__(agent_instance))
+                setattr(agent_instance, "agent_name", name)
+                setattr(agent_instance, "agent_model", f"code:{name}")
+                original_run = type(agent_instance).run
+                wrapped_run = log_agent_run(self.workflow_id)(original_run)
+                agent_instance.run = wrapped_run.__get__(agent_instance)
                 self.agents[name] = agent_instance
 
     def find_index(self, steps, name):
