@@ -48,6 +48,7 @@ class TestSaveRestoreOpenAIAgent(TestCase):
         self.agents_yaml = parse_yaml(os.path.join(os.path.dirname(__file__),"../yamls/agents/openai_agent.yaml"))
         try:
             self.DRY_RUN = os.getenv("DRY_RUN", False)
+            print(self.agents_yaml)
             create_agents(self.agents_yaml)
         except Exception as excep:
             raise RuntimeError("Unable to create agents") from excep
