@@ -20,6 +20,7 @@ from jsonschema.exceptions import ValidationError, SchemaError
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
+from maestro.file_logger import FileLogger
 
 # Root CLI class
 class CLI:
@@ -298,26 +299,114 @@ class RunCmd(Command):
     def name(self):
       return "run"
 
+class RunCmd(Command):
+    """Command handler for running a workflow with specified agents and workflow files."""
+
+    def __init__(self, args):
+        self.args = args
+        super().__init__(self.args)
+
+    def __read_prompt(self):
+        return Console.read('Enter your prompt: ')
+    
+    def AGENTS_FILE(self):
+        return self.args['AGENTS_FILE']
+
+    def WORKFLOW_FILE(self):
+        return self.args['WORKFLOW_FILE']
+
+    def prompt(self):
+        return self.args.get('--prompt')
+
+    def name(self):
+        return "run"
+
     def run(self):
-        """Run a workflow with specified agents and workflow files.
-        
-        Returns:
-            int: Return code (0 for success, 1 for failure)
-        """
-        agents_yaml, workflow_yaml = None, None
-        if self.AGENTS_FILE() != None and self.AGENTS_FILE() != 'None':
-            agents_yaml = parse_yaml(self.AGENTS_FILE())
+        """Run a workflow with specified agents and workflow files."""
+        logger = FileLogger()
+        workflow_id = logger.generate_workflow_id()
+
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
+
+        agents_file_arg = self.AGENTS_FILE()
+        if agents_file_arg and agents_file_arg != 'None':
+            agents_yaml = parse_yaml(agents_file_arg)
+        else:
+            inferred_path = os.path.join(os.path.dirname(self.WORKFLOW_FILE()), "agents.yaml")
+            if os.path.exists(inferred_path):
+                agents_yaml = parse_yaml(inferred_path)
+                Console.print(f"[INFO] Auto-loaded agents.yaml from: {inferred_path}")
+            else:
+                agents_yaml = None
+                Console.warn("⚠️ No agents.yaml path provided or found — skipping custom_agent label handling.")
 
         if self.prompt():
             prompt = self.__read_prompt()
             workflow_yaml[0]['spec']['template']['prompt'] = prompt
 
         try:
-            self.__run_agents_workflow(agents_yaml, workflow_yaml)
+            workflow = Workflow(
+                agent_defs=agents_yaml,
+                workflow=workflow_yaml[0],
+                workflow_id=workflow_id,
+                logger=logger
+            )
+            Console.print("[DEBUG] Starting workflow execution")
+            result = asyncio.run(workflow.run())
+
+            workflow_name = workflow_yaml[0]["metadata"]["name"]
+            prompt = workflow_yaml[0]["spec"]["template"].get("prompt", "")
+            models_used = [
+                agent["spec"].get("model") or f"code:{agent['metadata']['name']}"
+                for agent in agents_yaml or []
+            ]
+
+            EXCLUDED_CUSTOM_AGENTS = {"slack_agent", "scoring_agent"}
+            agent_labels = {}
+            if agents_yaml:
+                for agent_def in agents_yaml:
+                    name = agent_def.get("metadata", {}).get("name")
+                    custom_agent = agent_def.get("metadata", {}).get("labels", {}).get("custom_agent", "")
+                    if name:
+                        agent_labels[name.lower()] = custom_agent
+
+            output = "N/A"
+            if result:
+                for step_name in reversed(list(workflow.steps.keys())):
+                    step_result = result.get(step_name)
+                    step_obj = workflow.steps[step_name]
+                    agent_obj = getattr(step_obj, "step_agent", None)
+                    agent_name = ""
+                    if isinstance(agent_obj, str):
+                        agent_name = agent_obj
+                    elif hasattr(agent_obj, "agent_name"):
+                        agent_name = agent_obj.agent_name
+                    agent_key = agent_name.lower()
+                    custom_type = agent_labels.get(agent_key, "")
+                    if step_result and custom_type not in EXCLUDED_CUSTOM_AGENTS:
+                        output = step_result
+                        break
+
+            logger.log_workflow_run(
+                workflow_id=workflow_id,
+                workflow_name=workflow_name,
+                prompt=prompt,
+                output=output,
+                models_used=models_used,
+                status="success"
+            )
+
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
+            logger.log_workflow_run(
+                workflow_id=workflow_id,
+                workflow_name="UNKNOWN",
+                prompt="",
+                output="",
+                models_used=[],
+                status="error"
+            )
             return 1
         return 0
         
