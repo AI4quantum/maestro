@@ -14,7 +14,7 @@ Maintainers are listed in alphabetical order by last name.
 | Nigel Jones | [planetf1](https://github.com/planetf1) |
 | Akihiko Kuroda | [akihikokuroda](https://github.com/akihikokuroda) |
 | George Liu | [george-lhj](https://github.com/george-lhj) |
-| Dr. Michael Maximilien | [maximilien](https://github.com/maximilien) |
+| Michael Maximilien | [maximilien](https://github.com/maximilien) |
 | Paul Schweigert | [psschwei](https://github.com/psschwei) |
 
-For more details on the process of becoming a maintainer, see the [Governance](https://github.com/i-am-bee/community/blob/main/GOVERNANCE.md) document.
+For more details on the process of becoming a maintainer, see the [Governance](https://github.com/AI4quantum/community/blob/main/GOVERNANCE.md) document.

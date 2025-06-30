@@ -67,7 +67,7 @@ end
 
 * Verify a valid llm is available to bee-stack
 
-* Install [maestro](https://github.com/AI4Quantum/maestro) dependencies: `cd ../../../maestro && poetry shell && poetry install && cd -`
+* Install [maestro](https://github.com/AI4Quantum/maestro) dependencies: `cd ../../../maestro && uv venv && source .venv/bin/activate && uv pip install -e . && cd -`
 
 * Configure environmental variables: `cp example.env .env`
 

@@ -261,6 +261,9 @@ docker-compose.override.yml
 *.swp
 *~
 
+# Ignore markdown accuracy report
+MARKDOWN_ACCURACY_REPORT.md
+
 # Project specific
 *.db
 *.sqlite3

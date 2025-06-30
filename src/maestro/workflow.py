@@ -25,10 +25,15 @@ def get_agent_class(framework: str, mode="local") -> type:
 
 def create_agents(agent_defs):
     for agent_def in agent_defs:
-        agent_def["spec"]["framework"] = agent_def["spec"].get("framework", AgentFramework.BEEAI)
-        cls = get_agent_class(agent_def["spec"]["framework"], agent_def["spec"].get("mode"))
-        save_agent(cls(agent_def))
-
+        agent_def["spec"]["framework"] = agent_def["spec"].get(
+            "framework", AgentFramework.BEEAI
+        )
+        cls = get_agent_class(
+            agent_def["spec"]["framework"],
+            agent_def["spec"].get("mode")
+        )
+        instance = cls(agent_def)
+        save_agent(instance, agent_def)
 
 class Workflow:
     def __init__(self, agent_defs=None, workflow=None, workflow_id=None, logger=None):
@@ -70,25 +75,36 @@ class Workflow:
     def _create_or_restore_agents(self):
         if self.agent_defs:
             for agent_def in self.agent_defs:
-                name = agent_def["metadata"]["name"]
-                agent_def["spec"]["framework"] = agent_def["spec"].get("framework", AgentFramework.BEEAI)
-                cls = get_agent_class(agent_def["spec"]["framework"], agent_def["spec"].get("mode"))
-                agent_instance = cls(agent_def)
-                setattr(agent_instance, "agent_name", name)
-                setattr(agent_instance, "agent_model", agent_def["spec"].get("model", f"code:{name}"))
-                original_run = type(agent_instance).run
-                wrapped_run = log_agent_run(self.workflow_id)(original_run)
-                agent_instance.run = wrapped_run.__get__(agent_instance)
-                self.agents[name] = agent_instance
+                if isinstance(agent_def, str):
+                    instance, restored = restore_agent(agent_def)
+                    if restored:
+                        self.agents[agent_def] = instance
+                        continue
+                    else:
+                        agent_def = instance
+                agent_def["spec"]["framework"] = agent_def["spec"].get(
+                    "framework", AgentFramework.BEEAI
+                )
+                cls = get_agent_class(
+                    agent_def["spec"]["framework"],
+                    agent_def["spec"].get("mode")
+                )
+                self.agents[agent_def["metadata"]["name"]] = cls(agent_def)
         else:
             for name in self.workflow["spec"]["template"]["agents"]:
-                agent_instance = restore_agent(name)
-                setattr(agent_instance, "agent_name", name)
-                setattr(agent_instance, "agent_model", f"code:{name}")
-                original_run = type(agent_instance).run
-                wrapped_run = log_agent_run(self.workflow_id)(original_run)
-                agent_instance.run = wrapped_run.__get__(agent_instance)
-                self.agents[name] = agent_instance
+                instance, restored = restore_agent(name)
+                if restored:
+                    self.agents[name] = instance
+                else:
+                    agent_def = instance
+                    agent_def["spec"]["framework"] = agent_def["spec"].get(
+                        "framework", AgentFramework.BEEAI
+                    )
+                    cls = get_agent_class(
+                        agent_def["spec"]["framework"],
+                        agent_def["spec"].get("mode")
+                    )
+                    self.agents[agent_def["metadata"]["name"]] = cls(agent_def)
 
     def find_index(self, steps, name):
         for idx, step in enumerate(steps):

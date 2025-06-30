@@ -43,7 +43,7 @@ git push origin feature/your-feature-name
 
 ## Code Style
 
-We use [black](https://github.com/psf/black) for code formatting and [flake8](https://flake8.pycqa.org/) for linting. To ensure your code meets our style guidelines:
+We use [black](https://github.com/psf/black) for code formatting and [pylint](https://pylint.pycqa.org/) for linting. To ensure your code meets our style guidelines:
 
 1. Install development dependencies:
 ```bash
@@ -52,7 +52,7 @@ uv pip install -e ".[dev]"
 
 2. Run the linter:
 ```bash
-uv run lint
+uv run pylint src/
 ```
 
 ## Commit Messages
@@ -79,21 +79,20 @@ Types:
 
 Example:
 ```bash
-uv run commit "feat(agent): add new agent type"
+git commit -m "feat(agent): add new agent type"
 ```
 
 ## Pull Request Process
 
 1. Ensure all dependencies are installed (`uv pip install -e .`).
-2. Run the test suite (`uv run test`).
-3. Run the linter (`uv run lint`).
+2. Run the test suite (`uv run pytest`).
+3. Run the linter (`uv run pylint src/`).
 4. Update documentation if necessary.
 5. Create a pull request with a clear description of the changes.
 
 ## Additional Resources
 
 - [Issue Tracker](https://github.com/AI4quantum/maestro/issues)
-- [Documentation](https://github.com/AI4quantum/maestro/wiki)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ---
@@ -122,16 +121,18 @@ uv run commit "feat(agent): add new agent type"
 ### 1. Clone the Repository
 
 ```bash
-git clone https://github.com/i-am-bee/bee-hive.git
-cd bee-hive
+git clone https://github.com/AI4quantum/maestro.git
+cd maestro
 ```
 
 ### 2. Set Up the Virtual Environment
 
 ```bash
-poetry env use python3
-poetry install
-poetry shell
+uv venv
+source .venv/bin/activate  # On Unix/macOS
+# or
+.venv\Scripts\activate  # On Windows
+uv pip install -e .
 ```
 
 ### 3. Configure Environment Variables
@@ -238,7 +239,7 @@ spec:
 
 ### Debugging Tips
 
-- Ensure all dependencies are installed (`poetry install`).
+- Ensure all dependencies are installed (`uv pip install -e .`).
 - Check for missing agents (`agent_store.json` must contain registered agents).
 - Validate YAML schemas using `maestro validate` before running workflows.
 

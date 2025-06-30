@@ -5,7 +5,7 @@
 To report vulnerabilities, you can privately report a potential security issue
 via the GitHub security vulnerabilities feature. This can be done here:
 
-https://github.com/i-am-bee/bee-hive/security/advisories
+https://github.com/AI4quantum/maestro/security/advisories
 
 Please do **not** open a public issue about a potential security vulnerability.
 

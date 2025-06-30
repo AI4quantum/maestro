@@ -43,7 +43,7 @@ git push origin feature/your-feature-name
 
 ## Code Style
 
-We use [black](https://github.com/psf/black) for code formatting and [flake8](https://flake8.pycqa.org/) for linting. To ensure your code meets our style guidelines:
+We use [black](https://github.com/psf/black) for code formatting and [pylint](https://pylint.pycqa.org/) for linting. To ensure your code meets our style guidelines:
 
 1. Install development dependencies:
 ```bash
@@ -52,7 +52,7 @@ uv pip install -e ".[dev]"
 
 2. Run the linter:
 ```bash
-uv run lint
+uv run pylint src/
 ```
 
 ## Commit Messages
@@ -79,38 +79,35 @@ Types:
 
 Example:
 ```bash
-uv run commit "feat(agent): add new agent type"
+git commit -m "feat(agent): add new agent type"
 ```
 
 ## Pull Request Process
 
 1. Ensure all dependencies are installed (`uv pip install -e .`).
-2. Run the test suite (`uv run test`).
-3. Run the linter (`uv run lint`).
+2. Run the test suite (`uv run pytest`).
+3. Run the linter (`uv run pylint src/`).
 4. Update documentation if necessary.
 5. Create a pull request with a clear description of the changes.
 
 ## Additional Resources
 
 - [Issue Tracker](https://github.com/AI4quantum/maestro/issues)
-- [Documentation](https://github.com/AI4quantum/maestro/wiki)
 - [Code of Conduct](CODE_OF_CONDUCT.md)
 
 ## Before you start
 
-If you are new to Bee contributing, we recommend you do the following before diving into the code:
+If you are new to Maestro contributing, we recommend you do the following before diving into the code:
 
 - Read [Code of Conduct](./CODE_OF_CONDUCT.md).
 
 ## Style and lint
 
-Bee Hive uses the following tools to meet code quality standards and ensure a unified code style across the codebase:
+Maestro uses the following tools to meet code quality standards and ensure a unified code style across the codebase:
 
 We use the following libs to check the Python code: 
 - [Black](https://black.readthedocs.io/) - Code Formatter
-- [Ruff](https://beta.ruff.rs/docs/) - Fast Python linter
-
- Simple [scripts for Poetry](tools/scripts.py)) are included to help you to review your changes and commit them.
+- [Pylint](https://pylint.pycqa.org/) - Python linter
 
 ## Issues and pull requests
 
@@ -122,14 +119,14 @@ If you've written some code but need help finishing it, want to get initial feed
 
 ## Choose an issue to work on
 
-Bee uses the following labels to help non-maintainers find issues best suited to their interests and experience level:
+Maestro uses the following labels to help non-maintainers find issues best suited to their interests and experience level:
 
-- [good first issue](https://github.com/i-am-bee/bee-hive/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) - these issues are typically the simplest available to work on, ideal for newcomers. They should already be fully scoped, with a straightforward approach outlined in the descriptions.
-- [help wanted](https://github.com/i-am-bee/bee-hive/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) - these issues are generally more complex than good first issues. They typically cover work that core maintainers don't currently have the capacity to implement and may require more investigation/discussion. These are great options for experienced contributors looking for something more challenging.
+- [good first issue](https://github.com/AI4quantum/maestro/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) - these issues are typically the simplest available to work on, ideal for newcomers. They should already be fully scoped, with a straightforward approach outlined in the descriptions.
+- [help wanted](https://github.com/AI4quantum/maestro/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) - these issues are generally more complex than good first issues. They typically cover work that core maintainers don't currently have the capacity to implement and may require more investigation/discussion. These are great options for experienced contributors looking for something more challenging.
 
 ## Set up a development environment
 
-To start contributing to the Bee Hive, follow these steps to set up your development environment:
+To start contributing to Maestro, follow these steps to set up your development environment:
 
 1. **Set up Python environment:** We recommend using Python 3.11 or higher. First, ensure you have Python installed:
 
@@ -140,13 +137,16 @@ python --version
 2. **Activate a virtual environment:** Activate a new virtual environment:
 
 ```bash
-poetry shell
+uv venv
+source .venv/bin/activate  # On Unix/macOS
+# or
+.venv\Scripts\activate  # On Windows
 ```
 
 3. **Install dependencies:** Install all project dependencies:
 
 ```bash
-poetry install
+uv pip install -e .
 ```
 
 4. **Setup environmental variables:** Make a copy of `.env.example` file in the repository's root and name it `.env`. Uncomment and update the parameters in the `.env` as needed.
@@ -158,43 +158,42 @@ poetry install
 ```
 
 - Type: feat, fix, chore, docs, style, refactor, perf, test, etc.
-- Scope: The area of the codebase your changes affect (optional). The allowed values are: adapters, agents, llms, tools, cache, emitter, internals, logger, memory, serializer, infra, deps, instrumentation
+- Scope: The area of the codebase your changes affect (optional). Examples: agents, workflow, cli, tests, etc.
 - Subject: A short description of the changes (required)
 
 _Example:_
 
 ```
-feat(llm): add streaming support for watsonx adapter
+feat(agent): add new OpenAI agent type
 
 Ref: #15
 ```
 
 6. **Run Linters/Formatters:** Ensure your changes meet code quality standards:
 
-     - lint: use the next command run Black and Ruff:
+     - lint: use the next command to run Pylint:
 
 ```bash
-poetry run lint
+uv run pylint src/
 ```
   
 
 7. **Run Tests:** Ensure your changes pass all tests:
 
 ```bash
-# Run unit tests
-pytest tests/unit
-# Run integration tests
-pytest tests/integration
-# Run E2E tests
-pytest tests/e2e
+# Run all tests
+uv run pytest
+# Run specific test categories
+uv run pytest tests/unit
+uv run pytest tests/integration
 ```
 
-6. **Commit:**  
+8. **Commit:**  
 
-     - commit: use the following command to sign-off your commit with `-s` and generate the commit.
+     - commit: use the following command to sign-off your commit with `-s`:
 
 ```bash
-poetry run commit "<type>(<scope>): <subject>"
+git commit -s -m "<type>(<scope>): <subject>"
 ```
 
 By following these steps, you'll be all set to contribute to our project! If you encounter any issues during the setup process, please feel free to open an issue.

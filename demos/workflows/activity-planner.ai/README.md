@@ -1,8 +1,8 @@
-TODO the demo does not currently function out of the box as the workflow schema / automation are not supported by the demo as of yet.  Merging this early and will address after we've moved name/repos.
-
 # Activity Planner Demo
 
 This demo shows how to use Maestro to create an activity planner.
+
+**Note**: This demo does not currently function out of the box as the workflow schema / automation are not supported by the demo as of yet. Merging this early and will address after we've moved name/repos.
 
 ## Prerequisites
 
@@ -81,7 +81,7 @@ hot_activities->>hot_activities: exit
 
 * Verify a valid llm is available to bee-stack
 
-* Install [maestro](https://github.com/AI4quantum/maestro) dependencies: `cd ../../../maestro && poetry shell && poetry install && cd -`
+* Install [maestro](https://github.com/AI4quantum/maestro) dependencies: `cd ../../../maestro && uv venv && source .venv/bin/activate && uv pip install -e . && cd -`
 
 * Configure environmental variables: `cp example.env .env`
 

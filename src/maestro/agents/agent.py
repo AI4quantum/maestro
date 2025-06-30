@@ -4,6 +4,7 @@
 from abc import abstractmethod
 import os
 import pickle
+import json
 from typing import Dict, Final
 
 
@@ -96,23 +97,31 @@ def _save_agent_db(db):
     with open('agents.db', 'wb') as f:
         pickle.dump(db, f)
 
-def save_agent(agent):
+def save_agent(agent, agent_def):
     """
     Save agent in storage.
     """
     agents = _load_agent_db()
-    agent_data = pickle.dumps(agent)
+    try:
+        agent_data = pickle.dumps(agent)
+    except Exception:
+        agent_data = json.dumps(agent_def)
     agents[agent.agent_name] = agent_data
     _save_agent_db(agents)
 
-def restore_agent(agent_name: str) -> Agent:
+def restore_agent(agent_name: str):
     """
     Restore agent from storage.
     """
     agents = _load_agent_db()
     agent_data= agents[agent_name]
-    agent = pickle.loads(agent_data)
-    return(agent)
+    try:
+        if "maestro/v1alpha1" in agent_data:
+            return json.loads(agent_data), False
+        else:
+            return pickle.loads(agent_data), True
+    except Exception:
+        return pickle.loads(agent_data), True
 
 def remove_agent(agent_name: str):
     """

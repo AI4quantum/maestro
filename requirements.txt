@@ -16,7 +16,6 @@ slack_sdk>=3.35.0
 nest-asyncio>=1.6.0
 pydantic-ai[logfire]>=0.1.8
 opik>=1.7.22
-
 # Dev dependencies
 black>=24.10.0
 
