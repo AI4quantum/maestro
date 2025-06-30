@@ -26,7 +26,7 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
         uv run pytest -v
 
-  release:
+  build:
     needs: test
     runs-on: ubuntu-latest
     steps:
@@ -40,7 +40,28 @@ jobs:
       - name: Build Maestro
         shell: bash
         run: uv build
-      - name: Install distribution
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: maestro-dist
+          path: dist/*
+
+  verify:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # TODO: replace with demo repo once its created
+        with:
+          sparse-checkout: demos
+      - uses: actions/download-artifact@v4
+        with:
+          name: maestro-dist
+          path: dist
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install maestro
         shell: bash
         run: pip install dist/*.whl
       - name: Test distribution
@@ -50,6 +71,15 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USER: ${{ github.actor }}
+
+  release:
+    needs: verify
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: maestro-dist
+          path: dist
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
