@@ -1,0 +1,12 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: my-agent
+  labels:
+    app: my-agent
+spec:
+  model: granite3.3:8b
+  description: my-agent
+  instructions: You are a helpful agent. Respond to the users question, making use of any required tools
+  framework: openai
+  mode: local

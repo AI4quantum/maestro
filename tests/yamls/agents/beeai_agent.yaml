@@ -1,0 +1,15 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: test1
+  labels:
+    app: test-example
+spec:
+  model: meta-llama/llama-3-1-70b-instruct
+  framework: beeai
+  mode: remote
+  description: this is a test
+  tools:
+    - code_interpreter
+    - test
+  instructions: print("this is a test.")
