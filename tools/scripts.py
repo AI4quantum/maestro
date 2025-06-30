@@ -8,7 +8,7 @@ import re
 
 def lint():
     try:
-        subprocess.run(["black", "."], check=True)
+        subprocess.run(["ruff", "format", "."], check=True)
         subprocess.run(["ruff", "check", "."], check=True)
     except subprocess.CalledProcessError:
         sys.exit(1)
