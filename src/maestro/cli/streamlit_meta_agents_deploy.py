@@ -4,6 +4,8 @@ import os
 import sys
 import psutil
 
+from importlib.resources import files
+
 import streamlit as st
 import streamlit.web.cli as st_cli
 
@@ -50,8 +52,10 @@ def deploy_meta_agents_streamlit(prompt_text_file):
             {"role": "assistant", "content": "Welcome to Maestro meta-agents workflow"}
         ]
 
+    image_path = str(files("maestro").joinpath("images/maestro.png"))
+
     # Page header
-    st.image("https://raw.githubusercontent.com/AI4quantum/maestro/main/images/maestro.png", width=200)
+    st.image(image_path, width=200)
     st.title("Maestro Meta-Agents workflows")
 
     # Set tabs for: Meta-Agents agents and workflow workflows and the generated workflow

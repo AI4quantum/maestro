@@ -50,5 +50,8 @@ maestro = "maestro.cli.run_maestro:__run_cli"
 where = ["src"]
 include = ["maestro*"]
 
+[tool.setuptools.package-data]
+"maestro" = ["images/*.png"]
+
 [tool.pytest.ini_options]
 addopts = "-v -s --ignore=framework"
