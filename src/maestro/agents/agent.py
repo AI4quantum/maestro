@@ -117,7 +117,7 @@ def restore_agent(agent_name: str):
     agent_data= agents[agent_name]
     try:
         if "maestro/v1alpha1" in agent_data:
-            return agent_data, False
+            return json.loads(agent_data), False
         else:
             return pickle.loads(agent_data), True
     except Exception:
