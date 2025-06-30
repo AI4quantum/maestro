@@ -37,7 +37,8 @@ class TestException(TestCase):
             response = asyncio.run(self.workflow.run())
         except Exception as excep:
             print(excep)
-            assert "Agent doesn't exist" in str(excep)
+            assert "Could not find agent named" in str(excep)
+
 
 if __name__ == '__main__':
     unittest.main()
