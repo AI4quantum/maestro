@@ -34,8 +34,6 @@ def create_agents(agent_defs):
             agent_def["spec"]["framework"],
             agent_def["spec"].get("mode")
         )
-        print(cls)
-        print(agent_def)
         instance = cls(agent_def)
         save_agent(instance, agent_def)
 
