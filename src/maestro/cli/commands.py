@@ -21,6 +21,7 @@ from jsonschema.exceptions import ValidationError, SchemaError
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
+from maestro.cli.fastapi_serve import serve_agent
 
 
 # Root CLI class
@@ -55,6 +56,8 @@ class CLI:
             return MermaidCmd(self.args)
         elif self.args.get("meta-agents") and self.args["meta-agents"]:
             return MetaAgentsCmd(self.args)
+        elif self.args.get("serve") and self.args["serve"]:
+            return ServeCmd(self.args)
         elif self.args.get("clean") and self.args["clean"]:
             return CleanCmd(self.args)
         elif self.args.get("create-cr") and self.args["create-cr"]:
@@ -127,6 +130,8 @@ class Command:
             return self.mermaid
         elif self.args["meta-agents"]:
             return self.meta_agents
+        elif self.args["serve"]:
+            return self.serve
         elif self.args["clean"]:
             return self.clean
         elif self.args["create-cr"]:
@@ -680,5 +685,74 @@ class CreateCrCmd(Command):
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to create CR: {str(e)}")
+            return 1
+        return 0
+
+
+# Serve command group
+#  maestro serve AGENTS_FILE [options]
+class ServeCmd(Command):
+    """Command handler for serving agents via HTTP endpoints."""
+
+    def __init__(self, args):
+        self.args = args
+        super().__init__(self.args)
+
+    # private
+    def __serve_agent(
+        self,
+        agents_file: str,
+        agent_name: str = None,
+        host: str = "127.0.0.1",
+        port: int = 8000,
+    ):
+        """Serve an agent via FastAPI."""
+        try:
+            serve_agent(agents_file, agent_name, host, port)
+        except Exception as e:
+            self._check_verbose()
+            raise RuntimeError(f"Failed to serve agent: {str(e)}") from e
+
+    # public options
+    def AGENTS_FILE(self):
+        return self.args.get("AGENTS_FILE")
+
+    def agent_name(self):
+        return self.args.get("--agent-name")
+
+    def host(self):
+        host_str = self.args.get("--host")
+        if host_str is None:
+            return "127.0.0.1"
+        return host_str
+
+    def port(self):
+        port_str = self.args.get("--port")
+        if port_str is None:
+            return 8000
+        try:
+            return int(port_str)
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid port number: {port_str}")
+
+    def name(self):
+        return "serve"
+
+    # public command method
+    def serve(self):
+        """Serve an agent via HTTP endpoints.
+
+        Returns:
+            int: Return code (0 for success, 1 for failure)
+        """
+        try:
+            self.__serve_agent(
+                self.AGENTS_FILE(), self.agent_name(), self.host(), self.port()
+            )
+            if not self.silent():
+                Console.ok("Agent server started successfully")
+        except Exception as e:
+            self._check_verbose()
+            Console.error(f"Unable to serve agent: {str(e)}")
             return 1
         return 0
