@@ -333,7 +333,7 @@ class DeployCmd(Command):
     def __deploy_agents_workflow_streamlit(self):
         try:
             sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/streamlit_deploy.py", self.AGENTS_FILE(), self.WORKFLOW_FILE()]
-            process = subprocess.Popen(sys.argv)
+            self.process = subprocess.Popen(sys.argv)
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
@@ -369,9 +369,7 @@ class DeployCmd(Command):
         return self.args['--url'] 
 
     def k8s(self):
-        if self.args['--k8s'] != "":
-            return self.args['--k8s']
-        return self.args['--kubernetes'] 
+        return self.args['--k8s'] or self.args['--kubernetes']
 
     def docker(self):
         return self.args['--docker']
@@ -479,8 +477,8 @@ class MetaAgentsCmd(Command):
     # private    
     def __meta_agents(self, text_file) -> int:
         try:
-            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/cli/streamlit_meta_agents_deploy.py", text_file]
-            process = subprocess.Popen(sys.argv)
+            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/streamlit_meta_agents_deploy.py", text_file]
+            self.process = subprocess.Popen(sys.argv)
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
