@@ -2,6 +2,7 @@
 
 import uuid
 import os
+import json
 from datetime import datetime, UTC
 from pathlib import Path
 
@@ -20,6 +21,10 @@ class FileLogger:
     def generate_workflow_id(self):
         return uuid.uuid4().hex
 
+    def _write_json_line(self, log_path, data):
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(data) + "\n")
+
     def log_agent_response(
         self,
         workflow_id,
@@ -31,18 +36,20 @@ class FileLogger:
         tool_used=None,
         duration_ms=None
     ):
-        log_path = self.log_dir / f"maestro_run_{workflow_id}.log"
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write("\n--- Agent Response ---\n")
-            f.write(f"Step Index    : {step_index}\n")
-            f.write(f"Agent Name    : {agent_name}\n")
-            f.write(f"Model         : {model}\n")
-            f.write(f"Input         : {input_text}\n")
-            f.write(f"Response      : {response_text}\n")
-            if tool_used:
-                f.write(f"Tool Used     : {tool_used}\n")
-            if duration_ms is not None:
-                f.write(f"Duration (ms) : {duration_ms}\n")
+        log_path = self.log_dir / f"maestro_run_{workflow_id}.jsonl"
+        data = {
+            "log_type": "agent_response",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "workflow_id": workflow_id,
+            "step_index": step_index,
+            "agent_name": agent_name,
+            "model": model,
+            "input": input_text,
+            "response": response_text,
+            "tool_used": tool_used,
+            "duration_ms": duration_ms
+        }
+        self._write_json_line(log_path, data)
 
     def log_workflow_run(
         self,
@@ -53,12 +60,15 @@ class FileLogger:
         models_used,
         status
     ):
-        log_path = self.log_dir / f"maestro_run_{workflow_id}.log"
-        with open(log_path, "a", encoding="utf-8") as f:
-            f.write("\n--- Workflow Response ---\n")
-            f.write(f"Timestamp     : {datetime.now(UTC).isoformat()}\n")
-            f.write(f"Workflow Name : {workflow_name}\n")
-            f.write(f"Status        : {status}\n")
-            f.write(f"Prompt        : {prompt}\n")
-            f.write(f"Output        : {output}\n")
-            f.write(f"Models Used   : {models_used}\n")
+        log_path = self.log_dir / f"maestro_run_{workflow_id}.jsonl"
+        data = {
+            "log_type": "workflow_summary",
+            "timestamp": datetime.now(UTC).isoformat(),
+            "workflow_id": workflow_id,
+            "workflow_name": workflow_name,
+            "status": status,
+            "prompt": prompt,
+            "output": output,
+            "models_used": models_used
+        }
+        self._write_json_line(log_path, data)

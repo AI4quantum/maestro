@@ -1,8 +1,12 @@
+import json
 from pathlib import Path
 from maestro.file_logger import FileLogger
 
 def _find_log_file_by_workflow_id(directory: Path, workflow_id: str):
-    return next((f for f in directory.glob("*.log") if workflow_id in f.name), None)
+    return next((f for f in directory.glob("*.jsonl") if workflow_id in f.name), None)
+
+def _read_json_lines(path: Path):
+    return [json.loads(line) for line in path.read_text().splitlines()]
 
 def test_log_file_contents(tmp_path):
     logger = FileLogger(log_dir=tmp_path)
@@ -18,15 +22,19 @@ def test_log_file_contents(tmp_path):
     )
 
     log_file = _find_log_file_by_workflow_id(tmp_path, workflow_id)
-    assert log_file is not None, "Log file was not created"
-    contents = log_file.read_text()
+    assert log_file is not None
 
-    assert "test_workflow" in contents
-    assert "test prompt" in contents
-    assert "test output" in contents
-    assert "model-A" in contents
-    assert "model-B" in contents
-    assert "success" in contents
+    logs = _read_json_lines(log_file)
+    summary_logs = [log for log in logs if log["log_type"] == "workflow_summary"]
+    assert len(summary_logs) == 1
+
+    log = summary_logs[0]
+    assert log["workflow_name"] == "test_workflow"
+    assert log["prompt"] == "test prompt"
+    assert log["output"] == "test output"
+    assert "model-A" in log["models_used"]
+    assert "model-B" in log["models_used"]
+    assert log["status"] == "success"
 
 def test_log_with_empty_output(tmp_path):
     logger = FileLogger(log_dir=tmp_path)
@@ -43,12 +51,17 @@ def test_log_with_empty_output(tmp_path):
 
     log_file = _find_log_file_by_workflow_id(tmp_path, workflow_id)
     assert log_file is not None
-    contents = log_file.read_text()
 
-    assert "empty_output_workflow" in contents
-    assert "Output        : \n" in contents
-    assert "testing empty output" in contents
-    assert "success" in contents
+    logs = _read_json_lines(log_file)
+    summary_logs = [log for log in logs if log["log_type"] == "workflow_summary"]
+    assert len(summary_logs) == 1
+
+    log = summary_logs[0]
+    assert log["workflow_name"] == "empty_output_workflow"
+    assert log["prompt"] == "testing empty output"
+    assert log["output"] == ""
+    assert log["models_used"] == []
+    assert log["status"] == "success"
 
 def test_log_agent_response(tmp_path):
     logger = FileLogger(log_dir=tmp_path)
@@ -76,17 +89,17 @@ def test_log_agent_response(tmp_path):
 
     log_file = _find_log_file_by_workflow_id(tmp_path, workflow_id)
     assert log_file is not None
-    contents = log_file.read_text()
+    logs = _read_json_lines(log_file)
+    summary_logs = [log for log in logs if log["log_type"] == "workflow_summary"]
+    assert len(summary_logs) == 1
+    assert summary_logs[0]["workflow_name"] == "agent_response_workflow"
 
-    assert "--- Agent Response ---" in contents
-    assert "example_agent" in contents
-    assert "test-model" in contents
-    assert "What is 2 + 2?" in contents
-    assert "4" in contents
-    assert "calculator" in contents
-    assert "Duration (ms) : 123" in contents
-
-    assert "agent_response_workflow" in contents
-    assert "math test" in contents
-    assert "Output        : 4" in contents
-    assert "success" in contents
+    agent_logs = [log for log in logs if log["log_type"] == "agent_response"]
+    assert len(agent_logs) == 1
+    log = agent_logs[0]
+    assert log["agent_name"] == "example_agent"
+    assert log["model"] == "test-model"
+    assert log["input"] == "What is 2 + 2?"
+    assert log["response"] == "4"
+    assert log["tool_used"] == "calculator"
+    assert log["duration_ms"] == 123
