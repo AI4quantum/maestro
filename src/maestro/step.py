@@ -22,12 +22,13 @@ class Step:
     """
 
     def __init__(self, step):
-        self.step_name     = step["name"]
-        self.step_agent    = step.get("agent")
-        self.step_input    = step.get("input")
-        self.step_condition= step.get("condition")
-        self.step_parallel = step.get("parallel")
-        self.step_loop     = step.get("loop")
+        self.step_name      = step["name"]
+        self.step_agent     = step.get("agent")
+        self.step_workflow  = step.get("workflow")
+        self.step_input     = step.get("input")
+        self.step_condition = step.get("condition")
+        self.step_parallel  = step.get("parallel")
+        self.step_loop      = step.get("loop")
 
     async def run(self, *args, context=None, step_index=None):
         """
@@ -48,6 +49,11 @@ class Step:
                 res = await self.step_agent.run(*args, step_index=step_index)
             else:
                 res = await self.step_agent.run(*args, context=context, step_index=step_index)
+        elif self.step_workflow:
+            if context is None:
+                res = await self.run_workflow(self.step_workflow, *args, step_index=step_index)
+            else:
+                res = await self.run_workflow(self.step_workflow, *args, context=context, step_index=step_index)
         else:
             res = args[-1] if args else ""
 
@@ -74,6 +80,12 @@ class Step:
             output["prompt"] = prompt
 
         return output
+
+    async def run_workflow(self, url, *args, context=None, step_index=None):
+        print(f"url:{url}")
+        # send request to the server
+        # return them response
+        return
 
     def evaluate_condition(self, prompt):
         if self.step_condition[0].get("if"):
