@@ -44,8 +44,8 @@ class FileLogger:
             "step_index": step_index,
             "agent_name": agent_name,
             "model": model,
-            "input": input_text,
-            "response": response_text,
+            "input": str(input_text),
+            "response": str(response_text),
             "tool_used": tool_used,
             "duration_ms": duration_ms
         }
@@ -67,8 +67,8 @@ class FileLogger:
             "workflow_id": workflow_id,
             "workflow_name": workflow_name,
             "status": status,
-            "prompt": prompt,
-            "output": output,
+            "prompt": str(prompt),
+            "output": str(output),
             "models_used": models_used
         }
         self._write_json_line(log_path, data)
