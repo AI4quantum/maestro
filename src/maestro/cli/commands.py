@@ -272,41 +272,6 @@ class CreateCmd(Command):
 #  maestro run AGENTS_FILE WORKFLOW_FILE [options]
 class RunCmd(Command):
     """Command handler for running a workflow with specified agents and workflow files."""
-    
-    def __init__(self, args):
-        self.args = args
-        super().__init__(self.args)
-
-    # private
-
-    def __run_agents_workflow(self, agents_yaml, workflow_yaml):
-        try:
-            workflow = Workflow(agents_yaml, workflow_yaml[0])
-            asyncio.run(workflow.run())
-        except Exception as e:
-            self._check_verbose()
-            raise RuntimeError(f"{str(e)}") from e
-        return 0
-
-    def __read_prompt(self):
-        return Console.read('Enter your prompt: ')
-
-    # public
-
-    def AGENTS_FILE(self):
-        return self.args['AGENTS_FILE']
-
-    def WORKFLOW_FILE(self):
-        return self.args['WORKFLOW_FILE']
-
-    def prompt(self):
-        return self.args.get('--prompt')
-
-    def name(self):
-      return "run"
-
-class RunCmd(Command):
-    """Command handler for running a workflow with specified agents and workflow files."""
 
     def __init__(self, args):
         self.args = args
