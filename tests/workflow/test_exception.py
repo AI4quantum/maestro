@@ -4,6 +4,8 @@
 # Copyright © 2025 IBM
 
 import os
+
+import pytest
 import yaml
 import sys
 import io
@@ -51,11 +53,10 @@ class TestException(TestCase):
             )
         )
         self.workflow = Workflow(self.agents_yaml, self.workflow_yaml[0])
-        try:
+        with pytest.raises(Exception) as exc_info:
             asyncio.run(self.workflow.run())
-        except Exception as excep:
-            print(excep)
-            assert "Agent doesn't exist" in str(excep)
+
+        assert "Could not find agent named" in str(exc_info.value)
 
 
 if __name__ == "__main__":
