@@ -21,6 +21,7 @@ from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
 from maestro.file_logger import FileLogger
+from datetime import datetime, UTC
 
 # Root CLI class
 class CLI:
@@ -320,7 +321,7 @@ class RunCmd(Command):
 
     def name(self):
         return "run"
-
+    
     def run(self):
         """Run a workflow with specified agents and workflow files."""
         logger = FileLogger()
@@ -351,8 +352,10 @@ class RunCmd(Command):
                 workflow_id=workflow_id,
                 logger=logger
             )
-            Console.print("[DEBUG] Starting workflow execution")
+            start_time = datetime.now(UTC)
             result = asyncio.run(workflow.run())
+            end_time = datetime.now(UTC)
+            duration_ms = int((end_time - start_time).total_seconds() * 1000)
 
             workflow_name = workflow_yaml[0]["metadata"]["name"]
             prompt = workflow_yaml[0]["spec"]["template"].get("prompt", "")
@@ -393,21 +396,30 @@ class RunCmd(Command):
                 prompt=prompt,
                 output=output,
                 models_used=models_used,
-                status="success"
+                status="success",
+                start_time=start_time,
+                end_time=end_time,
+                duration_ms=duration_ms
             )
 
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
+            end_time = datetime.now(UTC)
+            duration_ms = int((end_time - start_time).total_seconds() * 1000)
             logger.log_workflow_run(
                 workflow_id=workflow_id,
                 workflow_name="UNKNOWN",
                 prompt="",
                 output="",
                 models_used=[],
-                status="error"
+                status="error",
+                start_time=start_time,
+                end_time=end_time,
+                duration_ms=duration_ms
             )
             return 1
+
         return 0
         
 # Deploy command group
