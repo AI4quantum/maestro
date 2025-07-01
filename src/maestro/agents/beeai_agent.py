@@ -3,10 +3,12 @@
 
 import os, dotenv
 import asyncio
+import tempfile
 import requests
 import json
 
 from beeai_framework.agents.tool_calling import ToolCallingAgent
+from beeai_framework.tools.code import PythonTool, LocalPythonStorage, SandboxTool
 from openai import AssistantEventHandler, OpenAI
 from openai.types.beta import AssistantStreamEvent
 from openai.types.beta.threads.runs import RunStep, RunStepDelta, ToolCall
@@ -210,7 +212,9 @@ class BeeAILocalAgent(Agent):
             agent_name (str): The name of the agent.
         """
         super().__init__(agent)
+        self.agent = None
 
+    async def _create_agent(self):
         llm = OllamaChatModel(self.agent_model)
 
         templates: dict[str, Any] = {
@@ -220,33 +224,60 @@ class BeeAILocalAgent(Agent):
             "tool_not_found_error": tool_not_found_error_template_func,
         }
 
-        tools: list[AnyTool] = [
-            OpenMeteoTool(),
-            DuckDuckGoSearchTool(),
-        ]
+        tools: list[AnyTool] = []
 
-        self.agent = ReActAgent(
+        if any(tool in ["weather", "openmeteo", "openmeteotool"] for tool in [x.lower() for x in self.agent_tools]):
+            tools.append(OpenMeteoTool())
+
+        if any(
+            tool in ["web_search", "search", "duckduckgo", "duckduckgosearchtool"]
+            for tool in [x.lower() for x in self.agent_tools]
+        ):
+            tools.append(DuckDuckGoSearchTool())
+
+        if any(tool in ["code_interpreter", "code", "pythontool"] for tool in [x.lower() for x in self.agent_tools]):
+            tools.append(
+                PythonTool(
+                    os.getenv("CODE_INTERPRETER_URL", "http://localhost:50081"),
+                    LocalPythonStorage(
+                        local_working_dir=tempfile.mkdtemp("code_interpreter_source"),
+                        interpreter_working_dir=os.getenv(
+                            "CODE_INTERPRETER_TMPDIR", "./tmp/code_interpreter_target"
+                        ),
+                    ),
+                )
+            )
+
+        if self.agent_code:
+            sandbox_tool = await SandboxTool.from_source_code(
+                url=os.getenv("CODE_INTERPRETER_URL", "http://localhost:50081"),
+                source_code=self.agent_code,
+            )
+            tools.append(sandbox_tool)
+            self.print(sandbox_tool.name)
+
+        self.agent = ToolCallingAgent(
             llm=llm, templates=templates, tools=tools, memory=UnconstrainedMemory(),
             meta=AgentMeta(name=self.agent_name, description=self.agent_desc, tools=tools)
         )
 
-    def process_agent_events(self, data: Any, event: EventMeta) -> None:
+    def _process_agent_events(self, data: Any, event: EventMeta) -> None:
         """Process agent events and log appropriately"""
 
         if event.name == "error":
-            self.print("Agent 🤖 : {FrameworkError.ensure(data.error).explain()}")
+            self.print(f"Agent 🤖 : {FrameworkError.ensure(data.error).explain()}")
         elif event.name == "retry":
-            self.print("Agent 🤖 :  retrying the action...")
+            self.print("Agent 🤖 : retrying the action...")
         elif event.name == "update":
             self.print(f"Agent({data.update.key}) 🤖 : {data.update.parsed_value}")
         elif event.name == "start":
-            self.print("Agent 🤖 :  starting new iteration")
+            self.print("Agent 🤖 : starting new iteration")
         elif event.name == "success":
-            self.print("Agent 🤖 :  success")
+            self.print("Agent 🤖 : success")
 
-    def observer(self, emitter: Emitter) -> None:
+    def _observer(self, emitter: Emitter) -> None:
         """Observer"""
-        emitter.on("*", self.process_agent_events, EmitterOptions(match_nested=False))
+        emitter.on("*", self._process_agent_events, EmitterOptions(match_nested=False))
 
     async def run(self, prompt: str) -> str:
         """
@@ -254,6 +285,7 @@ class BeeAILocalAgent(Agent):
         Args:
             prompt (str): The prompt to run the agent with.
         """
+        await self._create_agent() if not self.agent else None
 
         self.print(f"Running {self.agent_name}...\n")
         response = await self.agent.run(
@@ -263,7 +295,7 @@ class BeeAILocalAgent(Agent):
                 max_iterations=20
             ),
             signal=AbortSignal.timeout(2 * 60 * 1000),
-        ).observe(self.observer)
+        ).observe(self._observer)
         answer = response.result.text
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
@@ -274,6 +306,8 @@ class BeeAILocalAgent(Agent):
         Args:
             prompt (str): The prompt to run the agent with.
         """
+        await self._create_agent() if not self.agent else None
+
         self.print(f"Running {self.agent_name}...\n")
         response = await self.agent.run(
             prompt=prompt,
@@ -283,7 +317,7 @@ class BeeAILocalAgent(Agent):
                 max_iterations=20
             ),
             signal=AbortSignal.timeout(2 * 60 * 1000),
-        ).observe(self.observer)
+        ).observe(self._observer)
         answer = response.result.text
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
