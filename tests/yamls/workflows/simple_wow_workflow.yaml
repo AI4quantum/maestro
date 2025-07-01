@@ -1,0 +1,32 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: wow workflow
+  labels:
+    app: example
+spec:
+  template:
+    metadata:
+      name: maestro-wowt
+      labels:
+        app: example
+        use-case: test
+    agents:
+        - test1
+        - test2
+    workflows:
+        - name: test_workflow1
+          url: "http://127.0.0.1:8000/wow1"  
+        - name: test_workflow2
+          url: "http://127.0.0.1:8000/wow2"  
+    prompt: This is a test input
+    steps:
+      - name: step1
+        agent: test1
+      - name: step2
+        workflow: test_workflow2
+      - name: step3
+        agent: test2
+      - name: step4
+        workflow: test_workflow1
+
