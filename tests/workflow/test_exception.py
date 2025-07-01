@@ -33,11 +33,10 @@ class TestException(TestCase):
         self.agents_yaml = parse_yaml(os.path.join(os.path.dirname(__file__),"../yamls/agents/simple_agent.yaml"))
         self.workflow_yaml = parse_yaml(os.path.join(os.path.dirname(__file__),"../yamls/workflows/exception_no_exception_workflow.yaml"))
         self.workflow = Workflow(self.agents_yaml, self.workflow_yaml[0])
-        try:
-            response = asyncio.run(self.workflow.run())
-        except Exception as excep:
-            print(excep)
-            assert "Could not find agent named" in str(excep)
+        with pytest.raises(Exception) as exc_info:
+            asyncio.run(self.workflow.run())
+
+assert "Could not find agent named" in str(exc_info.value)
 
 
 if __name__ == '__main__':
