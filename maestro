@@ -6,4 +6,4 @@ else
   PYTHON="python3"
 fi
 
-$PYTHON -m src.maestro.cli.maestro "$@"
+$PYTHON -m src.maestro.cli.run_maestro "$@"

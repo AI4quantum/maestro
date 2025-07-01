@@ -354,6 +354,7 @@ class MetaAgentsCommandTest(TestCommand):
         self.command = CLI(self.args).command()
     
     def tearDown(self):
+        self.command.process.kill() if self.command.process is not None else None
         self.args = {}
         self.command = None
         

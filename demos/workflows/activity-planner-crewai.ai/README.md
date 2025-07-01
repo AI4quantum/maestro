@@ -10,46 +10,21 @@ This demo shows how to use Maestro with CrewAI to create a workflow that plans a
 
 ## Setup
 
-1. Clone the repository:
-```bash
-git clone https://github.com/AI4quantum/maestro.git
-cd maestro
-```
+* Install maestro:
+    ```bash
+    pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
+    ```
 
-2. Install dependencies:
-```bash
-cd ../../../maestro
-uv pip install -e .
-cd -
-```
+## Running
 
-## Usage
+* Run `demos/workflows/activity-planner-crewai.ai/run.sh` via shell command line, or IDE such as vscode
 
-1. Run the workflow:
-```bash
-uv run maestro run agents.yaml workflow.yaml
-```
+## Caveats
 
-2. The workflow will:
-   * Collect user preferences
-   * Generate activity suggestions
-   * Create a schedule
-   * Save the results to `output/activity_plan.txt`
-
-## Output
-
-The output will be saved in `output/activity_plan.txt` and will contain:
-* Activity suggestions
-* Schedule
-* Required resources
-* Alternative options
-
-## Customization
-
-You can modify the workflow by editing the YAML files in the `workflows/activity-planner-crewai.ai` directory:
-* `workflow.yaml`: Main workflow configuration
-* `agents/`: Directory containing agent configurations
-* `tools/`: Directory containing tool configurations
+* Demo is incomplete and still being worked on including but not limited to
+  * Output from current agent cannot be parsed
+* `run.sh`, `doctor.sh`. `setup.sh` are currently not implemented
+* Demo is likely to be merged with `../activity-planner.ai`
 
 ## Mermaid Diagram
 
@@ -60,19 +35,3 @@ participant ActivityPlannerCrew
 ActivityPlannerCrew->>ActivityPlannerCrew: begin
 ```
 <!-- MERMAID_END -->
-
-## Requirements
-
-* Python 3.11/3.12
-* uv
-
-## Running
-
-* Run `demos/activity-planner-crewai.ai/run.py` via shell command line, or IDE such as vscode
-
-## Caveats
-
-* Demo is incomplete and still being worked on including but not limited to
-  * Output from current agent cannot be parsed
-* `run.sh`, `doctor.sh`. `setup.sh` are currently not implemented
-* Demo is likely to be merged with `../activity-planner.ai`

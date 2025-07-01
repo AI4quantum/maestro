@@ -17,15 +17,12 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: '3.12'
-    - name: Install uv
-      run: |
-        curl -LsSf https://astral.sh/uv/install.sh | sh
-        echo "$HOME/.cargo/bin" >> $GITHUB_PATH
+    - name: Install uv and activate the environment
+      uses: astral-sh/setup-uv@v6
+      with:
+        activate-environment: true
     - name: Install dependencies
       run: |
-        uv venv --python 3.12
-        uv pip install -r requirements.txt
-        uv pip install python-dotenv
         uv pip install -e .
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3

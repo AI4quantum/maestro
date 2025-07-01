@@ -1,0 +1,11 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: serve-test-agent
+spec:
+  framework: code
+  description: testing the serve command
+  instructions: Run the code in the `code` field.
+  code: |
+    print(f"You asked: {input}")
+    output["response"] = "Hello from serve-test-agent!"

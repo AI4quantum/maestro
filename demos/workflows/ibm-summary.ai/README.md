@@ -2,41 +2,6 @@
 
 This demo shows how to use Maestro to create a summary of IBM's business.
 
-## Setup
-
-1. Install dependencies:
-```bash
-cd maestro
-uv pip install -e .
-cd -
-```
-
-2. Run the demo:
-```bash
-uv run maestro run agents.yaml workflow.yaml
-```
-
-2. The workflow will:
-   * Download IBM's latest financial report
-   * Extract key information
-   * Generate a summary
-   * Save the results to `output/ibm_summary.txt`
-
-## Output
-
-The output will be saved in `output/ibm_summary.txt` and will contain:
-* Company overview
-* Financial highlights
-* Key metrics
-* Future outlook
-
-## Customization
-
-You can modify the workflow by editing the YAML files in the `workflows/ibm-summary.ai` directory:
-* `workflow.yaml`: Main workflow configuration
-* `agents/`: Directory containing agent configurations
-* `tools/`: Directory containing tool configurations
-
 ## Mermaid Diagram
 
 <!-- MERMAID_START -->
@@ -67,21 +32,28 @@ end
 
 * Verify a valid llm is available to bee-stack
 
-* Install [maestro](https://github.com/AI4Quantum/maestro) dependencies: `cd ../../../maestro && uv venv && source .venv/bin/activate && uv pip install -e . && cd -`
+* Install [maestro](https://github.com/AI4Quantum/maestro):
+   ```bash
+   pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
+   ```
 
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
+* Configure environmental variables: `cp demos/example.env .env`
 
 ## Running the Workflow
 
 Assuming you are in maestro top level:
 
-* Creating the agents(with the ability to manually add tools): `maestro create ./demos/workflows/ibm-summary.ai/agents.yaml`
+Creating the agents(with the ability to manually add tools):
+   ```bash
+   maestro create ./demos/workflows/ibm-summary.ai/agents.yaml
+   ```
 
 To run the workflow:
 
-If you already created the agents and enabled necessary tools: `maestro run ./demos/workflows/ibm-summary.ai/workflow.yaml`
+If you already created the agents and enabled necessary tools:
+```bash
+maestro run ./demos/workflows/ibm-summary.ai/workflow.yaml
+```
 
 ### NOTE: Custom Tools Required for this Demo
 

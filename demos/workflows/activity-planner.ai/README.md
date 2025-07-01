@@ -12,45 +12,15 @@ This demo shows how to use Maestro to create an activity planner.
 
 ## Setup
 
-1. Install dependencies:
+1. Install maestro:
 ```bash
-cd maestro
-uv pip install -e .
-cd -
+pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
 ```
 
 2. Run the demo:
 ```bash
 uv run maestro run agents.yaml workflow.yaml
 ```
-
-## Usage
-
-1. Run the workflow:
-```bash
-uv run maestro run workflows/activity-planner.ai
-```
-
-2. The workflow will:
-   * Collect user preferences
-   * Generate activity suggestions
-   * Create a schedule
-   * Save the results to `output/activity_plan.txt`
-
-## Output
-
-The output will be saved in `output/activity_plan.txt` and will contain:
-* Activity suggestions
-* Schedule
-* Required resources
-* Alternative options
-
-## Customization
-
-You can modify the workflow by editing the YAML files in the `workflows/activity-planner.ai` directory:
-* `workflow.yaml`: Main workflow configuration
-* `agents/`: Directory containing agent configurations
-* `tools/`: Directory containing tool configurations
 
 ## Mermaid Diagram
 
@@ -81,12 +51,11 @@ hot_activities->>hot_activities: exit
 
 * Verify a valid llm is available to bee-stack
 
-* Install [maestro](https://github.com/AI4quantum/maestro) dependencies: `cd ../../../maestro && uv venv && source .venv/bin/activate && uv pip install -e . && cd -`
+* Install [maestro](https://github.com/AI4quantum/maestro):
+   ```bash
+   pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
+   ```
 
-* Configure environmental variables: `cp example.env .env`
-
-* Copy `.env` to common directory: `cp .env ./../common/src`
-
-* Set up the demo and create the agents: `./setup.sh`
+* Configure environmental variables: `cp demos/example.env .env`
 
 * Run the workflow: `./run.sh` (to run for a different city, change the `prompt` field in `workflow.yaml`)

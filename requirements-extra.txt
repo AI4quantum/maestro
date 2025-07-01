@@ -1,4 +1,0 @@
-# Scoring Agent support
-crewai
-litellm==1.67.0
-

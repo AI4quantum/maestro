@@ -1,0 +1,22 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: simple-example
+  labels:
+    app: simple-example
+spec:
+  template:
+    metadata:
+      labels:
+        app: simple-example
+        use-case: example
+    agents:
+        - hello-world
+        - github-lister
+    prompt: Hello agent! How are you?
+    steps:
+      - name: hello_step
+        agent: hello-world
+      - name: github_list_step
+        agent: github-lister
+

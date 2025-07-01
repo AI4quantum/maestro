@@ -1,0 +1,32 @@
+name: Test Workflow with Pip Install
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+defaults:
+  run:
+    working-directory: demos # run from demo dir rather than root
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 # TODO: replace with demo repo once its created
+        with:
+          sparse-checkout: demos
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install Maestro
+        run: pip install git+https://github.com/${{ github.repository }}.git@${{ github.ref }}
+      - name: Create Agent
+        run: maestro create workflows/simple/agents.yaml
+      - name: Run Workflow
+        run: maestro run workflows/simple/workflow.yaml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_USER: ${{ github.actor }}

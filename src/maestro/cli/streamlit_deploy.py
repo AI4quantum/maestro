@@ -7,6 +7,8 @@ import sys
 import os
 import psutil
 
+from importlib.resources import files
+
 def find_repo_root(path, marker="pyproject.toml"):
     while path != "/":
         if marker in os.listdir(path):
@@ -45,7 +47,9 @@ def deploy_agents_workflow_streamlit(agents_file, workflow_file):
         st.session_state.messages = [
             {"role": "assistant", "content": "Welcome to Maestro workflow"}]
 
-    st.image("images/maestro.png", width=200)
+    image_path = str(files("maestro").joinpath("images/maestro.png"))
+
+    st.image(image_path, width=200)
     st.title("Maestro workflow")
 
     ui = StreamlitWorkflowUI(agents_file, workflow_file, workflow_yaml[0]['spec']['template']['prompt'], 'Maestro workflow')

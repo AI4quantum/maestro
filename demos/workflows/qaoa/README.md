@@ -2,6 +2,11 @@
 
 Demo of how to run QAOA as a Qiskit Pattern on Maestro.
 
+## Prerequisites
+
+* [maestro](https://github.com/AI4quantum/maestro)
+* [kind](https://kind.sigs.k8s.io)
+* [helm](https://helm.sh)
 
 ## Quickstart
 

@@ -4,6 +4,8 @@ import os
 import sys
 import psutil
 
+from importlib.resources import files
+
 import streamlit as st
 import streamlit.web.cli as st_cli
 
@@ -12,7 +14,7 @@ from streamlit.runtime.scriptrunner import add_script_run_ctx,get_script_run_ctx
 
 from maestro.cli.streamlit_workflow_ui import StreamlitWorkflowUI
 
-from maestro.common import Console, read_file
+from maestro.cli.common import Console, read_file
 
 def deploy_meta_agents_streamlit(prompt_text_file):
     """Deploy and run meta-agents workflow using Streamlit UI.
@@ -50,8 +52,11 @@ def deploy_meta_agents_streamlit(prompt_text_file):
             {"role": "assistant", "content": "Welcome to Maestro meta-agents workflow"}
         ]
 
+    def pkg_path(local_path: str) -> str:
+        return str(files("maestro").joinpath(local_path))
+
     # Page header
-    st.image("images/maestro.png", width=200)
+    st.image(pkg_path("images/maestro.png"), width=200)
     st.title("Maestro Meta-Agents workflows")
 
     # Set tabs for: Meta-Agents agents and workflow workflows and the generated workflow
@@ -59,12 +64,12 @@ def deploy_meta_agents_streamlit(prompt_text_file):
 
     with agents_tab:
         st.header("Meta-agents 🤖 -> agents.yaml")
-        ma_agents_workflow_ui = StreamlitWorkflowUI('src/agents/meta_agent/agents.yaml', 'src/agents/meta_agent/workflow_agent.yaml', prompt, 'Maestro meta-agents agents workflow', generated_agent)
+        ma_agents_workflow_ui = StreamlitWorkflowUI(pkg_path('agents/meta_agent/agents.yaml'), pkg_path('agents/meta_agent/workflow_agent.yaml'), prompt, 'Maestro meta-agents agents workflow', generated_agent)
         ma_agents_workflow_ui.setup_ui()
-    
+
     with workflow_tab:
         st.header("Meta-agents 🤖 -> workflow.yaml")
-        ma_workflow_workflow_ui = StreamlitWorkflowUI('src/agents/meta_agent/agents.yaml', 'src/agents/meta_agent/workflow_workflow.yaml', prompt, 'Maestro meta-agents workflow', generated_workflow)
+        ma_workflow_workflow_ui = StreamlitWorkflowUI(pkg_path('agents/meta_agent/agents.yaml'), pkg_path('agents/meta_agent/workflow_workflow.yaml'), prompt, 'Maestro meta-agents workflow', generated_workflow)
         ma_workflow_workflow_ui.setup_ui()
 
     with generated_workflow_tab:

@@ -10,21 +10,21 @@ spec:
       name: summary-ai
       labels:
         project: maestro-demo
-    event:
-      cron: "0 0 * * *"
-      name: daily run
-      steps:
-        - All Papers
-        - get metadata
-        - generate summary
-        - slack
-      exit: "True"
+#    event:
+#      cron: "0 0 * * *"
+#      name: daily run
+#      steps:
+#        - All Papers
+#        - get metadata
+#        - generate summary
+#        - slack
+#      exit: "True"
     agents:
       - Query Interpreter
       - All Papers
       - get metadata
       - generate summary
-      - slack
+#      - slack
     prompt: I want to search the quant-ph category and return the 1st most recent paper using the given fetch papers tool. Please provide the correct function call.
     steps:
       - name: Step1
@@ -35,5 +35,5 @@ spec:
         agent: get metadata
       - name: Step4
         agent: generate summary
-      - name: Step5
-        agent: slack
+#      - name: Step5
+#        agent: slack

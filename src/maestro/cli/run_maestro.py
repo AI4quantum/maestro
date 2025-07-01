@@ -11,6 +11,7 @@ Usage:
   maestro mermaid WORKFLOW_FILE [options]
   maestro run WORKFLOW_FILE [options]
   maestro run AGENTS_FILE WORKFLOW_FILE [options]
+  maestro serve AGENTS_FILE [options]
   maestro validate YAML_FILE [options]
   maestro validate SCHEMA_FILE YAML_FILE [options]
   maestro meta-agents TEXT_FILE [options]
@@ -37,6 +38,11 @@ Options:
   --sequenceDiagram      Sequence diagram mermaid
   --flowchart-td         Flowchart TD (top down) mermaid
   --flowchart-lr         Flowchart LR (left right) mermaid
+
+  --port PORT            Port to serve on (default: 8000)
+  --host HOST            Host to bind to (default: 127.0.0.1)
+  --agent-name NAME      Specific agent name to serve (if multiple in file)
+  --streaming            Enable streaming responses
 
   -h --help              Show this screen.
   -v --version           Show version.
