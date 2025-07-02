@@ -2,11 +2,14 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import asyncio
+import re
 from dotenv import load_dotenv
-
 from maestro.utils import eval_expression, convert_to_list
 
 load_dotenv()
+
+def strip_think_tags(text: str) -> str:
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 class Step:
     """
@@ -72,6 +75,8 @@ class Step:
         if self.step_loop:
             prompt = await self.loop(prompt, step_index=step_index)
             output["prompt"] = prompt
+        print(f"🐝 Response from {self.step_name}: {output['prompt']}")
+        output["prompt"] = strip_think_tags(output["prompt"])
 
         return output
 
