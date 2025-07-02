@@ -9,6 +9,7 @@ from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -57,6 +58,13 @@ class FastAPIServer:
             title="Maestro Agent Server",
             description="HTTP API for serving Maestro agents",
             version="1.0.0",
+        )
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
         )
         self._setup_routes()
         self._load_agents()
