@@ -3,7 +3,7 @@ kind: Agent
 metadata:
   name: All Papers
   labels:
-    app: mas-example 
+    app: mas-example
 spec:
   model: llama3.1
   framework: beeai
@@ -64,7 +64,7 @@ kind: Agent
 metadata:
   name: get metadata
   labels:
-    app: mas-example 
+    app: mas-example
 spec:
   model: llama3.1
   framework: beeai
@@ -118,7 +118,7 @@ kind: Agent
 metadata:
   name: generate summary
   labels:
-    app: mas-example 
+    app: mas-example
 spec:
   model: llama3.1
   framework: beeai
@@ -142,7 +142,7 @@ spec:
     - Do not include extra sections or bullet points within the paragraphs (except for the header line format).
     - Ensure the full summary is approximately 150–200 words.
 
-  tools: 
+  tools:
     - 'LLM'
 
 ---
@@ -166,7 +166,7 @@ kind: Agent
 metadata:
   name: Query Interpreter
   labels:
-    app: mas-example 
+    app: mas-example
 spec:
   model: llama3.1
   framework: beeai
@@ -178,11 +178,11 @@ spec:
           “I want to search the stat.ML category and return the n most recent papers”
         2. A direct function call, e.g.:
           fetch_arxiv_papers(subject="quant-ph", max_results=n)
-        
+
     Your job is to *output exactly one line (which is the fetch_arxiv_papers function call and nothing else)*, **Do not** introduce any new parameters in the function, and directly copy the function call here, replacing category and count:
     `fetch_arxiv_papers(subject="CATEGORY", max_results=COUNT)` call.
     **Do not** output any other text, explanation, or formatting.
-        
+
     **Examples:**
         ```
         Input: I want to search the stat.ML category and return the 1st most recent paper

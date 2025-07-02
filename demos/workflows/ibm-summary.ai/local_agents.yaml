@@ -18,7 +18,7 @@ kind: Agent
 metadata:
   name: Paper Finder
   labels:
-    app: mas-example 
+    app: mas-example
 spec:
   model: llama3.1
   framework: beeai
@@ -47,7 +47,7 @@ spec:
         Search ArXiv in `category`, pre-filter by abstract keywords, then
         post-filter by author affiliation tags—handling URL encoding properly.
         """
-      
+
         ibm_keywords = ["ibm", "watson", "powerai", "ibm research"]
 
         cutoff = datetime.now(timezone.utc) - timedelta(days=since_days)
@@ -92,7 +92,7 @@ kind: Agent
 metadata:
   name: get metadata
   labels:
-    app: mas-example 
+    app: mas-example
 spec:
   model: llama3.1
   framework: beeai
@@ -102,7 +102,7 @@ spec:
     The input will be a title (in list format) to a research paper. Extract this from the list and use it as the input for a parameter for the function in step 1.  Example given input might be like this: ["This is an example input title"]. We only want to extract and use the string inside, "This is an exmaple input title" and set this as our title.
 
     Step1:
-    Use the *get_metadata_by_title tool*, passing in the given title to retreive the abstract for the paper.  The function call should just be `get_metadata_by_title(title)`. 
+    Use the *get_metadata_by_title tool*, passing in the given title to retreive the abstract for the paper.  The function call should just be `get_metadata_by_title(title)`.
 
     Currently you are using the Thought, Result, and Reason step which is the final output that is generated. However, I want you to stop at the Result step (which should directly just be the output of the function). *STRICTLY output the result of the function and nothing else*
     Example output that the user should see:
@@ -146,7 +146,7 @@ kind: Agent
 metadata:
   name: generate summary
   labels:
-    app: mas-example 
+    app: mas-example
 spec:
   model: llama3.1
   framework: beeai
@@ -170,5 +170,5 @@ spec:
     - Do not include extra sections or bullet points within the paragraphs (except for the header line format).
     - Ensure the full summary is approximately 150–200 words.
 
-  tools: 
+  tools:
     - 'LLM'
