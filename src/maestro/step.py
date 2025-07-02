@@ -2,11 +2,18 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import asyncio
+import re
 from dotenv import load_dotenv
-
 from maestro.utils import eval_expression, convert_to_list
 
 load_dotenv()
+
+
+def strip_think_tags(text: str) -> str:
+    if not isinstance(text, str):
+        return text
+    return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
+
 
 class Step:
     """
@@ -22,12 +29,12 @@ class Step:
     """
 
     def __init__(self, step):
-        self.step_name     = step["name"]
-        self.step_agent    = step.get("agent")
-        self.step_input    = step.get("input")
-        self.step_condition= step.get("condition")
+        self.step_name = step["name"]
+        self.step_agent = step.get("agent")
+        self.step_input = step.get("input")
+        self.step_condition = step.get("condition")
         self.step_parallel = step.get("parallel")
-        self.step_loop     = step.get("loop")
+        self.step_loop = step.get("loop")
 
     async def run(self, *args, context=None, step_index=None):
         """
@@ -47,7 +54,9 @@ class Step:
             if context is None:
                 res = await self.step_agent.run(*args, step_index=step_index)
             else:
-                res = await self.step_agent.run(*args, context=context, step_index=step_index)
+                res = await self.step_agent.run(
+                    *args, context=context, step_index=step_index
+                )
         else:
             res = args[-1] if args else ""
 
@@ -72,6 +81,8 @@ class Step:
         if self.step_loop:
             prompt = await self.loop(prompt, step_index=step_index)
             output["prompt"] = prompt
+        print(f"🐝 Response from {self.step_name}: {output['prompt']}")
+        output["prompt"] = strip_think_tags(output["prompt"])
 
         return output
 
@@ -100,11 +111,11 @@ class Step:
 
     def input(self, prompt):
         user_prompt = self.step_input["prompt"].replace("{prompt}", str(prompt))
-        template    = self.step_input["template"]
+        template = self.step_input["template"]
         # special connector handling
         if "{CONNECTOR}" in template:
             return prompt
-        response    = input(user_prompt)
+        response = input(user_prompt)
         return template.replace("{prompt}", prompt).replace("{response}", response)
 
     async def parallel(self, prompt, step_index=None):
@@ -124,7 +135,10 @@ class Step:
                 for idx, agent in enumerate(self.step_parallel)
             ]
         else:
-            tasks = [asyncio.create_task(agent.run(prompt, step_index=step_index)) for agent in self.step_parallel]
+            tasks = [
+                asyncio.create_task(agent.run(prompt, step_index=step_index))
+                for agent in self.step_parallel
+            ]
 
         results = await asyncio.gather(*tasks)
         return str(results)
