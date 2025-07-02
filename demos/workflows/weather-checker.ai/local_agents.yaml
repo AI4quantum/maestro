@@ -28,4 +28,12 @@ spec:
   tools:
     - code_interpreter
     - weather
-  instructions: Use the OpenMeteo weather tool to find the historical temperature of the given location.  Return whether the current temperature is hotter or colder.
+  instructions: |
+    Use the OpenMeteo weather tool to find the historical temperature of the given location.  Return whether the current temperature is hotter or colder.
+
+    Example Process:
+    Input: New York, 50 degrees F
+
+    Compare input against historical temperature (lets say 55) in input location.
+
+    Output: The current temperature is colder than the historical temperature.
