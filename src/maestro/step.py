@@ -10,6 +10,8 @@ load_dotenv()
 
 
 def strip_think_tags(text: str) -> str:
+    if not isinstance(text, str):
+        return text
     return re.sub(r"<think>.*?</think>", "", text, flags=re.DOTALL).strip()
 
 
