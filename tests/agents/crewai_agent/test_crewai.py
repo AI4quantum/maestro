@@ -3,7 +3,7 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright © 2025 IBM
 
-import dotenv, os, yaml
+import os
 import asyncio
 from dotenv import load_dotenv
 
@@ -15,10 +15,13 @@ from maestro.workflow import Workflow
 
 load_dotenv()
 
+
 class CrewAITest(TestCase):
     def test_agent_runs(self) -> None:
-        agents_yaml = parse_yaml(os.path.join(os.path.dirname(__file__), 'agents.yaml'))
-        workflow_yaml = parse_yaml(os.path.join(os.path.dirname(__file__), 'workflow.yaml'))
+        agents_yaml = parse_yaml(os.path.join(os.path.dirname(__file__), "agents.yaml"))
+        workflow_yaml = parse_yaml(
+            os.path.join(os.path.dirname(__file__), "workflow.yaml")
+        )
 
         try:
             workflow = Workflow(agents_yaml, workflow_yaml[0])
@@ -30,6 +33,7 @@ class CrewAITest(TestCase):
 
         assert result is not None
         assert result["final_prompt"] == "OK"
+
 
 if __name__ == "__main__":
     crewtest = CrewAITest()

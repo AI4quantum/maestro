@@ -32,6 +32,7 @@ TOOL_REQUIRES_RESPONSES_API: Final[bool] = True
 OPENAI_DEFAULT_URL: Final[str] = "https://api.openai.com/v1"
 OPENAI_DEFAULT_MODEL: Final[str] = "gpt-4o-mini"
 
+
 class OpenAIAgent(MaestroAgent):
     """
     Maestro Agent implementation for OpenAI and compatible APIs.
@@ -48,19 +49,25 @@ class OpenAIAgent(MaestroAgent):
         super().__init__(agent_definition)
         self.agent_id = self.agent_name
 
-        spec_dict = agent_definition.get('spec', {})
-        self.model_name: str = spec_dict.get('model', OPENAI_DEFAULT_MODEL )
+        spec_dict = agent_definition.get("spec", {})
+        self.model_name: str = spec_dict.get("model", OPENAI_DEFAULT_MODEL)
         self.base_url: str = os.getenv("OPENAI_BASE_URL", OPENAI_DEFAULT_URL)
         self.api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
         self.uses_chat_completions: bool = self.base_url != OPENAI_DEFAULT_URL
-        self.use_litellm: bool = os.getenv("MAESTRO_OPENAI_USE_LITELLM", "false").lower() == "true"
+        self.use_litellm: bool = (
+            os.getenv("MAESTRO_OPENAI_USE_LITELLM", "false").lower() == "true"
+        )
         self.endpoint_has_tracing: bool = self.base_url == OPENAI_DEFAULT_URL
-        self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Using Base URL: {self.base_url}")
-        self.print(f"INFO [OpenAIAgent {self.agent_name}]: Using Model: {self.model_name}")
+        self.print(
+            f"DEBUG [OpenAIAgent {self.agent_name}]: Using Base URL: {self.base_url}"
+        )
+        self.print(
+            f"INFO [OpenAIAgent {self.agent_name}]: Using Model: {self.model_name}"
+        )
         self.client: UnderlyingClient = UnderlyingClient(
-                                            base_url=self.base_url,
-                                            api_key=self.api_key,
-                                        )
+            base_url=self.base_url,
+            api_key=self.api_key,
+        )
         self.static_tools: List[Tool] = self._initialize_static_tools(spec_dict)
         self.max_tokens: Optional[int] = self._initialize_max_tokens()
         self.extra_headers: Optional[Dict[str, str]] = self._initialize_extra_headers()
@@ -77,21 +84,27 @@ class OpenAIAgent(MaestroAgent):
         logfire.configure(
             service_name=self.agent_name,
             send_to_logfire=False,
-            distributed_tracing=True
+            distributed_tracing=True,
         )
         logfire.instrument_openai(self.client)
         logfire.instrument_openai_agents()
-        
+
         if self.use_litellm:
-            self.print(f"INFO [OpenAIAgent {self.agent_name}]: LiteLLM enabled. API selection handled by LiteLLM.")
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: LiteLLM enabled. API selection handled by LiteLLM."
+            )
         else:
             # responses API is new api - assume compatible endpoints don't yet support
             if self.uses_chat_completions:
                 set_default_openai_api("chat_completions")
-                self.print(f"INFO [OpenAIAgent {self.agent_name}]: Using 'chat_completions' API (via OpenAI client).")
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Using 'chat_completions' API (via OpenAI client)."
+                )
             else:
-                self.print(f"INFO [OpenAIAgent {self.agent_name}]: Assuming 'Responses' API (via OpenAI client).")
-            
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Assuming 'Responses' API (via OpenAI client)."
+                )
+
     # websearch they have other dependencies - so restrict to websearch initially.
     def _initialize_static_tools(self, agent_spec: dict) -> List[Tool]:
         agent_tool_names: Optional[List[str]] = agent_spec.get("tools")
@@ -100,23 +113,35 @@ class OpenAIAgent(MaestroAgent):
 
         if not tool_requested:
             if agent_tool_names:
-                self.print(f"WARN [OpenAIAgent {self.agent_name}]: Tools {agent_tool_names} ignore unsupported tool: '{SUPPORTED_TOOL_NAME}'.")
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: Tools {agent_tool_names} ignore unsupported tool: '{SUPPORTED_TOOL_NAME}'."
+                )
             else:
-                self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: No static tools requested.")
+                self.print(
+                    f"DEBUG [OpenAIAgent {self.agent_name}]: No static tools requested."
+                )
             return openai_tools
 
-        self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Tool '{SUPPORTED_TOOL_NAME}' requested.")
+        self.print(
+            f"DEBUG [OpenAIAgent {self.agent_name}]: Tool '{SUPPORTED_TOOL_NAME}' requested."
+        )
 
         if TOOL_REQUIRES_RESPONSES_API and self.uses_chat_completions:
-            self.print(f"WARN [OpenAIAgent {self.agent_name}]: Skipping tool '{SUPPORTED_TOOL_NAME}' due to API incompatibility.")
+            self.print(
+                f"WARN [OpenAIAgent {self.agent_name}]: Skipping tool '{SUPPORTED_TOOL_NAME}' due to API incompatibility."
+            )
             return openai_tools
 
         try:
             tool_instance = WebSearchTool()
             openai_tools.append(tool_instance)
-            self.print(f"INFO [OpenAIAgent {self.agent_name}]: Added static tool: {SUPPORTED_TOOL_NAME}")
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: Added static tool: {SUPPORTED_TOOL_NAME}"
+            )
         except Exception as e:
-            self.print(f"ERROR [OpenAIAgent {self.agent_name}]: Failed to instantiate tool '{SUPPORTED_TOOL_NAME}': {e}")
+            self.print(
+                f"ERROR [OpenAIAgent {self.agent_name}]: Failed to instantiate tool '{SUPPORTED_TOOL_NAME}': {e}"
+            )
             return []
 
         return openai_tools
@@ -129,16 +154,24 @@ class OpenAIAgent(MaestroAgent):
             try:
                 max_tokens_int = int(max_tokens_str)
                 if max_tokens_int > 0:
-                    self.print(f"INFO [OpenAIAgent {self.agent_name}]: Using max_tokens: {max_tokens_int}")
+                    self.print(
+                        f"INFO [OpenAIAgent {self.agent_name}]: Using max_tokens: {max_tokens_int}"
+                    )
                     # Even if set, trace shows openai ignoring, also set OLLAMA_CONTEXT_LENGTH
                     # https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-specify-the-context-window-size
                     os.environ["OLLAMA_CONTEXT_LENGTH"] = str(max_tokens_int)
-                    self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Set OLLAMA_CONTEXT_LENGTH to {max_tokens_int}")
+                    self.print(
+                        f"DEBUG [OpenAIAgent {self.agent_name}]: Set OLLAMA_CONTEXT_LENGTH to {max_tokens_int}"
+                    )
                     return max_tokens_int
                 else:
-                    self.print(f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS must be a positive integer, but got '{max_tokens_str}'. Ignoring.")
+                    self.print(
+                        f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS must be a positive integer, but got '{max_tokens_str}'. Ignoring."
+                    )
             except ValueError:
-                self.print(f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS is not a valid integer: '{max_tokens_str}'. Ignoring.")
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS is not a valid integer: '{max_tokens_str}'. Ignoring."
+                )
 
         return None
 
@@ -154,34 +187,49 @@ class OpenAIAgent(MaestroAgent):
                 if isinstance(headers_dict, dict):
                     valid_headers = {str(k): str(v) for k, v in headers_dict.items()}
                     # don't log: may contain API key (secret)
-                    obfuscated_headers = {k: '*****' for k in valid_headers}
-                    self.print(f"INFO [OpenAIAgent {self.agent_name}]: Using extra headers: {obfuscated_headers} (values redacted in log)")
+                    obfuscated_headers = {k: "*****" for k in valid_headers}
+                    self.print(
+                        f"INFO [OpenAIAgent {self.agent_name}]: Using extra headers: {obfuscated_headers} (values redacted in log)"
+                    )
                     return valid_headers
                 else:
-                    self.print(f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_EXTRA_HEADERS is not a valid JSON dictionary: '{headers_str}'. Ignoring.")
+                    self.print(
+                        f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_EXTRA_HEADERS is not a valid JSON dictionary: '{headers_str}'. Ignoring."
+                    )
             except json.JSONDecodeError:
-                self.print(f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_EXTRA_HEADERS contains invalid JSON: '{headers_str}'. Ignoring.")
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_EXTRA_HEADERS contains invalid JSON: '{headers_str}'. Ignoring."
+                )
             except Exception as e:
-                 self.print(f"WARN [OpenAIAgent {self.agent_name}]: Error processing MAESTRO_OPENAI_EXTRA_HEADERS='{headers_str}': {e}. Ignoring.")
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: Error processing MAESTRO_OPENAI_EXTRA_HEADERS='{headers_str}': {e}. Ignoring."
+                )
         return None
 
     def _process_agent_result(self, result: Optional[Any]) -> str:
         if result is None:
-            self.print(f"ERROR [OpenAIAgent {self.agent_name}]: Agent run did not produce a result object.")
+            self.print(
+                f"ERROR [OpenAIAgent {self.agent_name}]: Agent run did not produce a result object."
+            )
             return "Error: Agent run failed to produce a result."
 
-        final_output = getattr(result, 'final_output', None)
+        final_output = getattr(result, "final_output", None)
         if final_output is not None:
             final_output_str = str(final_output)
             return final_output_str
         else:
-            self.print(f"WARN [OpenAIAgent {self.agent_name}]: Agent run completed but no 'final_output' found.")
-            messages = getattr(result, 'messages', [])
-            last_message_content = messages[-1].content if messages and hasattr(messages[-1], 'content') else "No message content available."
+            self.print(
+                f"WARN [OpenAIAgent {self.agent_name}]: Agent run completed but no 'final_output' found."
+            )
+            messages = getattr(result, "messages", [])
+            last_message_content = (
+                messages[-1].content
+                if messages and hasattr(messages[-1], "content")
+                else "No message content available."
+            )
             fallback_str = f"Agent run finished without explicit final output. Last message: {last_message_content}"
             self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: {fallback_str}")
             return fallback_str
-
 
     # TODO: Cleanup streaming vs non-streaming
     # Maestro doesn't yet have support to specify streaming vs non-streaming, so these
@@ -194,23 +242,28 @@ class OpenAIAgent(MaestroAgent):
         try:
             active_mcp_servers: List[MCPServerInstance]
             active_mcp_servers, mcp_stack = await setup_mcp_servers(
-                print_func=self.print,
-                agent_name=self.agent_name
+                print_func=self.print, agent_name=self.agent_name
             )
 
             async with mcp_stack:
-                model_to_use: Any # Type hint for clarity
+                model_to_use: Any  # Type hint for clarity
                 # LiteLLM needs more than the model name in Agents SDK
                 if self.use_litellm:
-                    self.print(f"INFO [OpenAIAgent {self.agent_name}]: Using LiteLLM backend for model: {self.model_name}")
-                    litellm_base_url = self.base_url if self.base_url != OPENAI_DEFAULT_URL else None
+                    self.print(
+                        f"INFO [OpenAIAgent {self.agent_name}]: Using LiteLLM backend for model: {self.model_name}"
+                    )
+                    litellm_base_url = (
+                        self.base_url if self.base_url != OPENAI_DEFAULT_URL else None
+                    )
                     model_to_use = LitellmModel(
                         model=self.model_name,
                         api_key=self.api_key,
-                        base_url=litellm_base_url
+                        base_url=litellm_base_url,
                     )
                 else:
-                     model_to_use = self.model_name # Use the string name for standard OpenAI client
+                    model_to_use = (
+                        self.model_name
+                    )  # Use the string name for standard OpenAI client
                 # TODO: Extend or make generic for more settings
                 model_settings_dict: Dict[str, Any] = {}
                 if self.max_tokens is not None:
@@ -232,7 +285,9 @@ class OpenAIAgent(MaestroAgent):
 
                 self.print(f"Running {self.agent_name} with prompt...")
                 result = await UnderlyingRunner.run(underlying_agent, prompt)
-                self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Agent run completed.")
+                self.print(
+                    f"DEBUG [OpenAIAgent {self.agent_name}]: Agent run completed."
+                )
 
         except Exception as e:
             error_msg = f"ERROR [OpenAIAgent {self.agent_name}]: Agent run failed: {e}"
@@ -246,7 +301,6 @@ class OpenAIAgent(MaestroAgent):
 
         return final_str
 
-
     async def _run_streaming_internal(self, prompt: str) -> str:
         final_output_chunks: List[str] = []
         last_event_was_delta = False
@@ -255,22 +309,25 @@ class OpenAIAgent(MaestroAgent):
         try:
             active_mcp_servers: List[MCPServerInstance]
             active_mcp_servers, mcp_stack = await setup_mcp_servers(
-                print_func=self.print,
-                agent_name=self.agent_name
+                print_func=self.print, agent_name=self.agent_name
             )
 
             async with mcp_stack:
                 model_to_use: Any
                 if self.use_litellm:
-                    self.print(f"INFO [OpenAIAgent {self.agent_name}]: Using LiteLLM backend for model: {self.model_name} (streaming)")
-                    litellm_base_url = self.base_url if self.base_url != OPENAI_DEFAULT_URL else None
+                    self.print(
+                        f"INFO [OpenAIAgent {self.agent_name}]: Using LiteLLM backend for model: {self.model_name} (streaming)"
+                    )
+                    litellm_base_url = (
+                        self.base_url if self.base_url != OPENAI_DEFAULT_URL else None
+                    )
                     model_to_use = LitellmModel(
                         model=self.model_name,
                         api_key=self.api_key,
-                        base_url=litellm_base_url
+                        base_url=litellm_base_url,
                     )
                 else:
-                     model_to_use = self.model_name
+                    model_to_use = self.model_name
 
                 model_settings_dict: Dict[str, Any] = {}
                 if self.max_tokens is not None:
@@ -290,7 +347,9 @@ class OpenAIAgent(MaestroAgent):
                 # Create the *OpenAI* Agent (renamed to avoid clash)
                 underlying_agent = UnderlyingAgent(**agent_kwargs)
 
-                run_result_streaming = UnderlyingRunner.run_streamed(underlying_agent, prompt)
+                run_result_streaming = UnderlyingRunner.run_streamed(
+                    underlying_agent, prompt
+                )
                 stream = run_result_streaming.stream_events()
                 event = None
 
@@ -308,33 +367,49 @@ class OpenAIAgent(MaestroAgent):
                             last_event_was_delta = False
 
                         if event.name == "tool_called":
-                            tool_call_info = getattr(event.item, 'tool_call', None)
+                            tool_call_info = getattr(event.item, "tool_call", None)
                             if tool_call_info:
-                                self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Starting tool call: {getattr(tool_call_info, 'name', 'N/A')} with args: {getattr(tool_call_info, 'arguments', '{}')}")
+                                self.print(
+                                    f"DEBUG [OpenAIAgent {self.agent_name}]: Starting tool call: {getattr(tool_call_info, 'name', 'N/A')} with args: {getattr(tool_call_info, 'arguments', '{}')}"
+                                )
                             else:
-                                self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Starting tool call (details unavailable in event.item)")
+                                self.print(
+                                    f"DEBUG [OpenAIAgent {self.agent_name}]: Starting tool call (details unavailable in event.item)"
+                                )
                         elif event.name == "tool_output":
-                            tool_output = getattr(event.item, 'output', 'N/A')
-                            self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Finished tool call. Output: {str(tool_output)[:100]}...")
+                            tool_output = getattr(event.item, "output", "N/A")
+                            self.print(
+                                f"DEBUG [OpenAIAgent {self.agent_name}]: Finished tool call. Output: {str(tool_output)[:100]}..."
+                            )
                         elif event.name == "message_output_created":
                             # message_text = ItemHelpers.text_message_output(event.item) # Can be verbose
-                            self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Message output item created.")
+                            self.print(
+                                f"DEBUG [OpenAIAgent {self.agent_name}]: Message output item created."
+                            )
                             pass
                         elif event.name == "run_completed":
-                            self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Agent stream processing finished (run_item_stream_event: {event.name}).")
+                            self.print(
+                                f"DEBUG [OpenAIAgent {self.agent_name}]: Agent stream processing finished (run_item_stream_event: {event.name})."
+                            )
                         else:
-                            self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Received run item event: {event.name}")
+                            self.print(
+                                f"DEBUG [OpenAIAgent {self.agent_name}]: Received run item event: {event.name}"
+                            )
 
                     elif event.type == "agent_updated_stream_event":
                         if last_event_was_delta:
                             print("")
                             last_event_was_delta = False
-                        self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Agent updated to: {event.new_agent.name}")
+                        self.print(
+                            f"DEBUG [OpenAIAgent {self.agent_name}]: Agent updated to: {event.new_agent.name}"
+                        )
                     else:
                         if last_event_was_delta:
                             print("")
                             last_event_was_delta = False
-                        self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: Received unknown event type: {event.type}")
+                        self.print(
+                            f"DEBUG [OpenAIAgent {self.agent_name}]: Received unknown event type: {event.type}"
+                        )
 
                 if last_event_was_delta:
                     print("")
@@ -342,7 +417,9 @@ class OpenAIAgent(MaestroAgent):
         except Exception as e:
             if last_event_was_delta:
                 print("")
-            error_msg = f"ERROR [OpenAIAgent {self.agent_name}]: Agent stream failed: {e}"
+            error_msg = (
+                f"ERROR [OpenAIAgent {self.agent_name}]: Agent stream failed: {e}"
+            )
             self.print(error_msg)
             self.print(traceback.format_exc())
             return f"Error during agent streaming execution: {e}"
@@ -350,7 +427,9 @@ class OpenAIAgent(MaestroAgent):
         # Create the final output from all the bits we've received
         final_output_str = "".join(final_output_chunks)
 
-        self.print(f"Final Response from {self.agent_name} (streaming collected): {final_output_str}")
+        self.print(
+            f"Final Response from {self.agent_name} (streaming collected): {final_output_str}"
+        )
 
         return final_output_str
 
@@ -365,14 +444,17 @@ class OpenAIAgent(MaestroAgent):
         streaming_override = os.getenv("MAESTRO_OPENAI_STREAMING", "auto").lower()
 
         if streaming_override == "true":
-            self.print(f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=true, overriding run() to use streaming.")
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=true, overriding run() to use streaming."
+            )
             return await self._run_streaming_internal(prompt)
         elif streaming_override == "false":
-            self.print(f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=false, forcing non-streaming.")
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=false, forcing non-streaming."
+            )
             return await self._run_internal(prompt)
-        else: # auto or unset
+        else:  # auto or unset
             return await self._run_internal(prompt)
-
 
     async def run_streaming(self, prompt: str) -> str:
         """
@@ -385,10 +467,14 @@ class OpenAIAgent(MaestroAgent):
         streaming_override = os.getenv("MAESTRO_OPENAI_STREAMING", "auto").lower()
 
         if streaming_override == "true":
-            self.print(f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=true, forcing streaming.")
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=true, forcing streaming."
+            )
             return await self._run_streaming_internal(prompt)
         elif streaming_override == "false":
-            self.print(f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=false, overriding run_streaming() to use non-streaming.")
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=false, overriding run_streaming() to use non-streaming."
+            )
             return await self._run_internal(prompt)
-        else: # auto or unset
+        else:  # auto or unset
             return await self._run_streaming_internal(prompt)

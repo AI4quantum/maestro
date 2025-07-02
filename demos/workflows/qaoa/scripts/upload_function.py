@@ -15,7 +15,7 @@ function = QiskitFunction(
     title="qaoa",
     entrypoint="qaoa.py",
     working_dir="./functions/qaoa/",
-    dependencies=["qiskit_aer"]
+    dependencies=["qiskit_aer"],
 )
 
 serverless.upload(function)

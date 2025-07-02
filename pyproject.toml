@@ -26,7 +26,9 @@ dependencies = [
     "slack_sdk>=3.35.0",
     "nest-asyncio>=1.6.0",
     "pydantic-ai[logfire]>=0.1.8",
-    "opik>=1.7.22"
+    "opik>=1.7.22",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
 ]
 
 [project.optional-dependencies]

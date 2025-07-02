@@ -6,33 +6,33 @@
 import unittest
 from maestro.agents.agent import Agent
 
-class TestAgentEmojis(unittest.TestCase):
 
+class TestAgentEmojis(unittest.TestCase):
     def _create_agent(self, framework: str) -> Agent:
         agent_dict = {
-            'metadata': {'name': f'{framework}_test_agent'},
-            'spec': {
-                'framework': framework,
-                'model': 'test_model',          # Placeholder value
-                'description': 'test desc',     # Placeholder value
-                'instructions': 'test instr',   # Placeholder value
-            }
+            "metadata": {"name": f"{framework}_test_agent"},
+            "spec": {
+                "framework": framework,
+                "model": "test_model",  # Placeholder value
+                "description": "test desc",  # Placeholder value
+                "instructions": "test instr",  # Placeholder value
+            },
         }
         return Agent(agent_dict)
 
     def test_emoji_outputs(self):
         test_cases = {
             # Known frameworks from Agent.EMOJIS
-            'beeai': '🐝',
-            'crewai': '👥',
-            'openai': '🔓',
-            'mock': '🤖',
-            'remote': '💸',
+            "beeai": "🐝",
+            "crewai": "👥",
+            "openai": "🔓",
+            "mock": "🤖",
+            "remote": "💸",
             # Unknown framework should return the default
-            'some_new_framework': '⚙️',
-            'another_unknown': '⚙️',
+            "some_new_framework": "⚙️",
+            "another_unknown": "⚙️",
             # Edge case: empty string framework name
-            '': '⚙️',
+            "": "⚙️",
         }
 
         for framework, expected_emoji in test_cases.items():
@@ -40,8 +40,12 @@ class TestAgentEmojis(unittest.TestCase):
                 agent = self._create_agent(framework)
                 actual_emoji = agent.emoji()
 
-                self.assertEqual(actual_emoji, expected_emoji,
-                                f"Emoji for framework '{framework}' should be '{expected_emoji}' but got '{actual_emoji}'")
+                self.assertEqual(
+                    actual_emoji,
+                    expected_emoji,
+                    f"Emoji for framework '{framework}' should be '{expected_emoji}' but got '{actual_emoji}'",
+                )
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

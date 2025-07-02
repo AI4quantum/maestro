@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
+from maestro.agents.agent import Agent
+
 from dotenv import load_dotenv
+
 load_dotenv()
 
-from maestro.agents.agent import Agent
 
 class PromptAgent(Agent):
     """

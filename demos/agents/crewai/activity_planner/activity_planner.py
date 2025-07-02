@@ -4,7 +4,7 @@
 # Copyright © 2025 IBM
 
 """
-This script uses the crew.ai framework to find activities suitable for cold or wet weather. 
+This script uses the crew.ai framework to find activities suitable for cold or wet weather.
 
 Dependencies:
 - crewai
@@ -37,8 +37,9 @@ class ActivityPlannerCrew:
     # TODO Set model/URL from configuration
     llm = LLM(
         model=os.getenv("MAESTRO_DEMO_OLLAMA_MODEL", "ollama/llama3.1"),
-        base_url=os.getenv("MAESTRO_DEMO_OLLAMA_URL", "http://localhost:11434")
+        base_url=os.getenv("MAESTRO_DEMO_OLLAMA_URL", "http://localhost:11434"),
     )
+
     @tool("DuckDuckGo")
     # TODO PyLance issue - missing self() but fails with crewai decorators if added
     def ddg_search(question: str) -> str:
@@ -99,6 +100,7 @@ class ActivityPlannerCrew:
             verbose=False,
         )
 
+
 # Main for testing
 if __name__ == "__main__":
     print("Running crew...")
@@ -106,4 +108,3 @@ if __name__ == "__main__":
     crew_output = ActivityPlannerCrew().activity_crew().kickoff(inputs=inputs)
     print("\n====\n\nFinal raw output returned by agent:\n====\n\n")
     print(crew_output.raw)
-    

@@ -3,23 +3,32 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright © 2025 IBM
 
-import os, sys, json, dotenv, yaml
+import os
+import dotenv
+import yaml
 import asyncio
 
-from openai import OpenAI
 
 from maestro.workflow import Workflow
 
 dotenv.load_dotenv()
+
 
 def parse_yaml(file_path):
     with open(file_path, "r") as file:
         yaml_data = list(yaml.safe_load_all(file))
     return yaml_data
 
+
 if __name__ == "__main__":
-    agents_yaml = parse_yaml(os.path.join(os.path.dirname(__file__),"../yamls/agents/simple_agent.yaml"))
-    workflow_yaml = parse_yaml(os.path.join(os.path.dirname(__file__),"../yamls/workflows/parallel_workflow.yaml"))
+    agents_yaml = parse_yaml(
+        os.path.join(os.path.dirname(__file__), "../yamls/agents/simple_agent.yaml")
+    )
+    workflow_yaml = parse_yaml(
+        os.path.join(
+            os.path.dirname(__file__), "../yamls/workflows/parallel_workflow.yaml"
+        )
+    )
     try:
         workflow = Workflow(agents_yaml, workflow_yaml[0])
     except Exception as excep:
