@@ -2,6 +2,7 @@
 # Copyright © 2025 IBM
 
 """CLI command implementations for Maestro workflow management."""
+
 import os
 import re
 import signal
@@ -24,60 +25,62 @@ from maestro.file_logger import FileLogger
 from datetime import datetime, UTC
 from maestro.cli.fastapi_serve import serve_agent
 
+
 # Root CLI class
 class CLI:
     """Root CLI class that handles command routing and initialization."""
-    
+
     def __init__(self, args):
         self.args = args
-        VERBOSE, DRY_RUN, SILENT = False, False, False
-        if self.args['--verbose']:
-            VERBOSE = True
-        if self.args['--dry-run']:
-            DRY_RUN = True
-        if self.args['--silent']:
-            SILENT = True
+        self.VERBOSE, self.DRY_RUN, self.SILENT = False, False, False
+        if self.args["--verbose"]:
+            self.VERBOSE = True
+        if self.args["--dry-run"]:
+            self.DRY_RUN = True
+        if self.args["--silent"]:
+            self.SILENT = True
 
     def command(self):
         """Route to the appropriate command handler based on command line arguments.
-        
+
         Returns:
             Command: An instance of the appropriate command handler class.
         """
-        if self.args.get('validate') and self.args['validate']:
+        if self.args.get("validate") and self.args["validate"]:
             return ValidateCmd(self.args)
-        elif self.args.get('create') and self.args['create']:
+        elif self.args.get("create") and self.args["create"]:
             return CreateCmd(self.args)
-        elif self.args.get('run') and self.args['run']:
+        elif self.args.get("run") and self.args["run"]:
             return RunCmd(self.args)
-        elif self.args.get('deploy') and self.args['deploy']:
+        elif self.args.get("deploy") and self.args["deploy"]:
             return DeployCmd(self.args)
-        elif self.args.get('mermaid') and self.args['mermaid']:
+        elif self.args.get("mermaid") and self.args["mermaid"]:
             return MermaidCmd(self.args)
-        elif self.args.get('meta-agents') and self.args['meta-agents']:
+        elif self.args.get("meta-agents") and self.args["meta-agents"]:
             return MetaAgentsCmd(self.args)
-        elif self.args.get('serve') and self.args['serve']:
+        elif self.args.get("serve") and self.args["serve"]:
             return ServeCmd(self.args)
-        elif self.args.get('clean') and self.args['clean']:
+        elif self.args.get("clean") and self.args["clean"]:
             return CleanCmd(self.args)
-        elif self.args.get('create-cr') and self.args['create-cr']:
+        elif self.args.get("create-cr") and self.args["create-cr"]:
             return CreateCrCmd(self.args)
         else:
             raise Exception("Invalid command")
 
+
 # Base class for all commands
 class Command:
     """Base class that provides common functionality for all command implementations."""
-    
+
     def __init__(self, args):
         self.args = args
         self.__init_dry_run()
-        
+
     def __init_dry_run(self):
-        if self.args.get('--dry-run') and self.args['--dry-run']:
+        if self.args.get("--dry-run") and self.args["--dry-run"]:
             self.__dry_run = True
-            os.environ["DRY_RUN"] = "True"        
-    
+            os.environ["DRY_RUN"] = "True"
+
     def _check_verbose(self):
         if self.verbose():
             print(traceback.format_exc())
@@ -92,10 +95,10 @@ class Command:
         Console.warn(msg)
 
     def verbose(self):
-        return self.args['--verbose']
-    
+        return self.args["--verbose"]
+
     def silent(self):
-        return self.args['--silent']
+        return self.args["--silent"]
 
     def dry_run(self):
         return self.__dry_run
@@ -103,7 +106,7 @@ class Command:
     def execute(self):
         func = self.dispatch()
         rc = func()
-        if rc == None:
+        if rc is None:
             return 0
         else:
             if isinstance(rc, int):
@@ -113,36 +116,37 @@ class Command:
 
     def dispatch(self):
         """Route to the appropriate command handler method based on command line arguments.
-        
+
         Returns:
             function: The command handler method to execute.
         """
-        if self.args['validate']:
+        if self.args["validate"]:
             return self.validate
-        elif self.args['create']:
+        elif self.args["create"]:
             return self.create
-        elif self.args['run']:
+        elif self.args["run"]:
             return self.run
-        elif self.args['deploy']:
+        elif self.args["deploy"]:
             return self.deploy
-        elif self.args['mermaid']:
+        elif self.args["mermaid"]:
             return self.mermaid
-        elif self.args['meta-agents']:
+        elif self.args["meta-agents"]:
             return self.meta_agents
-        elif self.args['serve']:
+        elif self.args["serve"]:
             return self.serve
-        elif self.args['clean']:
+        elif self.args["clean"]:
             return self.clean
-        elif self.args['create-cr']:
+        elif self.args["create-cr"]:
             return self.create_cr
         else:
             raise Exception("Invalid subcommand")
+
 
 # validate command group
 #  maestro validate SCHEMA_FILE YAML_FILE [options]
 class ValidateCmd(Command):
     """Command handler for validating YAML files against JSON schemas."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
@@ -153,18 +157,20 @@ class ValidateCmd(Command):
         yaml_data = parse_yaml(yaml_file)
         if isinstance(yaml_data, list) and len(yaml_data) > 0:
             yaml_data = yaml_data[0]
-        kind = yaml_data.get('kind')
-        project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../'))
-        if kind == 'Agent':
-            return os.path.join(project_root, 'schemas/agent_schema.json')
-        elif kind == 'Tool':
-            return os.path.join(project_root, 'schemas/tool_schema.json')
-        elif kind == 'Workflow':
-            return os.path.join(project_root, 'schemas/workflow_schema.json')
-        elif kind == 'WorkflowRun':
+        kind = yaml_data.get("kind")
+        project_root = os.path.abspath(
+            os.path.join(os.path.dirname(__file__), "../../../")
+        )
+        if kind == "Agent":
+            return os.path.join(project_root, "schemas/agent_schema.json")
+        elif kind == "Tool":
+            return os.path.join(project_root, "schemas/tool_schema.json")
+        elif kind == "Workflow":
+            return os.path.join(project_root, "schemas/workflow_schema.json")
+        elif kind == "WorkflowRun":
             Console.ok("WorkflowRun is not supported")
             return None
-        elif kind == 'CustomResourceDefinition':
+        elif kind == "CustomResourceDefinition":
             Console.ok("CustomResourceDefinition is not supported")
             return None
         else:
@@ -174,21 +180,27 @@ class ValidateCmd(Command):
         Console.print(f"validating {yaml_file} with schema {schema_file}")
         if schema_file is None:
             # Try to discover the schema file based on the yaml file
-            project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), '../../../'))
+            project_root = os.path.abspath(
+                os.path.join(os.path.dirname(__file__), "../../../")
+            )
             if "agents.yaml" in yaml_file:
                 schema_file = os.path.join(project_root, "schemas/agent_schema.json")
             elif "workflow.yaml" in yaml_file:
                 schema_file = os.path.join(project_root, "schemas/workflow_schema.json")
             else:
-                raise RuntimeError("Could not determine schema file from yaml file name")
-        with open(schema_file, 'r', encoding='utf-8') as f:
+                raise RuntimeError(
+                    "Could not determine schema file from yaml file name"
+                )
+        with open(schema_file, "r", encoding="utf-8") as f:
             schema = json.load(f)
-        with open(yaml_file, 'r', encoding='utf-8') as f:
+        with open(yaml_file, "r", encoding="utf-8") as f:
             yamls = yaml.safe_load_all(f)
             for yaml_data in yamls:
                 try:
                     if self.verbose():
-                        Console.print(f"Validating YAML data: {json.dumps(yaml_data, indent=2)}")
+                        Console.print(
+                            f"Validating YAML data: {json.dumps(yaml_data, indent=2)}"
+                        )
                         Console.print(f"Against schema: {json.dumps(schema, indent=2)}")
                     jsonschema.validate(yaml_data, schema)
                     if not self.silent():
@@ -206,22 +218,22 @@ class ValidateCmd(Command):
     # public
 
     def SCHEMA_FILE(self):
-        return self.args['SCHEMA_FILE']
+        return self.args["SCHEMA_FILE"]
 
     def YAML_FILE(self):
-        return self.args['YAML_FILE']
+        return self.args["YAML_FILE"]
 
     def name(self):
-      return "validate"
+        return "validate"
 
     def validate(self):
         """Validate YAML files against JSON schemas.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
-        if self.SCHEMA_FILE() is None or self.SCHEMA_FILE() == '':
-            discovered_schema_file = ''
+        if self.SCHEMA_FILE() is None or self.SCHEMA_FILE() == "":
+            discovered_schema_file = ""
             try:
                 discovered_schema_file = self.__discover_schema_file(self.YAML_FILE())
                 if not discovered_schema_file:
@@ -232,11 +244,12 @@ class ValidateCmd(Command):
             return self.__validate(discovered_schema_file, self.YAML_FILE())
         return self.__validate(self.SCHEMA_FILE(), self.YAML_FILE())
 
+
 # Create command group
 #  maestro create AGENTS_FILE [options]
 class CreateCmd(Command):
     """Command handler for creating agents from a configuration file."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
@@ -249,14 +262,14 @@ class CreateCmd(Command):
             raise RuntimeError(f"{str(e)}") from e
 
     def AGENTS_FILE(self):
-        return self.args['AGENTS_FILE']
+        return self.args["AGENTS_FILE"]
 
     def name(self):
-      return "create"
+        return "create"
 
     def create(self):
         """Create agents from the specified configuration file.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
@@ -268,6 +281,7 @@ class CreateCmd(Command):
             Console.error(f"Unable to create agents: {str(e)}")
         return 0
 
+
 # Run command group
 #  maestro run AGENTS_FILE WORKFLOW_FILE [options]
 class RunCmd(Command):
@@ -278,20 +292,20 @@ class RunCmd(Command):
         super().__init__(self.args)
 
     def __read_prompt(self):
-        return Console.read('Enter your prompt: ')
-    
+        return Console.read("Enter your prompt: ")
+
     def AGENTS_FILE(self):
-        return self.args['AGENTS_FILE']
+        return self.args["AGENTS_FILE"]
 
     def WORKFLOW_FILE(self):
-        return self.args['WORKFLOW_FILE']
+        return self.args["WORKFLOW_FILE"]
 
     def prompt(self):
-        return self.args.get('--prompt')
+        return self.args.get("--prompt")
 
     def name(self):
         return "run"
-    
+
     def run(self):
         """Run a workflow with specified agents and workflow files."""
         logger = FileLogger()
@@ -300,27 +314,31 @@ class RunCmd(Command):
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
 
         agents_file_arg = self.AGENTS_FILE()
-        if agents_file_arg and agents_file_arg != 'None':
+        if agents_file_arg and agents_file_arg != "None":
             agents_yaml = parse_yaml(agents_file_arg)
         else:
-            inferred_path = os.path.join(os.path.dirname(self.WORKFLOW_FILE()), "agents.yaml")
+            inferred_path = os.path.join(
+                os.path.dirname(self.WORKFLOW_FILE()), "agents.yaml"
+            )
             if os.path.exists(inferred_path):
                 agents_yaml = parse_yaml(inferred_path)
                 Console.print(f"[INFO] Auto-loaded agents.yaml from: {inferred_path}")
             else:
                 agents_yaml = None
-                Console.warn("⚠️ No agents.yaml path provided or found — skipping custom_agent label handling.")
+                Console.warn(
+                    "⚠️ No agents.yaml path provided or found — skipping custom_agent label handling."
+                )
 
         if self.prompt():
             prompt = self.__read_prompt()
-            workflow_yaml[0]['spec']['template']['prompt'] = prompt
+            workflow_yaml[0]["spec"]["template"]["prompt"] = prompt
 
         try:
             workflow = Workflow(
                 agent_defs=agents_yaml,
                 workflow=workflow_yaml[0],
                 workflow_id=workflow_id,
-                logger=logger
+                logger=logger,
             )
             start_time = datetime.now(UTC)
             result = asyncio.run(workflow.run())
@@ -339,7 +357,11 @@ class RunCmd(Command):
             if agents_yaml:
                 for agent_def in agents_yaml:
                     name = agent_def.get("metadata", {}).get("name")
-                    custom_agent = agent_def.get("metadata", {}).get("labels", {}).get("custom_agent", "")
+                    custom_agent = (
+                        agent_def.get("metadata", {})
+                        .get("labels", {})
+                        .get("custom_agent", "")
+                    )
                     if name:
                         agent_labels[name.lower()] = custom_agent
 
@@ -369,7 +391,7 @@ class RunCmd(Command):
                 status="success",
                 start_time=start_time,
                 end_time=end_time,
-                duration_ms=duration_ms
+                duration_ms=duration_ms,
             )
 
         except Exception as e:
@@ -386,24 +408,37 @@ class RunCmd(Command):
                 status="error",
                 start_time=start_time,
                 end_time=end_time,
-                duration_ms=duration_ms
+                duration_ms=duration_ms,
             )
             return 1
 
         return 0
-        
+
+
 # Deploy command group
 #  maestro deploy AGENTS_FILE WORKFLOW_FILE [options]
 class DeployCmd(Command):
     """Command handler for deploying a workflow to a Kubernetes cluster or local server."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
-    
+
     def __deploy_agents_workflow_streamlit(self):
         try:
-            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/streamlit_deploy.py", self.AGENTS_FILE(), self.WORKFLOW_FILE()]
+            sys.argv = [
+                "uv",
+                "run",
+                "streamlit",
+                "run",
+                "--ui.hideTopBar",
+                "True",
+                "--client.toolbarMode",
+                "minimal",
+                f"{os.path.dirname(__file__)}/streamlit_deploy.py",
+                self.AGENTS_FILE(),
+                self.WORKFLOW_FILE(),
+            ]
             self.process = subprocess.Popen(sys.argv)
         except Exception as e:
             self._check_verbose()
@@ -414,80 +449,82 @@ class DeployCmd(Command):
         try:
             if self.docker():
                 deploy = Deploy(agents_yaml, workflow_yaml, env)
-                deploy.deploy_to_docker()  
+                deploy.deploy_to_docker()
                 if not self.silent():
-                    Console.ok(f"Workflow deployed: http://127.0.0.1:5000")
+                    Console.ok("Workflow deployed: http://127.0.0.1:5000")
             elif self.k8s():
                 deploy = Deploy(agents_yaml, workflow_yaml, env)
                 deploy.deploy_to_kubernetes()
                 if not self.silent():
-                    Console.ok(f"Workflow deployed: http://<kubernetes address>:30051")            
+                    Console.ok("Workflow deployed: http://<kubernetes address>:30051")
             else:
                 self.__deploy_agents_workflow_streamlit()
                 if not self.silent():
-                    Console.ok(f"Workflow deployed: http://localhost:8501/?embed=true")
+                    Console.ok("Workflow deployed: http://localhost:8501/?embed=true")
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"Unable to deploy workflow: {str(e)}") from e
-        return 0            
+        return 0
 
     def auto_prompt(self):
-        return self.args.get('--auto-prompt', False)
+        return self.args.get("--auto-prompt", False)
 
     def url(self):
-        if self.args['--url'] == "" or self.args['--url'] == None:
+        if self.args["--url"] == "" or self.args["--url"] is None:
             return "127.0.0.1:5000"
-        return self.args['--url'] 
+        return self.args["--url"]
 
     def k8s(self):
-        return self.args['--k8s'] or self.args['--kubernetes']
+        return self.args["--k8s"] or self.args["--kubernetes"]
 
     def docker(self):
-        return self.args['--docker']
+        return self.args["--docker"]
 
     def streamlit(self):
-        return self.args['--streamlit']
+        return self.args["--streamlit"]
 
     def AGENTS_FILE(self):
-        return self.args['AGENTS_FILE']
+        return self.args["AGENTS_FILE"]
 
     def WORKFLOW_FILE(self):
-        return self.args['WORKFLOW_FILE']
+        return self.args["WORKFLOW_FILE"]
 
     def ENV(self):
-        env_vars = self.args['ENV']
+        env_vars = self.args["ENV"]
         if self.auto_prompt():
             env_vars.append("AUTO_RUN=true")
         return " ".join(env_vars)
 
     def name(self):
-      return "deploy"
+        return "deploy"
 
     def deploy(self):
         """Deploy a workflow to a Kubernetes cluster or local server.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
         try:
-            self.__deploy_agents_workflow(self.AGENTS_FILE(), self.WORKFLOW_FILE(), self.ENV())
+            self.__deploy_agents_workflow(
+                self.AGENTS_FILE(), self.WORKFLOW_FILE(), self.ENV()
+            )
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to deploy workflow: {str(e)}")
             return 1
         return 0
-        
+
 
 # Mermaid command group
 # $ maestro mermaid WORKFLOW_FILE [options]
 class MermaidCmd(Command):
     """Command handler for generating mermaid diagrams from a workflow file."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
 
-    # private    
+    # private
     def __mermaid(self, workflow_yaml) -> str:
         mermaid = ""
         workflow = Workflow(None, workflow_yaml)
@@ -495,7 +532,7 @@ class MermaidCmd(Command):
             mermaid = workflow.to_mermaid("sequenceDiagram")
         elif self.flowchart_td():
             mermaid = workflow.to_mermaid("flowchart", "TD")
-        elif self.flowchart_lr():            
+        elif self.flowchart_lr():
             mermaid = workflow.to_mermaid("flowchart", "LR")
         else:
             mermaid = workflow.to_mermaid("sequenceDiagram")
@@ -503,29 +540,29 @@ class MermaidCmd(Command):
 
     # public options
     def WORKFLOW_FILE(self):
-        return self.args.get('WORKFLOW_FILE')
+        return self.args.get("WORKFLOW_FILE")
 
     def sequenceDiagram(self):
-        return self.args.get('--sequenceDiagram')
+        return self.args.get("--sequenceDiagram")
 
     def flowchart_td(self):
-        return self.args.get('--flowchart-td')
+        return self.args.get("--flowchart-td")
 
     def flowchart_lr(self):
-        return self.args.get('--flowchart-lr')
+        return self.args.get("--flowchart-lr")
 
     def name(self):
-      return "mermaid"
+        return "mermaid"
 
     # public command method
     def mermaid(self):
         """Generate a mermaid diagram from a workflow file.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
-        try:            
+        try:
             mermaid = self.__mermaid(workflow_yaml)
             if not self.silent():
                 Console.ok("Created mermaid for workflow\n")
@@ -536,19 +573,31 @@ class MermaidCmd(Command):
             return 1
         return 0
 
+
 # MetaAgents command group
 # $ maestro meta-agents TEXT_FILE [options]
 class MetaAgentsCmd(Command):
     """Command handler for running meta-agents on a text file."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
 
-    # private    
+    # private
     def __meta_agents(self, text_file) -> int:
         try:
-            sys.argv = ["uv", "run", "streamlit", "run", "--ui.hideTopBar", "True", "--client.toolbarMode", "minimal", f"{os.path.dirname(__file__)}/streamlit_meta_agents_deploy.py", text_file]
+            sys.argv = [
+                "uv",
+                "run",
+                "streamlit",
+                "run",
+                "--ui.hideTopBar",
+                "True",
+                "--client.toolbarMode",
+                "minimal",
+                f"{os.path.dirname(__file__)}/streamlit_meta_agents_deploy.py",
+                text_file,
+            ]
             self.process = subprocess.Popen(sys.argv)
         except Exception as e:
             self._check_verbose()
@@ -557,20 +606,20 @@ class MetaAgentsCmd(Command):
 
     # public options
     def TEXT_FILE(self):
-        return self.args.get('TEXT_FILE')
+        return self.args.get("TEXT_FILE")
 
     def name(self):
-      return "meta-agents"
+        return "meta-agents"
 
     # public command method
     def meta_agents(self):
         """Run meta-agents on a text file.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
         try:
-            rc = self.__meta_agents(self.TEXT_FILE())
+            self.__meta_agents(self.TEXT_FILE())
             if not self.silent():
                 Console.ok("Running meta-agents\n")
         except Exception as e:
@@ -579,11 +628,12 @@ class MetaAgentsCmd(Command):
             return 1
         return 0
 
+
 # Clean command group
 #  maestro clean [options]
 class CleanCmd(Command):
     """Command handler for cleaning up running processes."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
@@ -596,20 +646,24 @@ class CleanCmd(Command):
                     cmd = process.cmdline()
                     if len(cmd) > 3 and "streamlit" in cmd[1]:
                         process.send_signal(signal.SIGTERM)
-                except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                except (
+                    psutil.NoSuchProcess,
+                    psutil.AccessDenied,
+                    psutil.ZombieProcess,
+                ):
                     pass
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
 
     # public
-    
+
     def name(self):
-      return "clean"
+        return "clean"
 
     def clean(self):
         """Clean up running processes.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
@@ -621,14 +675,16 @@ class CleanCmd(Command):
             return 1
         return 0
 
+
 # CreateCr command group
 #  maestro create-cr YAML_FILE [options]
 def sanitize_name(name):
-    new_name = re.sub(r'[^a-zA-Z0-9]','-', name).lower().replace(" ", "-")
-    if re.search(r'[.-0-9]$', new_name):
-        return new_name + 'e'
+    new_name = re.sub(r"[^a-zA-Z0-9]", "-", name).lower().replace(" ", "-")
+    if re.search(r"[.-0-9]$", new_name):
+        return new_name + "e"
     else:
         return new_name
+
 
 class CreateCrCmd(Command):
     def __init__(self, args):
@@ -636,53 +692,60 @@ class CreateCrCmd(Command):
         super().__init__(self.args)
 
     def YAML_FILE(self):
-        return self.args['YAML_FILE']
+        return self.args["YAML_FILE"]
 
     def name(self):
-      return "create-cr"
+        return "create-cr"
 
     def __create_cr(self):
         try:
-
             file_path = self.YAML_FILE()
-            with open(file_path, 'r') as file:
+            with open(file_path, "r") as file:
                 multiple = yaml.safe_load_all(file)
 
                 for data in multiple:
-                    data['apiVersion'] = "maestro.ai4quantum.com/v1alpha1"
-                    if 'metadata' in data and 'name' in data['metadata']:
-                        data['metadata']['name'] = sanitize_name(data['metadata']['name'])
-                    if 'metadata' in data and 'labels' in data['metadata']:
-                        for key in data['metadata']['labels']:
-                            data['metadata']['labels'][key] = sanitize_name(data['metadata']['labels'][key])
-                    if data['kind'] == "Workflow":
+                    data["apiVersion"] = "maestro.ai4quantum.com/v1alpha1"
+                    if "metadata" in data and "name" in data["metadata"]:
+                        data["metadata"]["name"] = sanitize_name(
+                            data["metadata"]["name"]
+                        )
+                    if "metadata" in data and "labels" in data["metadata"]:
+                        for key in data["metadata"]["labels"]:
+                            data["metadata"]["labels"][key] = sanitize_name(
+                                data["metadata"]["labels"][key]
+                            )
+                    if data["kind"] == "Workflow":
                         # remove template.meatdata
-                        if data['spec']['template'].get('metadata'):
-                            del data['spec']['template']['metadata']
-                        if data['spec']['template'].get('agents'):
-                            agents = data['spec']['template']['agents']
+                        if data["spec"]["template"].get("metadata"):
+                            del data["spec"]["template"]["metadata"]
+                        if data["spec"]["template"].get("agents"):
+                            agents = data["spec"]["template"]["agents"]
                             samitized_agents = []
                             for agent in agents:
                                 samitized_agents.append(sanitize_name(agent))
-                            data['spec']['template']['agents'] = samitized_agents
-                        if data['spec']['template'].get('steps'):
-                            steps = data['spec']['template']['steps']
+                            data["spec"]["template"]["agents"] = samitized_agents
+                        if data["spec"]["template"].get("steps"):
+                            steps = data["spec"]["template"]["steps"]
                             for step in steps:
-                                if step.get('agent'):
-                                    step['agent'] = sanitize_name(step['agent'])
-                                if step.get('parallel'):
-                                    agents = step['parallel']
+                                if step.get("agent"):
+                                    step["agent"] = sanitize_name(step["agent"])
+                                if step.get("parallel"):
+                                    agents = step["parallel"]
                                     samitized_agents = []
                                     for agent in agents:
                                         samitized_agents.append(sanitize_name(agent))
-                                    step['parallel'] = samitized_agents
-                        if data['spec']['template'].get('exception'):
-                            exception = data['spec']['template']['exception']
-                            if exception.get('agent'):
-                                exception['agent'] = sanitize_name(exception['agent'])
-                    with open("temp_yaml", 'w') as file:
+                                    step["parallel"] = samitized_agents
+                        if data["spec"]["template"].get("exception"):
+                            exception = data["spec"]["template"]["exception"]
+                            if exception.get("agent"):
+                                exception["agent"] = sanitize_name(exception["agent"])
+                    with open("temp_yaml", "w") as file:
                         yaml.safe_dump(data, file)
-                        result = subprocess.run(['kubectl', 'apply', "-f", "temp_yaml"], capture_output=True, text=True)
+                        result = subprocess.run(
+                            ["kubectl", "apply", "-f", "temp_yaml"],
+                            capture_output=True,
+                            text=True,
+                        )
                         if result.returncode != 0:
                             print(f"Stderr: {result.stderr}")
                             return 1
@@ -699,18 +762,24 @@ class CreateCrCmd(Command):
             return 1
         return 0
 
+
 # Serve command group
 #  maestro serve AGENTS_FILE [options]
 class ServeCmd(Command):
     """Command handler for serving agents via HTTP endpoints."""
-    
+
     def __init__(self, args):
         self.args = args
         super().__init__(self.args)
 
     # private
-    def __serve_agent(self, agents_file: str, agent_name: str = None, 
-                     host: str = "127.0.0.1", port: int = 8000):
+    def __serve_agent(
+        self,
+        agents_file: str,
+        agent_name: str = None,
+        host: str = "127.0.0.1",
+        port: int = 8000,
+    ):
         """Serve an agent via FastAPI."""
         try:
             serve_agent(agents_file, agent_name, host, port)
@@ -720,19 +789,19 @@ class ServeCmd(Command):
 
     # public options
     def AGENTS_FILE(self):
-        return self.args.get('AGENTS_FILE')
+        return self.args.get("AGENTS_FILE")
 
     def agent_name(self):
-        return self.args.get('--agent-name')
+        return self.args.get("--agent-name")
 
     def host(self):
-        host_str = self.args.get('--host')
+        host_str = self.args.get("--host")
         if host_str is None:
-            return '127.0.0.1'
+            return "127.0.0.1"
         return host_str
 
     def port(self):
-        port_str = self.args.get('--port')
+        port_str = self.args.get("--port")
         if port_str is None:
             return 8000
         try:
@@ -746,16 +815,13 @@ class ServeCmd(Command):
     # public command method
     def serve(self):
         """Serve an agent via HTTP endpoints.
-        
+
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
         try:
             self.__serve_agent(
-                self.AGENTS_FILE(),
-                self.agent_name(),
-                self.host(),
-                self.port()
+                self.AGENTS_FILE(), self.agent_name(), self.host(), self.port()
             )
             if not self.silent():
                 Console.ok("Agent server started successfully")

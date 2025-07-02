@@ -3,9 +3,15 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright © 2025 IBM
 
-import os, dotenv, inspect, asyncio, shutil, subprocess, yaml, tempfile
+import os
+import dotenv
+import shutil
+import subprocess
+import yaml
+import tempfile
 
 dotenv.load_dotenv()
+
 
 def env_array_docker(str_envs):
     """
@@ -22,7 +28,8 @@ def env_array_docker(str_envs):
     for env in env_array:
         env_args.append("-e")
         env_args.append(env)
-    return(env_args)
+    return env_args
+
 
 def flag_array_build(str_flags):
     """
@@ -40,7 +47,8 @@ def flag_array_build(str_flags):
         key, value = flag.split("=")
         flags.append(key)
         flags.append(value)
-    return(flags)
+    return flags
+
 
 def create_docker_args(cmd, target, env):
     """
@@ -59,6 +67,7 @@ def create_docker_args(cmd, target, env):
     arg.append("maestro")
     return arg
 
+
 def create_build_args(cmd, flags):
     """
     Creates the build arguments for the given command and flags.
@@ -76,6 +85,7 @@ def create_build_args(cmd, flags):
     arg.extend(["-t", "maestro", "-f", "Dockerfile", ".."])
     return arg
 
+
 def update_yaml(yaml_file, str_envs):
     """
     Update the yaml file with the given environment variables.
@@ -87,14 +97,17 @@ def update_yaml(yaml_file, str_envs):
     Returns:
         None
     """
-    with open(yaml_file, 'r') as f:
+    with open(yaml_file, "r") as f:
         data = yaml.safe_load(f)
     pairs = str_envs.split()
     for pair in pairs:
-        key, value = pair.split('=')
-        data['spec']['template']['spec']['containers'][0]['env'].append({'name': key, 'value': value})
-    with open(yaml_file, 'w') as f:
+        key, value = pair.split("=")
+        data["spec"]["template"]["spec"]["containers"][0]["env"].append(
+            {"name": key, "value": value}
+        )
+    with open(yaml_file, "w") as f:
         yaml.safe_dump(data, f)
+
 
 class Deploy:
     """
@@ -114,6 +127,7 @@ class Deploy:
         deploy_to_docker(): Deploys the image to Docker.
         deploy_to_kubernetes(): Deploys the image to Kubernetes.
     """
+
     def __init__(self, agent_defs, workflow_defs, env="", target=None):
         """
         Initializes the Code Assistant.
@@ -147,7 +161,11 @@ class Deploy:
         """
         module_dir = os.path.dirname(os.path.abspath(__file__))
         self.tmp_dir = os.path.join(tempfile.gettempdir(), "maestro")
-        shutil.copytree(os.path.join(module_dir, "../../deployments"), os.path.join(self.tmp_dir, "tmp"), dirs_exist_ok=True)
+        shutil.copytree(
+            os.path.join(module_dir, "../../deployments"),
+            os.path.join(self.tmp_dir, "tmp"),
+            dirs_exist_ok=True,
+        )
         shutil.copy(agent, os.path.join(self.tmp_dir, "tmp/agents.yaml"))
         shutil.copy(workflow, os.path.join(self.tmp_dir, "tmp/workflow.yaml"))
 
@@ -158,15 +176,15 @@ class Deploy:
 
     def deploy_to_docker(self):
         """
-       Deploys the agent to a Docker container.
+        Deploys the agent to a Docker container.
 
-        Args:
-            self (object): The instance of the class.
-            agent (str): The name of the agent.
-            workflow (str): The name of the workflow.
+         Args:
+             self (object): The instance of the class.
+             agent (str): The name of the agent.
+             workflow (str): The name of the workflow.
 
-        Returns:
-            None
+         Returns:
+             None
         """
         self.build_image(self.agent, self.workflow)
         subprocess.run(create_docker_args(self.cmd, self.target, self.env))
@@ -182,18 +200,26 @@ class Deploy:
         Returns:
             None
         """
-        module_path = os.path.abspath(inspect.getsourcefile(lambda:0))
-        module_dir = os.path.dirname(module_path)
+        # module_path = os.path.abspath(inspect.getsourcefile(lambda: 0))
+        # module_dir = os.path.dirname(module_path)
 
         self.build_image(self.agent, self.workflow)
         update_yaml(os.path.join(self.tmp_dir, "tmp/deployment.yaml"), self.env)
-        image_tag_command  = os.getenv("IMAGE_TAG_CMD")
+        image_tag_command = os.getenv("IMAGE_TAG_CMD")
         if image_tag_command:
             subprocess.run(image_tag_command.split())
-        image_push_command  = os.getenv("IMAGE_PUSH_CMD")
+        image_push_command = os.getenv("IMAGE_PUSH_CMD")
         if image_push_command:
             subprocess.run(image_push_command.split())
-        subprocess.run(["kubectl", "apply", "-f", os.path.join(self.tmp_dir, "tmp/deployment.yaml")])
-        subprocess.run(["kubectl", "apply", "-f", os.path.join(self.tmp_dir, "tmp/service.yaml")])
+        subprocess.run(
+            [
+                "kubectl",
+                "apply",
+                "-f",
+                os.path.join(self.tmp_dir, "tmp/deployment.yaml"),
+            ]
+        )
+        subprocess.run(
+            ["kubectl", "apply", "-f", os.path.join(self.tmp_dir, "tmp/service.yaml")]
+        )
         shutil.rmtree(self.tmp_dir)
-

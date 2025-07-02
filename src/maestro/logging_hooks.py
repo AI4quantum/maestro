@@ -4,6 +4,7 @@ from maestro.file_logger import FileLogger
 
 logger = FileLogger()
 
+
 def log_agent_run(workflow_id, agent_name, agent_model):
     def decorator(run_func):
         async def wrapper(*args, **kwargs):
@@ -33,9 +34,11 @@ def log_agent_run(workflow_id, agent_name, agent_model):
                 tool_used=None,
                 start_time=start_time,
                 end_time=end_time,
-                duration_ms=int((perf_end - perf_start) * 1000)
+                duration_ms=int((perf_end - perf_start) * 1000),
             )
 
             return result
+
         return wrapper
+
     return decorator

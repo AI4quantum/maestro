@@ -23,9 +23,7 @@ from beeai_framework.logger import Logger
 from beeai_framework.memory import TokenMemory
 from beeai_framework.tools import AnyTool
 from beeai_framework.tools.mcp import MCPTool
-from beeai_framework.tools.code import SandboxTool
 
-import sys
 
 from pydantic import BaseModel
 from termcolor import colored
@@ -35,10 +33,12 @@ from beeai_framework.utils.models import ModelLike, to_model_optional
 # Load environment variables
 load_dotenv()
 
+
 class ReaderOptions(BaseModel):
     fallback: str = ""
     input: str = "User 👤 : "
     allow_empty: bool = False
+
 
 class ConsoleReader:
     def __init__(self, options: ModelLike[ReaderOptions] | None = None) -> None:
@@ -84,6 +84,7 @@ class ConsoleReader:
         answer = input(colored(query_message, "cyan", attrs=["bold"]))
         return answer.strip()
 
+
 reader = ConsoleReader()
 
 # Configure logging - using DEBUG instead of trace
@@ -95,9 +96,10 @@ channel = os.getenv("IQP_CHANNEL", "None")
 instance = os.getenv("IQP_INSTANCE", "None")
 server_params = StdioServerParameters(
     command="python",
-    args=[os.path.dirname(os.path.abspath(__file__))+"/../mcptools/qiskit_mcp.py"],
-    env={"IQP_TOKEN": token, "IQP_CHANNEL": channel, "IQP_INSTANCE": instance }
+    args=[os.path.dirname(os.path.abspath(__file__)) + "/../mcptools/qiskit_mcp.py"],
+    env={"IQP_TOKEN": token, "IQP_CHANNEL": channel, "IQP_INSTANCE": instance},
 )
+
 
 async def create_agent(session: ClientSession) -> ReActAgent:
     """Create and configure the agent with tools and LLM"""
@@ -114,7 +116,7 @@ async def create_agent(session: ClientSession) -> ReActAgent:
 
     # Configure tools
     alltools = await MCPTool.from_client(session)
-    tools: list[AnyTool] = list(filter(lambda tool: True , alltools))
+    tools: list[AnyTool] = list(filter(lambda tool: True, alltools))
     for tool in tools:
         reader.write("tools", tool.name)
 
@@ -145,7 +147,10 @@ def observer(emitter: Emitter) -> None:
 async def main() -> None:
     """Main application loop"""
 
-    async with stdio_client(server_params) as (read, write), ClientSession(read, write) as session:
+    async with (
+        stdio_client(server_params) as (read, write),
+        ClientSession(read, write) as session,
+    ):
         await session.initialize()
         # Create agent
         agent = await create_agent(session)
@@ -155,7 +160,9 @@ async def main() -> None:
             # Run agent with the prompt
             response = await agent.run(
                 prompt=prompt,
-                execution=AgentExecutionConfig(max_retries_per_step=3, total_max_retries=10, max_iterations=20),
+                execution=AgentExecutionConfig(
+                    max_retries_per_step=3, total_max_retries=10, max_iterations=20
+                ),
             ).observe(observer)
 
             reader.write("Agent 🤖 : ", response.result.text)
@@ -167,5 +174,3 @@ if __name__ == "__main__":
     except FrameworkError as e:
         traceback.print_exc()
         sys.exit(e.explain())
-
-

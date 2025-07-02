@@ -31,7 +31,9 @@ def create_agents(agent_defs):
         agent_def["spec"]["framework"] = agent_def["spec"].get(
             "framework", AgentFramework.BEEAI
         )
-        cls = get_agent_class(agent_def["spec"]["framework"], agent_def["spec"].get("mode"))
+        cls = get_agent_class(
+            agent_def["spec"]["framework"], agent_def["spec"].get("mode")
+        )
         instance = cls(agent_def)
         save_agent(instance, agent_def)
 
@@ -51,22 +53,22 @@ class Workflow:
             wf = wf[0]
         return Mermaid(wf, kind, orientation).to_markdown()
 
-    async def run(self, prompt=''):
+    async def run(self, prompt=""):
         if prompt:
-            self.workflow['spec']['template']['prompt'] = prompt
+            self.workflow["spec"]["template"]["prompt"] = prompt
         self._create_or_restore_agents()
 
-        template = self.workflow['spec']['template']
+        template = self.workflow["spec"]["template"]
         try:
-            if template.get('event'):
+            if template.get("event"):
                 result = await self._condition()
                 return await self.process_event(result)
             else:
                 return await self._condition()
         except Exception as err:
-            exc_def = template.get('exception')
+            exc_def = template.get("exception")
             if exc_def:
-                agent_name = exc_def.get('agent')
+                agent_name = exc_def.get("agent")
                 handler = self.agents.get(agent_name)
                 if handler:
                     await handler.run(err, step_index=-1)
@@ -84,8 +86,12 @@ class Workflow:
                     else:
                         agent_def = instance
 
-                agent_def["spec"]["framework"] = agent_def["spec"].get("framework", AgentFramework.BEEAI)
-                cls = get_agent_class(agent_def["spec"]["framework"], agent_def["spec"].get("mode"))
+                agent_def["spec"]["framework"] = agent_def["spec"].get(
+                    "framework", AgentFramework.BEEAI
+                )
+                cls = get_agent_class(
+                    agent_def["spec"]["framework"], agent_def["spec"].get("mode")
+                )
                 agent_instance = cls(agent_def)
 
                 agent_name = agent_def["metadata"]["name"]
@@ -93,7 +99,9 @@ class Workflow:
                 agent_instance.agent_name = agent_name
                 agent_instance.agent_model = agent_model
                 bound_method = agent_instance.run.__get__(agent_instance)
-                agent_instance.run = log_agent_run(self.workflow_id, agent_name, agent_model)(bound_method)
+                agent_instance.run = log_agent_run(
+                    self.workflow_id, agent_name, agent_model
+                )(bound_method)
                 self.agents[agent_name] = agent_instance
         else:
             for name in self.workflow["spec"]["template"]["agents"]:
@@ -102,8 +110,12 @@ class Workflow:
                     agent_instance = instance
                 else:
                     agent_def = instance
-                    agent_def["spec"]["framework"] = agent_def["spec"].get("framework", AgentFramework.BEEAI)
-                    cls = get_agent_class(agent_def["spec"]["framework"], agent_def["spec"].get("mode"))
+                    agent_def["spec"]["framework"] = agent_def["spec"].get(
+                        "framework", AgentFramework.BEEAI
+                    )
+                    cls = get_agent_class(
+                        agent_def["spec"]["framework"], agent_def["spec"].get("mode")
+                    )
                     agent_instance = cls(agent_def)
 
                 agent_name = name
@@ -111,10 +123,11 @@ class Workflow:
                 agent_instance.agent_name = agent_name
                 agent_instance.agent_model = agent_model
                 bound_method = agent_instance.run.__get__(agent_instance)
-                agent_instance.run = log_agent_run(self.workflow_id, agent_name, agent_model)(bound_method)
+                agent_instance.run = log_agent_run(
+                    self.workflow_id, agent_name, agent_model
+                )(bound_method)
 
                 self.agents[agent_name] = agent_instance
-
 
     def find_index(self, steps, name):
         for idx, step in enumerate(steps):
@@ -181,11 +194,11 @@ class Workflow:
         return {"final_prompt": prompt, **step_results}
 
     async def process_event(self, result):
-        ev = self.workflow['spec']['template']['event']
-        cron = ev.get('cron')
-        agent_name = ev.get('agent')
-        step_names = ev.get('steps', [])
-        exit_expr = ev.get('exit')
+        ev = self.workflow["spec"]["template"]["event"]
+        cron = ev.get("cron")
+        agent_name = ev.get("agent")
+        step_names = ev.get("steps", [])
+        exit_expr = ev.get("exit")
 
         run_once = True
         while True:
@@ -194,14 +207,18 @@ class Workflow:
                     if agent_name:
                         agent = self.agents.get(agent_name)
                         if not agent:
-                            raise RuntimeError(f"Agent '{agent_name}' not found for event")
+                            raise RuntimeError(
+                                f"Agent '{agent_name}' not found for event"
+                            )
                         new_prompt = await agent.run(result["final_prompt"])
                         result[agent_name] = new_prompt
                         result["final_prompt"] = new_prompt
                     if step_names:
-                        raw_steps = self.workflow['spec']['template']['steps']
-                        sub_defs = [s for s in raw_steps if s['name'] in step_names]
-                        out = await self._condition_subflow(sub_defs, step_names[0], result["final_prompt"])
+                        raw_steps = self.workflow["spec"]["template"]["steps"]
+                        sub_defs = [s for s in raw_steps if s["name"] in step_names]
+                        out = await self._condition_subflow(
+                            sub_defs, step_names[0], result["final_prompt"]
+                        )
                         result.update(out)
                     run_once = False
 

@@ -10,8 +10,6 @@ import sys
 import time
 import subprocess
 import requests
-import signal
-import tempfile
 import shutil
 import socket
 
@@ -31,7 +29,7 @@ def find_maestro_executable():
 def find_free_port():
     """Find a free port to use."""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        s.bind(('', 0))
+        s.bind(("", 0))
         s.listen(1)
         port = s.getsockname()[1]
     return port
@@ -57,44 +55,64 @@ def test_serve_integration():
     # Temporarily save and unset DRY_RUN (other tests might set it)
     original_dry_run = os.environ.get("DRY_RUN")
     if "DRY_RUN" in os.environ:
-        print("Temporarily unsetting DRY_RUN environment variable to prevent test interference")
+        print(
+            "Temporarily unsetting DRY_RUN environment variable to prevent test interference"
+        )
         del os.environ["DRY_RUN"]
 
     # Find the test agent file
     test_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(test_dir)))
-    agent_file = os.path.join(project_root, "tests", "yamls", "agents", "serve_test_agent.yaml")
+    agent_file = os.path.join(
+        project_root, "tests", "yamls", "agents", "serve_test_agent.yaml"
+    )
 
     assert os.path.exists(agent_file), f"Agent file not found at {agent_file}"
 
     # Find maestro executable
     maestro_cmd = find_maestro_executable()
     if isinstance(maestro_cmd, str):
-        cmd = [maestro_cmd, "serve", agent_file, "--port", "8001", "--host", "127.0.0.1"]
+        cmd = [
+            maestro_cmd,
+            "serve",
+            agent_file,
+            "--port",
+            "8001",
+            "--host",
+            "127.0.0.1",
+        ]
     else:
-        cmd = maestro_cmd + ["serve", agent_file, "--port", "8001", "--host", "127.0.0.1"]
+        cmd = maestro_cmd + [
+            "serve",
+            agent_file,
+            "--port",
+            "8001",
+            "--host",
+            "127.0.0.1",
+        ]
 
     print(f"Starting server with command: {' '.join(cmd)}")
 
     # Start the server
     server_process = subprocess.Popen(
-        cmd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        text=True
+        cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
     )
 
     try:
         # Wait for server to start
         print("Waiting for server to start...")
-        assert wait_for_server("http://127.0.0.1:8001"), "Server failed to start within timeout"
+        assert wait_for_server("http://127.0.0.1:8001"), (
+            "Server failed to start within timeout"
+        )
 
         print("Server is ready!")
 
         # Test health endpoint
         print("Testing health endpoint...")
         response = requests.get("http://127.0.0.1:8001/health")
-        assert response.status_code == 200, f"Health endpoint returned {response.status_code}"
+        assert response.status_code == 200, (
+            f"Health endpoint returned {response.status_code}"
+        )
 
         health_data = response.json()
         print(f"Health check response: {health_data}")
@@ -102,7 +120,9 @@ def test_serve_integration():
         # Test agents endpoint
         print("Testing agents endpoint...")
         response = requests.get("http://127.0.0.1:8001/agents")
-        assert response.status_code == 200, f"Agents endpoint returned {response.status_code}"
+        assert response.status_code == 200, (
+            f"Agents endpoint returned {response.status_code}"
+        )
 
         agents_data = response.json()
         print(f"Agents response: {agents_data}")
@@ -111,11 +131,12 @@ def test_serve_integration():
         print("Testing chat endpoint...")
         test_prompt = "Hello, this is a test!"
         response = requests.post(
-            "http://127.0.0.1:8001/chat",
-            json={"prompt": test_prompt, "stream": False}
+            "http://127.0.0.1:8001/chat", json={"prompt": test_prompt, "stream": False}
         )
 
-        assert response.status_code == 200, f"Chat endpoint returned {response.status_code}: {response.text}"
+        assert response.status_code == 200, (
+            f"Chat endpoint returned {response.status_code}: {response.text}"
+        )
 
         chat_data = response.json()
         print(f"Chat response: {chat_data}")

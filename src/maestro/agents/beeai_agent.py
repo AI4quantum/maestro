@@ -1,8 +1,8 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
-import os, dotenv
-import asyncio
+import os
+import dotenv
 import requests
 import json
 
@@ -29,29 +29,30 @@ from maestro.agents.agent import Agent
 
 dotenv.load_dotenv()
 
+
 class BeeAIAgent(Agent):
     """
     BeeAIAgent extends the Agent class to load and run a specific agent.
-    """    
-    
+    """
+
     def __init__(self, agent: dict) -> None:
         """
         Initializes the workflow for the specified BeeAI agent.
-         
+
         Args:
-            agent_name (str): The name of the agent. 
+            agent_name (str): The name of the agent.
         """
         super().__init__(agent)
-    
-        url = f'{os.getenv("BEE_API")}/v1/assistants'
+
+        url = f"{os.getenv('BEE_API')}/v1/assistants"
         headers = {
-            'accept': "application/json",
-            'Authorization': "Bearer sk-proj-testkey",
-            'Content-Type': "application/json"
+            "accept": "application/json",
+            "Authorization": "Bearer sk-proj-testkey",
+            "Content-Type": "application/json",
         }
         response = requests.request("GET", url, headers=headers).json()
         for agent in response["data"]:
-            if agent["name"] == self.agent_name and agent["model"] == self.agent_model: 
+            if agent["name"] == self.agent_name and agent["model"] == self.agent_model:
                 self.agent_id = agent["id"]
                 return
 
@@ -59,7 +60,7 @@ class BeeAIAgent(Agent):
             "tools": [
                 {"type": "code_interpreter"},
                 {"type": "system", "system": {"id": "web_search"}},
-                {"type": "system", "system": {"id": "weather"}}
+                {"type": "system", "system": {"id": "weather"}},
             ],
             "name": self.agent_name,
             "description": self.agent_desc,
@@ -68,7 +69,7 @@ class BeeAIAgent(Agent):
             "model": self.agent_model,
             "agent": "bee",
             "top_p": 0.8,
-            "temperature": 0.1
+            "temperature": 0.1,
         }
         payload = json.dumps(payload_dict)
         response = requests.request("POST", url, headers=headers, data=payload).json()
@@ -82,10 +83,10 @@ class BeeAIAgent(Agent):
         """
         self.print(f"Running {self.agent_name}...\n")
         client = OpenAI(
-            base_url=f'{os.getenv("BEE_API")}/v1', api_key=os.getenv("BEE_API_KEY")
+            base_url=f"{os.getenv('BEE_API')}/v1", api_key=os.getenv("BEE_API_KEY")
         )
         # TODO: Unused currently
-        assistant = client.beta.assistants.retrieve(self.agent_id)
+        # assistant = client.beta.assistants.retrieve(self.agent_id)
         thread = client.beta.threads.create(
             messages=[{"role": "user", "content": str(prompt)}]
         )
@@ -102,19 +103,20 @@ class BeeAIAgent(Agent):
         Runs the agent in streaming mode with the given prompt.
         Args:
             prompt (str): The prompt to run the agent with.
-        """    
+        """
         self.print(f"Running {self.agent_name}...\n")
         client = OpenAI(
-            base_url=f'{os.getenv("BEE_API")}/v1', api_key=os.getenv("BEE_API_KEY")
+            base_url=f"{os.getenv('BEE_API')}/v1", api_key=os.getenv("BEE_API_KEY")
         )
-        assistant = client.beta.assistants.retrieve(self.agent_id)
+        # TODO: Unused currently
+        # assistant = client.beta.assistants.retrieve(self.agent_id)
         thread = client.beta.threads.create(
             messages=[{"role": "user", "content": str(prompt)}]
         )
 
         class EventHandler(AssistantEventHandler):
             """NOTE: Streaming is work in progress, not all methods are implemented"""
-    
+
             def on_event(self, event: AssistantStreamEvent) -> None:
                 self.print(f"event > {event.event}")
 
@@ -145,11 +147,13 @@ class BeeAIAgent(Agent):
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
 
+
 def user_customizer(config: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
-    """ user_customizer """
+    """user_customizer"""
 
     class UserSchema(BaseModel):
-        """ user schema"""
+        """user schema"""
+
         input: str
 
     new_config = config.model_copy()
@@ -157,20 +161,25 @@ def user_customizer(config: PromptTemplateInput[Any]) -> PromptTemplateInput[Any
     new_config.template = """User: {{input}}"""
     return new_config
 
+
 def no_result_customizer(config: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
-    """ no_result_customizer """
+    """no_result_customizer"""
     new_config = config.model_copy()
     config.template += """\nPlease reformat your input."""
     return new_config
 
+
 def not_found_customizer(config: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
-    """ not_found_customizer """
+    """not_found_customizer"""
+
     class ToolSchema(BaseModel):
-        """ Tool Schema """
+        """Tool Schema"""
+
         name: str
 
     class NotFoundSchema(BaseModel):
-        """ Not found schema """
+        """Not found schema"""
+
         tools: list[ToolSchema]
 
     new_config = config.model_copy()
@@ -181,34 +190,42 @@ Use one of the following tools: {{#trim}}{{#tools}}{{name}},{{/tools}}{{/trim}}
 {{/tools.length}}"""
     return new_config
 
+
 def user_template_func(template: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
     return template.fork(customizer=user_customizer)
 
-def system_template_func(template: PromptTemplateInput[Any], instructions: str) -> PromptTemplateInput[Any]:
+
+def system_template_func(
+    template: PromptTemplateInput[Any], instructions: str
+) -> PromptTemplateInput[Any]:
     return template.update(defaults={"instructions": instructions.strip()})
 
-def tool_no_result_error_template_func(template: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
+
+def tool_no_result_error_template_func(
+    template: PromptTemplateInput[Any],
+) -> PromptTemplateInput[Any]:
     return template.fork(customizer=no_result_customizer)
 
-def tool_not_found_error_template_func(template: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
+
+def tool_not_found_error_template_func(
+    template: PromptTemplateInput[Any],
+) -> PromptTemplateInput[Any]:
     return template.fork(customizer=not_found_customizer)
 
-def write(role: str, data: str) -> None:
-    """ write message """
-    self.print(f"{role} {data}")
 
 def process_agent_events(data: Any, event: EventMeta) -> None:
     """Process agent events and log appropriately"""
 
     if event.name == "error":
-        write("Agent 🤖 : ", FrameworkError.ensure(data.error).explain())
+        print("Agent 🤖 : ", FrameworkError.ensure(data.error).explain())
     elif event.name == "success":
-        write("Agent 🤖 : ", "success")
+        print("Agent 🤖 : ", "success")
 
 
 def observer(emitter: Emitter) -> None:
     """Observer"""
     emitter.on("*", process_agent_events, EmitterOptions(match_nested=False))
+
 
 class BeeAILocalAgent(Agent):
     """
@@ -229,10 +246,16 @@ class BeeAILocalAgent(Agent):
         templates: dict[str, Any] = {
             "user": lambda template: template.fork(customizer=user_customizer),
             "system": lambda template: template.update(
-                defaults={"instructions": "You are a helpful assistant that uses tools to answer questions."}
+                defaults={
+                    "instructions": "You are a helpful assistant that uses tools to answer questions."
+                }
             ),
-            "tool_no_result_error": lambda template: template.fork(customizer=no_result_customizer),
-            "tool_not_found_error": lambda template: template.fork(customizer=not_found_customizer),
+            "tool_no_result_error": lambda template: template.fork(
+                customizer=no_result_customizer
+            ),
+            "tool_not_found_error": lambda template: template.fork(
+                customizer=not_found_customizer
+            ),
         }
 
         tools: list[AnyTool] = [
@@ -256,8 +279,7 @@ class BeeAILocalAgent(Agent):
         response = await self.agent.run(
             prompt=prompt,
             execution=AgentExecutionConfig(
-                max_retries_per_step=3, total_max_retries=10,
-                max_iterations=20
+                max_retries_per_step=3, total_max_retries=10, max_iterations=20
             ),
             signal=AbortSignal.timeout(2 * 60 * 1000),
         ).observe(observer)
@@ -275,9 +297,7 @@ class BeeAILocalAgent(Agent):
         response = await self.agent.run(
             prompt=prompt,
             execution=AgentExecutionConfig(
-                max_retries_per_step=3,
-                total_max_retries=10,
-                max_iterations=20
+                max_retries_per_step=3, total_max_retries=10, max_iterations=20
             ),
             signal=AbortSignal.timeout(2 * 60 * 1000),
         ).observe(observer)

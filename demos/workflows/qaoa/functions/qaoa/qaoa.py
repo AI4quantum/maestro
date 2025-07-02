@@ -2,16 +2,16 @@
 # Copyright © 2025 IBM
 
 from qiskit_aer import AerSimulator
+
 # General imports
 import numpy as np
 
 # Pre-defined ansatz circuit, operator class and visualization tools
 from qiskit import QuantumCircuit
-from qiskit.circuit.library import QAOAAnsatz
 from qiskit.quantum_info import SparsePauliOp
 
 from qiskit.primitives import BaseEstimatorV1 as BaseEstimator
-from qiskit_ibm_runtime import QiskitRuntimeService, Session
+from qiskit_ibm_runtime import Session
 from qiskit_ibm_runtime import EstimatorV2 as Estimator
 from qiskit_ibm_runtime import SamplerV2 as Sampler
 
@@ -21,9 +21,9 @@ from qiskit.transpiler.preset_passmanagers import generate_preset_pass_manager
 
 from qiskit_serverless import (
     get_arguments,
-    get,
     save_result,
 )
+
 
 def cost_func(params, ansatz, hamiltonian, estimator):
     """Return estimate of energy from estimator
@@ -57,7 +57,6 @@ def run_qaoa(
 
 
 if __name__ == "__main__":
-
     arguments = get_arguments()
 
     service = arguments.get("service")
@@ -68,17 +67,18 @@ if __name__ == "__main__":
     backend = arguments.get("backend")
 
     if service:
-        backend = service.least_busy(operational=True, simulator=False, min_num_qubits=127)
+        backend = service.least_busy(
+            operational=True, simulator=False, min_num_qubits=127
+        )
         session = Session(backend=backend)
     else:
         backend = AerSimulator()
-    
+
     target = backend.target
     pm = generate_preset_pass_manager(target=target, optimization_level=3)
     ansatz_isa = pm.run(ansatz)
     operator = hamiltonian.apply_layout(ansatz_isa.layout)
 
-    
     if service:
         estimator = Estimator(session=session)
         sampler = Sampler(session=session)
@@ -103,8 +103,14 @@ if __name__ == "__main__":
 
     result = sampler.run([qc_isa]).result()
     samp_dist = result[0].data.meas.get_counts()
-    
+
     if service:
         session.close()
 
-    save_result({"optimal_point": res.x.tolist(), "optimal_value": res.fun, "probabilitie":samp_dist})
+    save_result(
+        {
+            "optimal_point": res.x.tolist(),
+            "optimal_value": res.fun,
+            "probabilitie": samp_dist,
+        }
+    )
