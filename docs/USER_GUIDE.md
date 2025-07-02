@@ -195,6 +195,9 @@ The Maestro Command Line Interface (CLI) allows users to manage workflows that i
   - `--host HOST`: host to bind to (default: 127.0.0.1)
   - `--agent-name NAME`: specific agent name to serve (if multiple agents in file)
   - `--streaming`: enable streaming responses
+- `maestro serve-workflow` AGENTS_FILE WORKFLow_FILE [options]: serve workflow via HTTP API endpoints
+  - `--port PORT`: port to serve on (default: 8000)
+  - `--host HOST`: host to bind to (default: 127.0.0.1)
 - `maestro validate` YAML_FILE [options]: validate agent or workflow definition yaml file
 - `maestro validate` SCHEMA_FILE YAML_FILE [options]: validate agent or workflow definition yaml file using the specified schema file 
 - `maestro meta-agents` TEXT_FILE [options]: run maestro meta agent with the given description file
@@ -299,6 +302,57 @@ spec:
 - Use `--host 0.0.0.0` only when you need external access
 - Consider adding authentication and rate limiting for production use
 - Use HTTPS in production environments
+
+### Serving Workflow via HTTP API
+
+The `maestro serve-workflow` command allows you to expose Maestro workflow as HTTP API endpoints, making them accessible via REST API calls. This is useful for integrating workflow into another workflows, web applications, microservices, or other systems that need to communicate with AI workflow.
+
+#### Basic Usage
+
+```bash
+# Serve a single agent from an agents file
+maestro serve-workflow workflow.yaml
+
+# Serve on a custom port and host
+maestro serve-workflow agents.yaml workflow.yaml --port 8080 --host 0.0.0.0
+```
+
+#### API Endpoints
+
+Once the server is running, the following endpoints are available:
+
+**POST /chat** - Send prompts to the workflow
+```bash
+curl -X POST "http://127.0.0.1:8000/chat" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Hello, how are you?", "stream": false}'
+```
+
+Response:
+```json
+{
+  "response": "Hello! I'm doing well, thank you for asking. How can I help you today?",
+  "agent_name": "serve-test-agent",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
+```
+
+**GET /health** - Health check endpoint
+```bash
+curl "http://127.0.0.1:8000/health"
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "agent_name": "serve-test-agent",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
+```
+
+**GET /docs** - Auto-generated API documentation (Swagger UI)
+
 
 ## Maestro UIs
 

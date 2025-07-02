@@ -23,7 +23,7 @@ from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
 from maestro.file_logger import FileLogger
 from datetime import datetime, UTC
-from maestro.cli.fastapi_serve import serve_agent
+from maestro.cli.fastapi_serve import serve_agent, serve_workflow
 
 
 # Root CLI class
@@ -60,6 +60,8 @@ class CLI:
             return MetaAgentsCmd(self.args)
         elif self.args.get("serve") and self.args["serve"]:
             return ServeCmd(self.args)
+        elif self.args.get("serve-workflow") and self.args["serve-workflow"]:
+            return ServeWorkflowCmd(self.args)
         elif self.args.get("clean") and self.args["clean"]:
             return CleanCmd(self.args)
         elif self.args.get("create-cr") and self.args["create-cr"]:
@@ -134,6 +136,8 @@ class Command:
             return self.meta_agents
         elif self.args["serve"]:
             return self.serve
+        elif self.args["serve-workflow"]:
+            return self.serve_workflow
         elif self.args["clean"]:
             return self.clean
         elif self.args["create-cr"]:
@@ -828,5 +832,71 @@ class ServeCmd(Command):
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to serve agent: {str(e)}")
+            return 1
+        return 0
+
+# Serve-workflow command group
+#  maestro serve-workflow AGENTS_FILE WORKFLOW_FILE [options]
+class ServeWorkflowCmd(Command):
+    """Command handler for serving workflow via HTTP endpoints."""
+    
+    def __init__(self, args):
+        self.args = args
+        super().__init__(self.args)
+
+    # private
+    def __serve_workflow(self, agents_file: str, workflow_file: str, 
+                     host: str = "127.0.0.1", port: int = 8000):
+        """Serve an agent via FastAPI."""
+        try:
+            serve_workflow(agents_file, workflow_file, host, port)
+        except Exception as e:
+            self._check_verbose()
+            raise RuntimeError(f"Failed to serve workflow: {str(e)}") from e
+
+    # public options
+    def AGENTS_FILE(self):
+        return self.args.get('AGENTS_FILE')
+
+    def WORKFLOW_FILE(self):
+        return self.args.get('WORKFLOW_FILE')
+
+    def host(self):
+        host_str = self.args.get('--host')
+        if host_str is None:
+            return '127.0.0.1'
+        return host_str
+
+    def port(self):
+        port_str = self.args.get('--port')
+        if port_str is None:
+            return 8000
+        try:
+            return int(port_str)
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid port number: {port_str}")
+
+    def name(self):
+        return "serve-workflow"
+
+    # public command method
+    def serve_workflow(self):
+        """Serve an workflow via HTTP endpoints.
+        
+        Returns:
+            int: Return code (0 for success, 1 for failure)
+        """
+        try:
+            self.__serve_workflow(
+                self.AGENTS_FILE(),
+                self.WORKFLOW_FILE(),
+                self.host(),
+                self.port()
+            )
+            if not self.silent():
+                Console.ok("Workflow server started successfully")
+        except Exception as e:
+            self._check_verbose()
+            Console.error(f"Unable to serve workflow: {str(e)}")
             return 1
         return 0
