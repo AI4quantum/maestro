@@ -2,11 +2,14 @@ import json
 from pathlib import Path
 from maestro.file_logger import FileLogger
 
+
 def _find_log_file_by_workflow_id(directory: Path, workflow_id: str):
     return next((f for f in directory.glob("*.jsonl") if workflow_id in f.name), None)
 
+
 def _read_json_lines(path: Path):
     return [json.loads(line) for line in path.read_text().splitlines()]
+
 
 def test_log_file_contents(tmp_path):
     logger = FileLogger(log_dir=tmp_path)
@@ -18,7 +21,7 @@ def test_log_file_contents(tmp_path):
         prompt="test prompt",
         output="test output",
         models_used=["model-A", "model-B"],
-        status="success"
+        status="success",
     )
 
     log_file = _find_log_file_by_workflow_id(tmp_path, workflow_id)
@@ -36,6 +39,7 @@ def test_log_file_contents(tmp_path):
     assert "model-B" in log["models_used"]
     assert log["status"] == "success"
 
+
 def test_log_with_empty_output(tmp_path):
     logger = FileLogger(log_dir=tmp_path)
     workflow_id = logger.generate_workflow_id()
@@ -46,7 +50,7 @@ def test_log_with_empty_output(tmp_path):
         prompt="testing empty output",
         output="",
         models_used=[],
-        status="success"
+        status="success",
     )
 
     log_file = _find_log_file_by_workflow_id(tmp_path, workflow_id)
@@ -63,6 +67,7 @@ def test_log_with_empty_output(tmp_path):
     assert log["models_used"] == []
     assert log["status"] == "success"
 
+
 def test_log_agent_response(tmp_path):
     logger = FileLogger(log_dir=tmp_path)
     workflow_id = logger.generate_workflow_id()
@@ -73,7 +78,7 @@ def test_log_agent_response(tmp_path):
         prompt="math test",
         output="4",
         models_used=["test-model"],
-        status="success"
+        status="success",
     )
 
     logger.log_agent_response(
@@ -84,7 +89,7 @@ def test_log_agent_response(tmp_path):
         input_text="What is 2 + 2?",
         response_text="4",
         tool_used="calculator",
-        duration_ms=123
+        duration_ms=123,
     )
 
     log_file = _find_log_file_by_workflow_id(tmp_path, workflow_id)

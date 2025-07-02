@@ -36,7 +36,7 @@ class FileLogger:
         tool_used=None,
         start_time=None,
         end_time=None,
-        duration_ms=None
+        duration_ms=None,
     ):
         log_path = self.log_dir / f"maestro_run_{workflow_id}.jsonl"
         data = {
@@ -51,7 +51,7 @@ class FileLogger:
             "tool_used": str(tool_used) if tool_used else None,
             "start_time": start_time.isoformat() if start_time else None,
             "end_time": end_time.isoformat() if end_time else None,
-            "duration_ms": duration_ms
+            "duration_ms": duration_ms,
         }
         self._write_json_line(log_path, data)
 
@@ -65,7 +65,7 @@ class FileLogger:
         status,
         start_time=None,
         end_time=None,
-        duration_ms=None
+        duration_ms=None,
     ):
         log_path = self.log_dir / f"maestro_run_{workflow_id}.jsonl"
         data = {
@@ -79,6 +79,6 @@ class FileLogger:
             "models_used": models_used,
             "start_time": start_time.isoformat() if start_time else None,
             "end_time": end_time.isoformat() if end_time else None,
-            "duration_ms": duration_ms
+            "duration_ms": duration_ms,
         }
         self._write_json_line(log_path, data)

@@ -3,14 +3,12 @@
 
 """FastAPI server module for serving Maestro agents via HTTP endpoints."""
 
-import asyncio
 import json
-import os
 from datetime import datetime
-from typing import Optional, Dict, Any
+from typing import Optional
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -21,12 +19,14 @@ from maestro.cli.common import parse_yaml, Console
 
 class ChatRequest(BaseModel):
     """Request model for chat endpoint."""
+
     prompt: str
     stream: bool = False
 
 
 class ChatResponse(BaseModel):
     """Response model for chat endpoint."""
+
     response: str
     agent_name: str
     timestamp: str
@@ -34,6 +34,7 @@ class ChatResponse(BaseModel):
 
 class HealthResponse(BaseModel):
     """Response model for health endpoint."""
+
     status: str
     agent_name: Optional[str] = None
     timestamp: str
@@ -41,10 +42,10 @@ class HealthResponse(BaseModel):
 
 class FastAPIServer:
     """FastAPI server for serving Maestro agents."""
-    
+
     def __init__(self, agents_file: str, agent_name: Optional[str] = None):
         """Initialize the FastAPI server.
-        
+
         Args:
             agents_file: Path to the agents YAML file
             agent_name: Specific agent name to serve (if multiple agents in file)
@@ -55,21 +56,21 @@ class FastAPIServer:
         self.app = FastAPI(
             title="Maestro Agent Server",
             description="HTTP API for serving Maestro agents",
-            version="1.0.0"
+            version="1.0.0",
         )
         self._setup_routes()
         self._load_agents()
-    
+
     def _setup_routes(self):
         """Set up FastAPI routes."""
-        
+
         @self.app.post("/chat", response_model=ChatResponse)
         async def chat(request: ChatRequest):
             """Chat with the agent."""
             try:
                 if not self.agents:
                     raise HTTPException(status_code=500, detail="No agents loaded")
-                
+
                 # Select the agent to use
                 agent = None
                 if self.agent_name and self.agent_name in self.agents:
@@ -79,73 +80,77 @@ class FastAPIServer:
                     agent = list(self.agents.values())[0]
                 else:
                     raise HTTPException(
-                        status_code=400, 
-                        detail=f"Agent '{self.agent_name}' not found. Available agents: {list(self.agents.keys())}"
+                        status_code=400,
+                        detail=f"Agent '{self.agent_name}' not found. Available agents: {list(self.agents.keys())}",
                     )
-                
+
                 if request.stream:
                     return StreamingResponse(
                         self._stream_response(agent, request.prompt),
-                        media_type="text/plain"
+                        media_type="text/plain",
                     )
                 else:
                     response = await agent.run(request.prompt)
                     return ChatResponse(
                         response=response,
                         agent_name=agent.agent_name,
-                        timestamp=datetime.utcnow().isoformat() + "Z"
+                        timestamp=datetime.utcnow().isoformat() + "Z",
                     )
-                    
+
             except Exception as e:
                 Console.error(f"Error in chat endpoint: {str(e)}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/health", response_model=HealthResponse)
         async def health():
             """Health check endpoint."""
             return HealthResponse(
                 status="healthy",
-                agent_name=self.agent_name or (list(self.agents.keys())[0] if self.agents else None),
-                timestamp=datetime.utcnow().isoformat() + "Z"
+                agent_name=self.agent_name
+                or (list(self.agents.keys())[0] if self.agents else None),
+                timestamp=datetime.utcnow().isoformat() + "Z",
             )
-        
+
         @self.app.get("/agents")
         async def list_agents():
             """List available agents."""
             return {
                 "agents": list(self.agents.keys()),
-                "current_agent": self.agent_name or (list(self.agents.keys())[0] if self.agents else None)
+                "current_agent": self.agent_name
+                or (list(self.agents.keys())[0] if self.agents else None),
             }
-    
+
     def _load_agents(self):
         """Load agents from the agents file."""
         try:
             agents_yaml = parse_yaml(self.agents_file)
             create_agents(agents_yaml)
-            
+
             # Load agents into memory
             for agent_def in agents_yaml:
                 agent_name = agent_def["metadata"]["name"]
                 if not self.agent_name or agent_name == self.agent_name:
                     restored = restore_agent(agent_name)
-                    
+
                     # Handle case where restore_agent returns a tuple
                     if isinstance(restored, tuple):
                         agent = restored[0]  # Extract the agent object from the tuple
                     else:
                         agent = restored
-                    
+
                     self.agents[agent_name] = agent
-            
+
             if not self.agents:
                 raise RuntimeError(f"No agents found in {self.agents_file}")
-                
-            Console.ok(f"Loaded {len(self.agents)} agent(s): {list(self.agents.keys())}")
-            
+
+            Console.ok(
+                f"Loaded {len(self.agents)} agent(s): {list(self.agents.keys())}"
+            )
+
         except Exception as e:
             Console.error(f"Failed to load agents: {str(e)}")
             raise
-    
+
     async def _stream_response(self, agent, prompt: str):
         """Stream response from agent."""
         try:
@@ -155,25 +160,24 @@ class FastAPIServer:
             yield f"data: {json.dumps({'response': response, 'agent_name': agent.agent_name})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
-    
+
     def run(self, host: str = "127.0.0.1", port: int = 8000):
         """Run the FastAPI server."""
         Console.print(f"Starting Maestro agent server on {host}:{port}")
         Console.print(f"API documentation available at: http://{host}:{port}/docs")
         Console.print(f"Health check available at: http://{host}:{port}/health")
-        
-        uvicorn.run(
-            self.app,
-            host=host,
-            port=port,
-            log_level="info"
-        )
+
+        uvicorn.run(self.app, host=host, port=port, log_level="info")
 
 
-def serve_agent(agents_file: str, agent_name: Optional[str] = None, 
-                host: str = "127.0.0.1", port: int = 8000):
+def serve_agent(
+    agents_file: str,
+    agent_name: Optional[str] = None,
+    host: str = "127.0.0.1",
+    port: int = 8000,
+):
     """Serve an agent via FastAPI.
-    
+
     Args:
         agents_file: Path to the agents YAML file
         agent_name: Specific agent name to serve
@@ -181,4 +185,4 @@ def serve_agent(agents_file: str, agent_name: Optional[str] = None,
         port: Port to serve on
     """
     server = FastAPIServer(agents_file, agent_name)
-    server.run(host, port) 
+    server.run(host, port)

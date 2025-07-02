@@ -1,11 +1,13 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
-from dotenv import load_dotenv
-load_dotenv()
-
 from maestro.agents.agent import Agent
 from opik.evaluation.metrics import AnswerRelevance, Hallucination
+
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 class ScoringAgent(Agent):
     """
@@ -23,10 +25,7 @@ class ScoringAgent(Agent):
             self._litellm_model = f"ollama/{raw_model}"
 
     async def run(
-        self,
-        prompt: str,
-        response: str,
-        context: list[str] | None = None
+        self, prompt: str, response: str, context: list[str] | None = None
     ) -> any:
         """
         Args:
@@ -48,17 +47,13 @@ class ScoringAgent(Agent):
 
         try:
             rel_res = AnswerRelevance(model=self._litellm_model).score(
-                input=prompt,
-                output=response_text,
-                context=ctx
+                input=prompt, output=response_text, context=ctx
             )
             hall_res = Hallucination(model=self._litellm_model).score(
-                input=prompt,
-                output=response_text,
-                context=ctx
+                input=prompt, output=response_text, context=ctx
             )
 
-            rel  = getattr(rel_res, "value", rel_res)
+            rel = getattr(rel_res, "value", rel_res)
             hall = getattr(hall_res, "value", hall_res)
 
             metrics_line = f"relevance: {rel:.2f}, hallucination: {hall:.2f}"

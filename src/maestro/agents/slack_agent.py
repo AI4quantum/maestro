@@ -1,7 +1,6 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
 import os
 from dotenv import load_dotenv
 from slack_sdk import WebClient
@@ -10,6 +9,7 @@ from slack_sdk.errors import SlackApiError
 from maestro.agents.agent import Agent
 
 load_dotenv()
+
 
 def post_message_to_slack(channel_id, message):
     """
@@ -32,6 +32,7 @@ def post_message_to_slack(channel_id, message):
     except SlackApiError as e:
         print(f"Error posting message: {e}")
 
+
 class SlackAgent(Agent):
     """
     SlackAgent extends the Agent class to post messages to a slack channel.
@@ -46,7 +47,6 @@ class SlackAgent(Agent):
         """
         super().__init__(agent)
         self.channel = os.getenv("SLACK_TEAM_ID", default="")
-        
 
     async def run(self, prompt: str) -> str:
         """

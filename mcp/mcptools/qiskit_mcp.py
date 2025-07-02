@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-
 # SPDX-License-Identifier: Apache-2.0
 # Copyright © 2025 IBM
 
 from typing import Any
 from mcp.server.fastmcp import FastMCP
+import time
 import json
 import os
 import importlib
@@ -13,6 +13,7 @@ import importlib
 
 if os.getenv("IQP_TOKEN") != "None":
     module = importlib.import_module("qiskit_ibm_catalog")
+
 
 class Job:
     def __init__(self, job_id):
@@ -23,78 +24,98 @@ class Job:
     def result(self):
         return self.result
 
-    def status():
+    def status(self):
         return self.status
 
-    def logs():
+    def logs(self):
         return self.logs
+
 
 async def run_qiskit_function(function_name: str, args: Any) -> str:
     if os.getenv("IQP_TOKEN") == "None":
         match function_name:
             case "kipu-quantum/iskay-quantum-optimizer":
-                return(json.dumps({
-                    'solution': {'0': -1, '1': -1, '2': -1, '3': 1, '4': 1},
-                    'solution_info': {
-                        'bitstring': '11100',
-                        'cost': -13.8,
-                        'seed_transpiler': 42,
-                        'mapping': {0: 0, 1: 1, 2: 2, 3: 3, 4: 4}
-                     },
-                     'prob_type': 'spin'
-                }))
+                return json.dumps(
+                    {
+                        "solution": {"0": -1, "1": -1, "2": -1, "3": 1, "4": 1},
+                        "solution_info": {
+                            "bitstring": "11100",
+                            "cost": -13.8,
+                            "seed_transpiler": 42,
+                            "mapping": {0: 0, 1: 1, 2: 2, 3: 3, 4: 4},
+                        },
+                        "prob_type": "spin",
+                    }
+                )
             case "q-ctrl/optimization-solver":
-                return(json.dumps({
-                    'solution_bitstring_cost': 3.0,
-                    'final_bitstring_distribution': {'000001': 100, '000011': 2},
-                    'iteration_count': 3,
-                    'solution_bitstring': '000001',
-                    'variables_to_bitstring_index_map': {'n[1]': 5, 'n[2]': 4, 'n[3]': 3, 'n[4]': 2, 'n[5]': 1},
-                    'best_parameters': [0.19628831763697097, -1.047052334523102], 'warnings': []
-                }))
+                return json.dumps(
+                    {
+                        "solution_bitstring_cost": 3.0,
+                        "final_bitstring_distribution": {"000001": 100, "000011": 2},
+                        "iteration_count": 3,
+                        "solution_bitstring": "000001",
+                        "variables_to_bitstring_index_map": {
+                            "n[1]": 5,
+                            "n[2]": 4,
+                            "n[3]": 3,
+                            "n[4]": 2,
+                            "n[5]": 1,
+                        },
+                        "best_parameters": [0.19628831763697097, -1.047052334523102],
+                        "warnings": [],
+                    }
+                )
             case "qunasys/quri-chemistry":
-                return({"result":"result"})
+                return {"result": "result"}
             case "global-data-quantum/quantum-portfolio-optimizer":
                 result = {
-                    'time_step_0': {
-                        '8801.T': 0.11764705882352941,
-                        'ITX.MC': 0.20588235294117646,
-                        'META': 0.38235294117647056,
-                        'GBPJPY=X': 0.058823529411764705,
-                        'TMBMKDE-10Y': 0.0,
-                        'CLF': 0.058823529411764705,
-                        'XS2239553048': 0.17647058823529413
+                    "time_step_0": {
+                        "8801.T": 0.11764705882352941,
+                        "ITX.MC": 0.20588235294117646,
+                        "META": 0.38235294117647056,
+                        "GBPJPY=X": 0.058823529411764705,
+                        "TMBMKDE-10Y": 0.0,
+                        "CLF": 0.058823529411764705,
+                        "XS2239553048": 0.17647058823529413,
                     },
-                    'time_step_1': {
-                        '8801.T': 0.11428571428571428,
-                        'ITX.MC': 0.14285714285714285,
-                        'META': 0.2,
-                        'GBPJPY=X': 0.02857142857142857,
-                        'TMBMKDE-10Y': 0.42857142857142855,
-                        'CLF': 0.0,
-                        'XS2239553048': 0.08571428571428572
+                    "time_step_1": {
+                        "8801.T": 0.11428571428571428,
+                        "ITX.MC": 0.14285714285714285,
+                        "META": 0.2,
+                        "GBPJPY=X": 0.02857142857142857,
+                        "TMBMKDE-10Y": 0.42857142857142855,
+                        "CLF": 0.0,
+                        "XS2239553048": 0.08571428571428572,
                     },
-                    'time_step_2': {
-                        '8801.T': 0.0,
-                        'ITX.MC': 0.09375,
-                        'META': 0.3125,
-                        'GBPJPY=X': 0.34375,
-                        'TMBMKDE-10Y': 0.0,
-                        'CLF': 0.0,
-                        'XS2239553048': 0.25
+                    "time_step_2": {
+                        "8801.T": 0.0,
+                        "ITX.MC": 0.09375,
+                        "META": 0.3125,
+                        "GBPJPY=X": 0.34375,
+                        "TMBMKDE-10Y": 0.0,
+                        "CLF": 0.0,
+                        "XS2239553048": 0.25,
                     },
-                    'time_step_3': {
-                        '8801.T': 0.3939393939393939,
-                        'ITX.MC': 0.09090909090909091,
-                        'META': 0.12121212121212122,
-                        'GBPJPY=X': 0.18181818181818182,
-                        'TMBMKDE-10Y': 0.0,
-                        'CLF': 0.0,
-                        'XS2239553048': 0.21212121212121213
+                    "time_step_3": {
+                        "8801.T": 0.3939393939393939,
+                        "ITX.MC": 0.09090909090909091,
+                        "META": 0.12121212121212122,
+                        "GBPJPY=X": 0.18181818181818182,
+                        "TMBMKDE-10Y": 0.0,
+                        "CLF": 0.0,
+                        "XS2239553048": 0.21212121212121213,
+                    },
+                }
+                metadata = {
+                    "all_samples_metrics": {
+                        "objective_costs": [1.25, 0.98],
+                        "states": [[0, 1, 0, 1, 0, 1], [0, 0, 0, 1, 1, 1]],
+                        "rest_breaches": [0.0, 0.25],
+                        "sharpe_ratios": [1.1, 0.7],
+                        "returns": [0.15, 0.10],
                     }
                 }
-                metadata = {"all_samples_metrics": {"objective_costs": [1.25, 0.98], "states": [[0, 1, 0, 1, 0, 1], [0, 0, 0, 1, 1, 1]], "rest_breaches": [0.0, 0.25], "sharpe_ratios": [1.1, 0.7], "returns": [0.15, 0.10]}}
-                return(json.dumps({"result": result, "metadata": metadata}))
+                return json.dumps({"result": result, "metadata": metadata})
             case _:
                 print("Not supported function")
                 return None
@@ -117,7 +138,7 @@ async def run_qiskit_function(function_name: str, args: Any) -> str:
             time.sleep(30)
 
         if job_status == "ERROR":
-            return json.dumps({"logs":job.logs(), "result": job.result()})
+            return json.dumps({"logs": job.logs(), "result": job.result()})
         else:
             return json.dumps(job.result())
 
@@ -127,8 +148,15 @@ mcp = FastMCP("qiskitmcp")
 
 # MCP Tools
 
+
 @mcp.tool()
-async def run_iskay_optimizer(problem: dict[str, float], problem_type: str, backend_name:str, instance: str, options: dict[str, Any]) -> str:
+async def run_iskay_optimizer(
+    problem: dict[str, float],
+    problem_type: str,
+    backend_name: str,
+    instance: str,
+    options: dict[str, Any],
+) -> str:
     """Quantum Optimizer that solves Quadratic Unconstrained Binary Optimization and higher-order (HUBO) optimization problems
 
     Args:
@@ -136,7 +164,7 @@ async def run_iskay_optimizer(problem: dict[str, float], problem_type: str, back
         problem_type: spin for cost function written in Ising fomulation or binary for cost function written in QUBO/HUBO formulation
         backend_name: name of backend
         instance: cloud resource name
-        options: options to handle hardware submission. format is dictionary.  shots: nunber of iteration, num_iterations: total number of Bias Field iterations, use_session: where to run within a session    
+        options: options to handle hardware submission. format is dictionary.  shots: nunber of iteration, num_iterations: total number of Bias Field iterations, use_session: where to run within a session
     Ouput:
         solution: solution of the optimization
         solution_info: information related to the optimization
@@ -148,10 +176,17 @@ async def run_iskay_optimizer(problem: dict[str, float], problem_type: str, back
         "backend_name": backend_name,  # such as "ibm_fez"
         "options": options,
     }
-    return await run_qiskit_function("kipu-quantum/iskay-quantum-optimizer",arguments)
+    return await run_qiskit_function("kipu-quantum/iskay-quantum-optimizer", arguments)
+
 
 @mcp.tool()
-async def run_qctrl_optimizer(problem: str, problem_type: str, backend_name:str, instance: str, options: dict[str, Any]) -> str:
+async def run_qctrl_optimizer(
+    problem: str,
+    problem_type: str,
+    backend_name: str,
+    instance: str,
+    options: dict[str, Any],
+) -> str:
     """Q-CTRL Optimizer is flexible and can be used to solve combinatorial optimization problems defined as objective functions or arbitrary graphs.
 
     Args:
@@ -160,7 +195,7 @@ async def run_qctrl_optimizer(problem: str, problem_type: str, backend_name:str,
     spin for cost function written in Ising fomulation or binary for cost function written in QUBO/HUBO formulation
         backend_name: name of backend
         instance: cloud resource name
-        options: options to handle hardware submission. format is dictionary.  session_id: An existing Qiskit Runtime session ID, job_tags: A list of job tags 
+        options: options to handle hardware submission. format is dictionary.  session_id: An existing Qiskit Runtime session ID, job_tags: A list of job tags
     Ouput:
         solution_bitstring_cost: int
         final_bitstring_distribution: dict
@@ -176,7 +211,8 @@ async def run_qctrl_optimizer(problem: str, problem_type: str, backend_name:str,
         "backend_name": backend_name,  # such as "ibm_fez"
         "options": options,
     }
-    return qiskit_functions.run_qiskit_function("q-ctrl/optimization-solver", arguments)
+    return run_qiskit_function("q-ctrl/optimization-solver", arguments)
+
 
 @mcp.tool()
 async def run_qunasys_quri_chemistry(molecule: dict) -> str:
@@ -194,7 +230,7 @@ async def run_qunasys_quri_chemistry(molecule: dict) -> str:
               n_active_ele: int - The number of active electrons
               n_active_orb: int - The number of active spatial orbitals
               active_orbs_indices: list[int] - The list of active spatial orbital indices
-          
+
 
     Returns:
         result: job result
@@ -202,31 +238,37 @@ async def run_qunasys_quri_chemistry(molecule: dict) -> str:
     qsci_setting = {"n_shots": 1e5, "number_of_states_pick_out": 12000}
 
     qsci_double_exc_json = {
-      "ansatz": "DoubleExcitation",
-      "state_prep_method": "CCSD",
-      "ansatz_setting": {
-          "n_amplitudes": 20
-      },
+        "ansatz": "DoubleExcitation",
+        "state_prep_method": "CCSD",
+        "ansatz_setting": {"n_amplitudes": 20},
     }
 
     mitigation_setting = {  # Refer to the "Error mitigation" section for details.
-      "configuration_recovery": {"number_of_states_pick_out": 10000}
+        "configuration_recovery": {"number_of_states_pick_out": 10000}
     }
 
     arguments = {
-      "method": "QSCI",
-      "molecule": molecule,
-      "circuit_options": qsci_double_exc_json,
-      "qsci_setting": qsci_setting,
-      "mitigation_setting": mitigation_setting,
-      "instance": "TODO_REPLACEME_CLOUD_RESROUCE_NAME",
-      "backend_name": "ibm_torino",
+        "method": "QSCI",
+        "molecule": molecule,
+        "circuit_options": qsci_double_exc_json,
+        "qsci_setting": qsci_setting,
+        "mitigation_setting": mitigation_setting,
+        "instance": "TODO_REPLACEME_CLOUD_RESROUCE_NAME",
+        "backend_name": "ibm_torino",
     }
-    return qiskit_functions.run_qiskit_function("qunasys/quri-chemistry", arguments)
+    return run_qiskit_function("qunasys/quri-chemistry", arguments)
 
 
 @mcp.tool()
-async def run_dpo_solver(assets: dict, qubo_settings: dict, optimizer_settings: dict, ansatz_settings: dict, backend_name:str, previous_session_id=[], apply_postprocess:bool=True ) -> str:
+async def run_dpo_solver(
+    assets: dict,
+    qubo_settings: dict,
+    optimizer_settings: dict,
+    ansatz_settings: dict,
+    backend_name: str,
+    previous_session_id=[],
+    apply_postprocess: bool = True,
+) -> str:
     """Run the Quantum Portfolio Optimizer function that uses the Variational Quantum Eigensolver (VQE) algorithm to solve a Quadratic Unconstrained Binary Optimization (QUBO) problem, addressing dynamic portfolio optimization problems
 
     Args:
@@ -281,7 +323,7 @@ async def run_dpo_solver(assets: dict, qubo_settings: dict, optimizer_settings: 
     """
 
     arguments = {
-        "asset": asset,
+        "asset": assets,
         "qubo_settings": qubo_settings,
         "optimizer_settings": optimizer_settings,
         "ansatz_settings": ansatz_settings,
@@ -289,8 +331,11 @@ async def run_dpo_solver(assets: dict, qubo_settings: dict, optimizer_settings: 
         "previous_session_id": previous_session_id,
         "apply_postprocess": apply_postprocess,
     }
-    return qiskit_functions.run_qiskit_funtion("global-data-quantum/quantum-portfolio-optimizer", arguments)
+    return run_qiskit_function(
+        "global-data-quantum/quantum-portfolio-optimizer", arguments
+    )
+
 
 if __name__ == "__main__":
     # Initialize and run the server
-    mcp.run(transport='stdio')
+    mcp.run(transport="stdio")
