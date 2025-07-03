@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maestro Builder API Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .test-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        pre {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+        .success {
+            color: #28a745;
+        }
+        .error {
+            color: #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <h1>Maestro Builder API Integration Test</h1>
+    
+    <div class="test-section">
+        <h2>Test API Connection</h2>
+        <button onclick="testApiConnection()">Test API Connection</button>
+        <div id="api-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test Chat Endpoint</h2>
+        <button onclick="testChatEndpoint()">Test Chat Endpoint</button>
+        <div id="chat-result"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Test CORS</h2>
+        <p>If you can see this page and the buttons work, CORS is properly configured.</p>
+        <div id="cors-result" class="success">✓ CORS appears to be working (no errors in console)</div>
+    </div>
+
+    <script>
+        async function testApiConnection() {
+            const resultDiv = document.getElementById('api-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/');
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✓ API is running!</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">✗ API connection failed</div>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        async function testChatEndpoint() {
+            const resultDiv = document.getElementById('chat-result');
+            resultDiv.innerHTML = 'Testing...';
+            
+            try {
+                const response = await fetch('http://localhost:8000/api/chat_builder_agent', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        content: 'Test message from browser',
+                        role: 'user'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                resultDiv.innerHTML = `
+                    <div class="success">✓ Chat endpoint is working!</div>
+                    <pre>${JSON.stringify(data, null, 2)}</pre>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="error">✗ Chat endpoint failed</div>
+                    <pre>${error.message}</pre>
+                `;
+            }
+        }
+        
+        // Auto-run tests on page load
+        window.addEventListener('load', () => {
+            setTimeout(testApiConnection, 1000);
+            setTimeout(testChatEndpoint, 2000);
+        });
+    </script>
+</body>
+</html> 

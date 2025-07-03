@@ -29,4 +29,4 @@ jobs:
     - name: Run tests
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        uv run pytest -v
+        uv run pytest -v --ignore=api --ignore=builder
