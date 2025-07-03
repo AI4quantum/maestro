@@ -139,6 +139,7 @@ class Workflow:
         template = self.workflow["spec"]["template"]
         initial_prompt = template["prompt"]
         steps = template["steps"]
+        workflows = template.get("workflows")
         step_defs = {step["name"]: step for step in steps}
 
         for step in steps:
@@ -148,6 +149,15 @@ class Workflow:
                     step["agent"] = self.agents.get(step_name)
                     if step["agent"] is None:
                         raise ValueError(f"Could not find agent named '{step_name}'")
+            if step.get("workflow"):
+                if isinstance(step["workflow"], str):
+                    found = False
+                    for workflow  in workflows:
+                        if workflow["name"] == step["workflow"]:
+                            step["workflow"] = workflow["url"]
+                            found = True
+                if not found:
+                    raise RuntimeError("Workflow doesn't exist")
             if step.get("parallel"):
                 step["parallel"] = [self.agents.get(name) for name in step["parallel"]]
             if step.get("loop"):
