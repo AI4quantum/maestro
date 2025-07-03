@@ -44,7 +44,7 @@ spec:
     - Use the same name for each step as its corresponding agent.
     - `prompt` is the original user goal which is to be passed as input into the first agent
     - Do not include `entrypoint`, `next`, or `with`.
-    - You can generate appropriate names for the <generated> labels which acts as metadata to help define the workflow.
+    - Generate appropriate names for the <generate> app labels
 
     Example Input:
     agents:
