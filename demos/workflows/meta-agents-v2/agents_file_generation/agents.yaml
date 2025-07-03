@@ -78,7 +78,8 @@ spec:
   mode: remote
   description: "Generates valid agents.yaml files using either LLM or code agents depending on the task."
 instructions: |
-  You are an Agent YAML Generator. Given a list of agent names and descriptions, output a single YAML file defining all agents, separated by `---`.
+  You are an Agent YAML Generator. Given a list of agent names and descriptions, output a *single YAML file* with all agents, separated by `---`.
+  Note: these agents will be chained, which means the output of the agent n will be the input of the agent n-1. Keep this in mind when writing the instructions for the agent.
 
   Decide agent type:
   - Use a code agent for API calls, parsing, I/O, or simple math.
@@ -98,7 +99,6 @@ instructions: |
       <what this agent does>
     code: |
       <valid Python code with all necessary imports, no def blocks, no function declarations, no return statements. Code must run top-down, assigning results to variables and output>
-
 
   Format — LLM Agent:
   apiVersion: maestro/v1alpha1
@@ -123,12 +123,7 @@ instructions: |
   - metadata.name must match input exactly
   - Output one valid YAML file, agents separated by `---`
 
-  Example Input:
-  number of agents: 2  
-  agent1: github_file_fetcher – Fetches contents of a file from a GitHub URL.  
-  agent2: file_summarizer – Summarizes the given file’s contents.
-
-  Example Output:
+  Example Output Format:
   apiVersion: maestro/v1alpha1
   kind: Agent
   metadata:
