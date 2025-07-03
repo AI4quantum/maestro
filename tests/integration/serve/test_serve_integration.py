@@ -207,6 +207,8 @@ def test_serve_workflow_integration():
     )
 
     try:
+        original_dry_run = os.environ.get("DRY_RUN")
+        os.environ["DRY_RUN"] = "1"
         # Wait for server to start
         print("Waiting for server to start...")
         assert wait_for_server("http://127.0.0.1:8002"), "Server failed to start within timeout"
@@ -241,6 +243,13 @@ def test_serve_workflow_integration():
         )
 
         print("✅ All tests passed!")
+        # Restore DRY_RUN environment variable
+        if original_dry_run is not None:
+            print("Restoring DRY_RUN environment variable")
+            os.environ["DRY_RUN"] = original_dry_run
+        elif "DRY_RUN" in os.environ:
+            # If we unset it but it wasn't originally set, remove it again
+            del os.environ["DRY_RUN"]
 
     except Exception as e:
         print(f"Error during testing: {e}")
