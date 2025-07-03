@@ -81,7 +81,6 @@ class Step:
         if self.step_loop:
             prompt = await self.loop(prompt, step_index=step_index)
             output["prompt"] = prompt
-        print(f"Response from {self.step_name}: {output['prompt']}")
         output["prompt"] = strip_think_tags(output["prompt"])
         return output
 
