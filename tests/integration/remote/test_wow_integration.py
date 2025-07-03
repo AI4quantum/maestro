@@ -127,9 +127,7 @@ def test_wow_integration():
         print(f"Starting workflow with command: {' '.join(cmd)}")
 
         # Start the workflow
-        test_env = os.environ.copy()
-        test_env["DRY_RUN"] = "1"
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, env=test_env)
 
         # Verify the response contains expected content
         assert str(result).find("remote_step2") != -1
