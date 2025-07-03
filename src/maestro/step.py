@@ -1,8 +1,10 @@
-#! /usr/bin/env python3
+# /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
 import asyncio
+import requests
 import re
+import json
 from dotenv import load_dotenv
 from maestro.utils import eval_expression, convert_to_list
 
@@ -90,10 +92,15 @@ class Step:
         return output
 
     async def run_workflow(self, url, *args, context=None, step_index=None):
-        print(f"url:{url}")
-        # send request to the server
-        # return them response
-        return
+        response = requests.post(
+            url + "/chat",
+            json={"prompt": str(args)}
+        )
+        if response.status_code != 200:
+            raise ValueError(response.text)
+        response_dict = json.loads(response.text)
+        message = response_dict.get("response")
+        return {"prompt": message}
 
     def evaluate_condition(self, prompt):
         if self.step_condition[0].get("if"):

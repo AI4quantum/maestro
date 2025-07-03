@@ -1,28 +1,26 @@
 apiVersion: maestro/v1
 kind: Workflow
 metadata:
-  name: wow workflow
+  name: remote workflow
   labels:
     app: example
 spec:
   template:
     metadata:
-      name: maestro-wowt
+      name: maestro-remote
       labels:
         app: example
         use-case: test
     agents:
-        - wow_test1
-        - wow_test2
+        - remote_test1
+        - remote_test2
     workflows:
         - name: test_workflow1
           url: "http://127.0.0.1:8001"  
-    prompt: WOW workflow prompt
+    prompt: remote workflow prompt
     steps:
-      - name: wow_step1
-        agent: wow_test1
-      - name: wow_step2
-        workflow: test_workflow1
-      - name: wow_step3
-        agent: wow_test2
+      - name: remote_step1
+        agent: remote_test1
+      - name: remote_step2
+        agent: remote_test2
 
