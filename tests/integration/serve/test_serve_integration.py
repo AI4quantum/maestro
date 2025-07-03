@@ -177,9 +177,6 @@ def test_serve_workflow_integration():
     """Test the serve functionality with a real server."""
     print("Starting serve integration test...")
 
-    # Temporarily save and unset DRY_RUN (other tests might set it)
-    original_dry_run = os.environ.get("DRY_RUN")
-
     # Find the test agent file
     test_dir = os.path.dirname(os.path.abspath(__file__))
     project_root = os.path.dirname(os.path.dirname(os.path.dirname(test_dir)))
@@ -199,11 +196,14 @@ def test_serve_workflow_integration():
     print(f"Starting server with command: {' '.join(cmd)}")
 
     # Start the server
+    test_env = os.environ.copy()
+    test_env["DRY_RUN"] = "1"
     server_process = subprocess.Popen(
         cmd,
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        text=True
+        text=True,
+        env=test_env
     )
 
     try:
@@ -243,13 +243,6 @@ def test_serve_workflow_integration():
         )
 
         print("✅ All tests passed!")
-        # Restore DRY_RUN environment variable
-        if original_dry_run is not None:
-            print("Restoring DRY_RUN environment variable")
-            os.environ["DRY_RUN"] = original_dry_run
-        elif "DRY_RUN" in os.environ:
-            # If we unset it but it wasn't originally set, remove it again
-            del os.environ["DRY_RUN"]
 
     except Exception as e:
         print(f"Error during testing: {e}")
