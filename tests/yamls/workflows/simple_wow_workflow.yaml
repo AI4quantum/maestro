@@ -16,7 +16,7 @@ spec:
         - wow_test2
     workflows:
         - name: test_workflow1
-          url: "http://127.0.0.1:8001"  
+          url: "http://127.0.0.1:8003"  
     prompt: WOW workflow prompt
     steps:
       - name: wow_step1
