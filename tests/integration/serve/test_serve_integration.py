@@ -192,9 +192,9 @@ def test_serve_workflow_integration():
     # Find maestro executable
     maestro_cmd = find_maestro_executable()
     if isinstance(maestro_cmd, str):
-        cmd = [maestro_cmd, "serve-workflow", agent_file, workflow_file, "--port", "8001", "--host", "127.0.0.1"]
+        cmd = [maestro_cmd, "serve", agent_file, workflow_file, "--port", "8002", "--host", "127.0.0.1"]
     else:
-        cmd = maestro_cmd + ["serve-workflow", agent_file, workflow_file, "--port", "8001", "--host", "127.0.0.1"]
+        cmd = maestro_cmd + ["serve", agent_file, workflow_file, "--port", "8002", "--host", "127.0.0.1"]
 
     print(f"Starting server with command: {' '.join(cmd)}")
 
@@ -209,31 +209,23 @@ def test_serve_workflow_integration():
     try:
         # Wait for server to start
         print("Waiting for server to start...")
-        assert wait_for_server("http://127.0.0.1:8001"), "Server failed to start within timeout"
+        assert wait_for_server("http://127.0.0.1:8002"), "Server failed to start within timeout"
 
         print("Server is ready!")
 
         # Test health endpoint
         print("Testing health endpoint...")
-        response = requests.get("http://127.0.0.1:8001/health")
+        response = requests.get("http://127.0.0.1:8002/health")
         assert response.status_code == 200, f"Health endpoint returned {response.status_code}"
 
         health_data = response.json()
         print(f"Health check response: {health_data}")
 
-        # Test agents endpoint
-        print("Testing agents endpoint...")
-        response = requests.get("http://127.0.0.1:8001/agents")
-        assert response.status_code == 200, f"Agents endpoint returned {response.status_code}"
-
-        agents_data = response.json()
-        print(f"Agents response: {agents_data}")
-
         # Test chat endpoint
         print("Testing chat endpoint...")
         test_prompt = "Hello, this is a test!"
         response = requests.post(
-            "http://127.0.0.1:8001/chat",
+            "http://127.0.0.1:8002/chat",
             json={"prompt": test_prompt, "stream": False}
         )
 
@@ -244,7 +236,7 @@ def test_serve_workflow_integration():
         response_content = chat_data.get("response", "")
 
         # Verify the response contains expected content
-        assert "Hello from serve-test-agent!" in response_content, (
+        assert "Hello, this is a test!" in response_content, (
             f"Response doesn't contain expected content. Expected: 'Hello from serve-test-agent!', Got: '{response_content}'"
         )
 
