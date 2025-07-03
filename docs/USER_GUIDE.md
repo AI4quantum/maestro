@@ -190,14 +190,12 @@ The Maestro Command Line Interface (CLI) allows users to manage workflows that i
 - `maestro mermaid` WORKFLOW_FILE [options]: generate the mermaid output for the workflow
 - `maestro run` WORKFLOW_FILE [options]: run the workflow with existing agents in command window
 - `maestro run` AGENTS_FILE WORKFLOW_FILE [options]: create agents and run the workflow in command window
-- `maestro serve` AGENTS_FILE [options]: serve agents via HTTP API endpoints
+- `maestro serve` AGENTS_FILE WORKFLOW_FILE [options]: serve agents via HTTP API endpoints
+  - the WORKFLOW_FILE is optional.  If it is provided, the workflow is served via HTTP API endpoints 
   - `--port PORT`: port to serve on (default: 8000)
   - `--host HOST`: host to bind to (default: 127.0.0.1)
   - `--agent-name NAME`: specific agent name to serve (if multiple agents in file)
   - `--streaming`: enable streaming responses
-- `maestro serve-workflow` AGENTS_FILE WORKFLow_FILE [options]: serve workflow via HTTP API endpoints
-  - `--port PORT`: port to serve on (default: 8000)
-  - `--host HOST`: host to bind to (default: 127.0.0.1)
 - `maestro validate` YAML_FILE [options]: validate agent or workflow definition yaml file
 - `maestro validate` SCHEMA_FILE YAML_FILE [options]: validate agent or workflow definition yaml file using the specified schema file 
 - `maestro meta-agents` TEXT_FILE [options]: run maestro meta agent with the given description file
