@@ -119,7 +119,7 @@ instructions: |
       <detailed prompt to guide the agent's behavior — what it should do with input and how>
   ```
 
-  ⚠️ Rules:
+  Rules:
   - Use `|` for all multiline fields (`description`, `instructions`, `code`)
   - Code must run top-down — no functions, `def`, or shared state
   - All imports must be included, and must be valid code
