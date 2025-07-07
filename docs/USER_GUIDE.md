@@ -303,16 +303,16 @@ spec:
 
 ### Serving Workflow via HTTP API
 
-The `maestro serve-workflow` command allows you to expose Maestro workflow as HTTP API endpoints, making them accessible via REST API calls. This is useful for integrating workflow into another workflows, web applications, microservices, or other systems that need to communicate with AI workflow.
+The `maestro serve` command with agants and workflow files allows you to expose Maestro workflow as HTTP API endpoints, making them accessible via REST API calls. This is useful for integrating workflow into another workflows, web applications, microservices, or other systems that need to communicate with AI workflow.
 
 #### Basic Usage
 
 ```bash
-# Serve a single agent from an agents file
-maestro serve-workflow workflow.yaml
+# Serve a workflow in a workflow file
+maestro serve agents.yaml workflow.yaml
 
 # Serve on a custom port and host
-maestro serve-workflow agents.yaml workflow.yaml --port 8080 --host 0.0.0.0
+maestro serve agents.yaml workflow.yaml --port 8080 --host 0.0.0.0
 ```
 
 #### API Endpoints
