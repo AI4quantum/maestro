@@ -9,6 +9,7 @@ from typing import Optional
 
 import uvicorn
 from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
@@ -221,6 +222,10 @@ class FastAPIWorkflowServer:
             description="HTTP API for serving Maestro workflow",
             version="1.0.0"
         )
+        self.app.add_middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+        )
         self._setup_routes()
         self._load_workflow()
         self.workflow_name = self.workflow.workflow["metadata"]["name"]
@@ -236,6 +241,11 @@ class FastAPIWorkflowServer:
                     raise HTTPException(status_code=500, detail="No workflow loaded")
                 
                 response = await self.workflow.run(request.prompt)
+                str_response = ""
+                try :
+                    str_response = json.dumps(response)
+                except Exception:
+                    str_response = str(response)
                 return WorkflowChatResponse(
                     response=str(response),
                     workflow_name=self.workflow_name,

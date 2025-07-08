@@ -328,11 +328,8 @@ curl -X POST "http://127.0.0.1:8000/chat" \
 
 Response:
 ```json
-{
-  "response": "Hello! I'm doing well, thank you for asking. How can I help you today?",
-  "agent_name": "serve-test-agent",
-  "timestamp": "2024-01-01T12:00:00Z"
-}
+{'response': "{'final_prompt': 'Hello, this is a test!', 'step1': 'Hello, this is a test!', 'step2': 'Hello, this is a test!', 'step3': 'Hello, this is a test!'}", 'workflow_name': 'simple workflow', 'timestamp': '2025-07-08T01:01:35.420413Z'}
+
 ```
 
 **GET /health** - Health check endpoint
