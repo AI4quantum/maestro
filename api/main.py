@@ -34,6 +34,7 @@ app.add_middleware(
 ai_agent = MaestroBuilderAgent()
 db = Database()
 
+
 # ---------------------------------------
 # Models
 # ---------------------------------------
@@ -41,10 +42,12 @@ class ChatMessage(BaseModel):
     content: str
     role: str = "user"
 
+
 class ChatResponse(BaseModel):
     response: str
     yaml_files: List[Dict[str, str]]
     chat_id: str
+
 
 class ChatHistory(BaseModel):
     id: str
@@ -53,9 +56,11 @@ class ChatHistory(BaseModel):
     last_message: str
     message_count: int
 
+
 class YamlFile(BaseModel):
     name: str
     content: str
+
 
 class ChatSession(BaseModel):
     id: str
@@ -66,22 +71,26 @@ class ChatSession(BaseModel):
     messages: List[Dict[str, Any]]
     yaml_files: Dict[str, str]
 
+
 # ---------------------------------------
 # Routes
 # ---------------------------------------
+
 
 @app.get("/")
 async def root():
     return {"message": "Maestro Builder API", "version": "1.0.0"}
 
+
 @app.post("/api/chat_builder_agent")
 async def chat_builder_agent(message: ChatMessage):
     import requests
+
     try:
         # Step 1: Call TaskInterpreter agent
         resp_task = requests.post(
             "http://localhost:8000/chat",
-            json={"prompt": message.content, "agent": "TaskInterpreter"}
+            json={"prompt": message.content, "agent": "TaskInterpreter"},
         )
         if resp_task.status_code != 200:
             raise Exception(resp_task.text)
@@ -90,7 +99,7 @@ async def chat_builder_agent(message: ChatMessage):
         # Step 2: Call AgentYAMLBuilder with task plan
         resp_builder = requests.post(
             "http://localhost:8000/chat",
-            json={"prompt": task_plan, "agent": "AgentYAMLBuilder"}
+            json={"prompt": task_plan, "agent": "AgentYAMLBuilder"},
         )
         if resp_builder.status_code != 200:
             raise Exception(resp_builder.text)
@@ -98,27 +107,28 @@ async def chat_builder_agent(message: ChatMessage):
 
         return {
             "response": agents_yaml,
-            "yaml_files": [{"name": "agents.yaml", "content": agents_yaml}]
+            "yaml_files": [{"name": "agents.yaml", "content": agents_yaml}],
         }
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Builder failed: {e}")
 
-    
+
 @app.post("/api/chat_builder_workflow")
 async def chat_builder_workflow(message: ChatMessage):
     import requests
+
     try:
         resp = requests.post(
             "http://localhost:8000/chat",
-            json={"prompt": message.content, "agent": "WorkflowYAMLBuilder"}
+            json={"prompt": message.content, "agent": "WorkflowYAMLBuilder"},
         )
         if resp.status_code != 200:
             raise Exception(resp.text)
         workflow_yaml = resp.json().get("response", "")
         return {
             "response": workflow_yaml,
-            "yaml_files": [{"name": "workflow.yaml", "content": workflow_yaml}]
+            "yaml_files": [{"name": "workflow.yaml", "content": workflow_yaml}],
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Workflow Builder failed: {e}")
@@ -129,10 +139,17 @@ async def get_yamls(chat_id: str):
     try:
         yaml_files = db.get_yaml_files(chat_id)
         if not yaml_files:
-            raise HTTPException(status_code=404, detail="Chat session not found or no YAML files")
-        return [YamlFile(name=name, content=content) for name, content in yaml_files.items()]
+            raise HTTPException(
+                status_code=404, detail="Chat session not found or no YAML files"
+            )
+        return [
+            YamlFile(name=name, content=content) for name, content in yaml_files.items()
+        ]
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving YAML files: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving YAML files: {str(e)}"
+        )
+
 
 @app.get("/api/chat_history", response_model=List[ChatHistory])
 async def get_chat_history():
@@ -142,16 +159,21 @@ async def get_chat_history():
         for session in sessions:
             messages = db.get_messages(session["id"], limit=1)
             last_message = messages[-1]["content"] if messages else ""
-            history.append(ChatHistory(
-                id=session["id"],
-                name=session["name"],
-                created_at=datetime.fromisoformat(session["created_at"]),
-                last_message=last_message,
-                message_count=session["message_count"],
-            ))
+            history.append(
+                ChatHistory(
+                    id=session["id"],
+                    name=session["name"],
+                    created_at=datetime.fromisoformat(session["created_at"]),
+                    last_message=last_message,
+                    message_count=session["message_count"],
+                )
+            )
         return history
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving chat history: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving chat history: {str(e)}"
+        )
+
 
 @app.get("/api/chat_session/{chat_id}", response_model=ChatSession)
 async def get_chat_session(chat_id: str):
@@ -173,7 +195,10 @@ async def get_chat_session(chat_id: str):
             yaml_files=yaml_files,
         )
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error retrieving chat session: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error retrieving chat session: {str(e)}"
+        )
+
 
 @app.post("/api/chat_sessions")
 async def create_chat_session(name: Optional[str] = None):
@@ -181,17 +206,25 @@ async def create_chat_session(name: Optional[str] = None):
         chat_id = db.create_chat_session(name=name)
         return {"chat_id": chat_id}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error creating chat session: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error creating chat session: {str(e)}"
+        )
+
 
 @app.delete("/api/delete_all_chats")
 async def delete_all_chat_sessions():
     try:
         success = db.delete_all_chat_sessions()
         if not success:
-            raise HTTPException(status_code=500, detail="Failed to delete all chat sessions")
+            raise HTTPException(
+                status_code=500, detail="Failed to delete all chat sessions"
+            )
         return {"message": "All chat sessions deleted successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting all chat sessions: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error deleting all chat sessions: {str(e)}"
+        )
+
 
 @app.delete("/api/chat_sessions/{chat_id}")
 async def delete_chat_session(chat_id: str):
@@ -201,7 +234,10 @@ async def delete_chat_session(chat_id: str):
             raise HTTPException(status_code=404, detail="Chat session not found")
         return {"message": "Chat session deleted successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting chat session: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Error deleting chat session: {str(e)}"
+        )
+
 
 @app.get("/api/health")
 async def health_check():
@@ -216,6 +252,8 @@ async def health_check():
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Health check failed: {str(e)}")
 
+
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(app, host="0.0.0.0", port=8001)
