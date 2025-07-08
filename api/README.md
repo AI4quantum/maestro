@@ -229,38 +229,47 @@ demos/workflows/meta-agents-v2/
         ├── agents.yaml     # Meta-agents like workflow creation
         └── workflow.yaml   # Workflow logic for meta-agent execution
 
-🚀 How to Run the Full System (Two Services)
-✅ 1. Start Maestro Meta-Agent Server (Port 8001)
+How to Run the Full System (Two Services)
+1. Start Maestro Meta-Agent Server (Port 8000 default)
 This powers the actual meta-agent chat orchestration (TaskInterpreter, AgentYAMLBuilder, WorkflowYAMLBuilder).
 
 ```
-maestro serve \
-  ./demos/workflows/meta-agents-v2/SELECTED_META_FILE/agents.yaml \
-  ./demos/workflows/meta-agents-v2/SELECTED_META_FILE/workflow.yaml \
-  --port 8001
+maestro serve ./demos/workflows/meta-agents-v2/SELECTED_META_FILE/agents.yaml ./demos/workflows/meta-agents-v2/SELECTED_META_FILE/workflow.yaml
 ```
 
-You should see:
+So to create the agents.yaml: 
 ```
-Starting Maestro workflow server on 127.0.0.1:8001
-Health check available at: http://127.0.0.1:8001/health
+maestro serve ./demos/workflows/meta-agents-v2/agents_file_generation/agents.yaml ./demos/workflows/meta-agents-v2/agents_file_generation/workflow.yaml
 ```
 
-✅ 2. Start the FastAPI Builder API (Port 8000)
+Otherwise if we are creating the workflow.yaml:
+```
+maestro serve ./demos/workflows/meta-agents-v2/workflow_file_generation/agents.yaml ./demos/workflows/meta-agents-v2/workflow_file_generation/workflow.yaml
+```
+
+In both cases you should see:
+```
+Starting Maestro workflow server on 127.0.0.1:8000
+Health check available at: http://127.0.0.1:8000/health
+```
+
+2. Start the FastAPI Builder API (Port 8001)
 From the project root: ```./start.sh```
 
 You should see: ```Uvicorn running on http://0.0.0.0:8000```
 
 ➕ Generate agents.yaml (if you started the maestro serve for the agents generation workflow)
 ```
-curl -X POST http://localhost:8000/api/chat_builder_agent \
+curl -X POST http://localhost:8001/api/chat_builder_agent \
   -H "Content-Type: application/json" \
-  -d '{"content": "Create an agent that gets weather from OpenWeatherMap API"}'
+  -d '{
+    "content": "I want to fetch the current stock prices for Apple and Microsoft, and then analyze which one has performed better over the past week."
+  }'
 ```
 
 ➕ Generate workflow.yaml (if you started the maestro serve for the workflow generation workflow)
 ```
-curl -X POST http://localhost:8000/api/chat_builder_workflow \
+curl -X POST http://localhost:8001/api/chat_builder_workflow \
   -H "Content-Type: application/json" \
   -d '{
     "content": "stock_data_retriever – Retrieves current stock prices for Apple (AAPL) and Microsoft (MSFT).\nfinancial_historical_data_retriever – Retrieves historical stock data for the past week for both companies.\nstock_performance_analyzer – Analyzes which stock has performed better over the past week based on historical data.\n\nprompt: I want to fetch the current stock prices for Apple and Microsoft, and then analyze which one has performed better over the past week."
