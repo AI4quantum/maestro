@@ -1,7 +1,7 @@
 // Example integration code for the Maestro Builder frontend
 // This shows how to use the API endpoints from the React frontend
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = 'http://localhost:5174';
 
 interface ChatMessage {
     id: string;

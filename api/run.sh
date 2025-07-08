@@ -42,8 +42,8 @@ fi
 # Create storage directory if it doesn't exist
 mkdir -p storage
 
-echo "Starting API server on http://localhost:8000"
-echo "API documentation available at http://localhost:8000/docs"
+echo "Starting API server on http://localhost:5174"
+echo "API documentation available at http://localhost:5174/docs"
 echo "Press Ctrl+C to stop the server"
 
 # Start the API server

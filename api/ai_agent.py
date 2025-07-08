@@ -15,8 +15,6 @@ sys.path.insert(0, str(Path(__file__).parent.parent / "src"))
 
 try:
     from maestro.agents.openai_agent import OpenAIAgent
-    from maestro.agents.agent import Agent
-    from maestro.workflow import Workflow
 except ImportError as e:
     print(f"Warning: Could not import Maestro modules: {e}")
     print("Running in standalone mode without Maestro integration")
