@@ -1,0 +1,64 @@
+apiVersion: maestro/v1alpha1
+kind: Tool
+metadata:
+  name: OpenMeteoTool
+  labels:
+    app: tool-example
+spec:
+  description: Retrieve current, past, or future weather forecasts for a location.
+  inputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "title": "OpenMeteoToolInput",
+        "type": "object",
+        "properties": {
+          "location_name": {
+            "type": "string",
+            "description": "The name of the location to retrieve weather information."
+          },
+          "country": {
+            "type": ["string", "null"],
+            "description": "Country name.",
+            "default": null
+          },
+          "start_date": {
+            "type": "string",
+            "format": "date",
+            "description": "Start date for the weather forecast in the format YYYY-MM-DD (UTC)",
+            "default": null
+          },
+          "end_date": {
+            "type": "string",
+            "format": "date",
+            "description": "End date for the weather forecast in the format YYYY-MM-DD (UTC)",
+            "default": null
+          },
+          "temperature_unit": {
+            "type": "string",
+            "enum": ["celsius", "fahrenheit"],
+            "description": "The unit to express temperature",
+            "default": "celsius",
+            "additionalProperties": false,
+            "before": [
+              "to_lower"
+            ]
+          }
+        },
+        "additionalProperties": false,
+        "required": ["location_name", "temperature_unit"],
+        "field_validators": {
+          "to_lower": {
+            "cls": "OpenMeteoToolInput",
+            "mode": "before",
+            "function": "def _to_lower(cls, value): if isinstance(value, str): return value.lower(); else: return value"
+          }
+        }
+      }
+  outputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "response": string,
+      }
+

@@ -1,0 +1,43 @@
+apiVersion: maestro/v1alpha1
+kind: Tool
+metadata:
+  name: DuckDuckGo
+  labels:
+    app: tool-example
+spec:
+  description: Search for online trends, news, current events, real-time information, or research topics.
+  inputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "title": "DuckDuckGoSearchToolInput",
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "description": "The search query."
+          }
+        },
+        "required": ["query"]
+      }
+  outputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "title": "SearchToolResult",
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string"
+          }
+        },
+        "required": ["title", "description", "url"]
+      }
+
+

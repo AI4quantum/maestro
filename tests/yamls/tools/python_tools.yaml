@@ -1,0 +1,63 @@
+apiVersion: maestro/v1alpha1
+kind: Tool
+metadata:
+  name: Python
+  labels:
+    app: tool-example
+spec:
+  description: |
+    Run Python and/or shell code and return the console output. Use for isolated calculations,
+    computations, data or file manipulation but still prefer assistant's capabilities
+    (IMPORTANT: Do not use for text analysis or summarization).
+    Files provided by the user, or created in a previous run, will be accessible
+     if and only if they are specified in the input. It is necessary to always print() results.
+    The following shell commands are available:
+    Use ffmpeg to convert videos.
+    Use yt-dlp to download videos, and unless specified otherwise use `-S vcodec:h264,res,acodec:m4a`
+     for video and `-x --audio-format mp3` for audio-only.
+    Use pandoc to convert documents between formats (like MD, DOC, DOCX, PDF) -- and don't forget that
+     you can create PDFs by writing markdown and then converting.
+    In Python, the following modules are available:
+    Use numpy, pandas, scipy and sympy for working with data.
+    Use matplotlib to plot charts.
+    Use pillow (import PIL) to create and manipulate images.
+    Use moviepy for complex manipulations with videos.
+    Use PyPDF2, pikepdf, or fitz to manipulate PDFs.
+    Use pdf2image to convert PDF to images.
+    Other Python libraries are also available -- however, prefer using the ones above.
+    Prefer using qualified imports -- `import library; library.thing()` instead of `import thing from library`.
+    Do not attempt to install libraries manually -- it will not work.
+    Each invocation of Python runs in a completely fresh VM -- it will not remember anything from before.
+    Do not use this tool multiple times in a row, always write the full code you want to run in a single invocation.
+  inputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "title": "PythonToolInput",
+        "type": "object",
+        "properties": {
+          "language": {
+            "type": "string",
+            "description": "Use shell for ffmpeg, pandoc, yt-dlp"
+          },
+          "code": {
+            "type": "string",
+            "description": "full source code file that will be executed"
+          },
+          "input_files": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "To access an existing file, you must specify it; otherwise, the file will not be accessible. IMPORTANT: If the file is not provided in the input, it will not be accessible."
+          }
+        },
+        "required": ["language", "code"]
+      }
+  outputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "response": string,
+      }
+
