@@ -188,28 +188,35 @@ def serve_agent(
     server = FastAPIServer(agents_file, agent_name)
     server.run(host, port)
 
+
 class WorkflowChatRequest(BaseModel):
     """Request model for chat endpoint."""
+
     prompt: str
+
 
 class WorkflowChatResponse(BaseModel):
     """Response model for chat endpoint."""
+
     response: str
     workflow_name: str
     timestamp: str
 
+
 class WorkflowHealthResponse(BaseModel):
     """Response model for health endpoint."""
+
     status: str
     workflow_name: str
     timestamp: str
- 
+
+
 class FastAPIWorkflowServer:
     """FastAPI server for serving Maestro workflow."""
-    
+
     def __init__(self, agents_file: str, workflow_file: str):
         """Initialize the FastAPI server.
-        
+
         Args:
             agents_file: Path to the agents YAML file
             workfloe_file: Path to the workflow YAML file
@@ -220,7 +227,7 @@ class FastAPIWorkflowServer:
         self.app = FastAPI(
             title="Maestro Workflow Server",
             description="HTTP API for serving Maestro workflow",
-            version="1.0.0"
+            version="1.0.0",
         )
         self.app.add_middleware(
             CORSMiddleware,
@@ -229,70 +236,66 @@ class FastAPIWorkflowServer:
         self._setup_routes()
         self._load_workflow()
         self.workflow_name = self.workflow.workflow["metadata"]["name"]
-    
+
     def _setup_routes(self):
         """Set up FastAPI routes."""
-        
+
         @self.app.post("/chat", response_model=WorkflowChatResponse)
         async def chat(request: WorkflowChatRequest):
             """Chat with the workflow."""
             try:
                 if not self.workflow:
                     raise HTTPException(status_code=500, detail="No workflow loaded")
-                
+
                 response = await self.workflow.run(request.prompt)
-                str_response = ""
-                try :
+                try:
                     str_response = json.dumps(response)
                 except Exception:
                     str_response = str(response)
                 return WorkflowChatResponse(
-                    response=str(response),
+                    response=str_response,
                     workflow_name=self.workflow_name,
-                    timestamp=datetime.utcnow().isoformat() + "Z"
+                    timestamp=datetime.utcnow().isoformat() + "Z",
                 )
-                    
+
             except Exception as e:
                 Console.error(f"Error in chat endpoint: {str(e)}")
                 raise HTTPException(status_code=500, detail=str(e))
-        
+
         @self.app.get("/health", response_model=WorkflowHealthResponse)
         async def health():
             """Health check endpoint."""
             return WorkflowHealthResponse(
                 status="healthy",
                 workflow_name=self.workflow_name,
-                timestamp=datetime.utcnow().isoformat() + "Z"
+                timestamp=datetime.utcnow().isoformat() + "Z",
             )
-        
+
     def _load_workflow(self):
         """Load agents from the agents file."""
         try:
             agents_yaml = parse_yaml(self.agents_file)
-            workflow_yaml = parse_yaml(self.workflow_file)            
+            workflow_yaml = parse_yaml(self.workflow_file)
             self.workflow = Workflow(agents_yaml, workflow_yaml[0])
-            Console.ok(f"Workflow loaded")            
+            Console.ok("Workflow loaded")
         except Exception as e:
             Console.error(f"Failed to load workflow: {str(e)}")
             raise
-    
+
     def run(self, host: str = "127.0.0.1", port: int = 8000):
         """Run the FastAPI server."""
         Console.print(f"Starting Maestro workflow server on {host}:{port}")
         Console.print(f"API documentation available at: http://{host}:{port}/docs")
         Console.print(f"Health check available at: http://{host}:{port}/health")
-        
-        uvicorn.run(
-            self.app,
-            host=host,
-            port=port,
-            log_level="info"
-        )
 
-def serve_workflow(agents_file: str, workflow_file: str, 
-                host: str = "127.0.0.1", port: int = 8000):
+        uvicorn.run(self.app, host=host, port=port, log_level="info")
+
+
+def serve_workflow(
+    agents_file: str, workflow_file: str, host: str = "127.0.0.1", port: int = 8000
+):
     """Serve a workflow via FastAPI.
-    
+
     Args:
         agents_file: Path to the agents YAML file
         workflow_file: Path to the workflow YAML file
@@ -300,4 +303,4 @@ def serve_workflow(agents_file: str, workflow_file: str,
         port: Port to serve on
     """
     server = FastAPIWorkflowServer(agents_file, workflow_file)
-    server.run(host, port) 
+    server.run(host, port)
