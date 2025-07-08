@@ -41,3 +41,25 @@ async def chat_builder_agent(input: BuilderInput):
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Builder failed: {e}")
+
+@router.post("/api/chat_builder_workflow")
+async def chat_builder_workflow(input: BuilderInput):
+    """
+    Call the WorkflowYAMLBuilder to generate workflow.yaml content.
+    """
+    try:
+        builder_resp = requests.post(
+            f"{MAESTRO_SERVE_URL}/chat",
+            json={"prompt": input.content, "agent": "WorkflowYAMLBuilder"}
+        )
+        if builder_resp.status_code != 200:
+            raise Exception(builder_resp.text)
+
+        workflow_yaml = builder_resp.json().get("response", "")
+
+        return {
+            "response": workflow_yaml,
+            "yaml_files": [{"name": "workflow.yaml", "content": workflow_yaml}]
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Workflow Builder failed: {e}")
