@@ -1,22 +1,24 @@
-{
-  "apiVersion": "maestro/v1alpha1",
-  "kind": "Tool",
-  "metadata": {
-    "name": "tool1",
-    "labels": {
-      "app": "tool-example"
-    }
-  },
-  "spec": {
-    "description": "tool definition template",
-    "inputSchema": {
-      "type": "jsonSchema",
-      "schema": "{\n  \"input 1\": \"string\",\n  \"input 2\": \"string\",\n}\n"
-    },
-    "outputSchema": {
-      "type": "jsonSchema",
-      "schema": "{\n  \"result 1\": \"string\",\n  \"result 2\": \"string\",\n}\n"
-    }
-  }
-}
+apiVersion: maestro/v1alpha1
+kind: Tool
+metadata:
+  name: tool1
+  labels:
+    app: tool-example
+spec:
+  description: tool definition template
+  inputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "input 1": "string",
+        "input 2": "string",
+      }
+
+  outputSchema:
+    type: jsonSchema
+    schema: |
+      {
+        "result 1": "string",
+        "result 2": "string",
+      }
 

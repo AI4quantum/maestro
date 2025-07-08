@@ -787,8 +787,13 @@ class ServeCmd(Command):
             self._check_verbose()
             raise RuntimeError(f"Failed to serve agent: {str(e)}") from e
 
-    def __serve_workflow(self, agents_file: str, workflow_file: str, 
-                     host: str = "127.0.0.1", port: int = 8000):
+    def __serve_workflow(
+        self,
+        agents_file: str,
+        workflow_file: str,
+        host: str = "127.0.0.1",
+        port: int = 8000,
+    ):
         """Serve an agent via FastAPI."""
         try:
             serve_workflow(agents_file, workflow_file, host, port)
@@ -801,7 +806,7 @@ class ServeCmd(Command):
         return self.args.get("AGENTS_FILE")
 
     def WORKFLOW_FILE(self):
-        return self.args.get('WORKFLOW_FILE')
+        return self.args.get("WORKFLOW_FILE")
 
     def agent_name(self):
         return self.args.get("--agent-name")
@@ -836,10 +841,7 @@ class ServeCmd(Command):
             print("### workflow")
             try:
                 self.__serve_workflow(
-                    self.AGENTS_FILE(),
-                    self.WORKFLOW_FILE(),
-                    self.host(),
-                    self.port()
+                    self.AGENTS_FILE(), self.WORKFLOW_FILE(), self.host(), self.port()
                 )
                 if not self.silent():
                     Console.ok("Workflow server started successfully")
