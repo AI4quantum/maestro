@@ -77,6 +77,22 @@
                 "type": "string"
               }
             },
+            "workflows": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "description": "name of workflow"
+                  },
+                  "url": {
+                    "type": "string",
+                    "description": "url of remote workflow"
+                  }
+                }
+              }
+            },
             "exception": {
               "type": "object",
               "properties": {
@@ -105,6 +121,10 @@
                   "agent": {
                     "type": "string",
                     "description": "the agent for this step"
+                  },
+                  "workflow": {
+                    "type": "string",
+                    "description": "the workflow for this step"
                   },
                   "inputs": {
                     "type": "array",

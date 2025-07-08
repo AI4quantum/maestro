@@ -23,7 +23,7 @@ from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
 from maestro.file_logger import FileLogger
 from datetime import datetime, UTC
-from maestro.cli.fastapi_serve import serve_agent
+from maestro.cli.fastapi_serve import serve_agent, serve_workflow
 
 
 # Root CLI class
@@ -764,7 +764,7 @@ class CreateCrCmd(Command):
 
 
 # Serve command group
-#  maestro serve AGENTS_FILE [options]
+#  maestro serve AGENTS_FILE WORKFLOW_FILE [options]
 class ServeCmd(Command):
     """Command handler for serving agents via HTTP endpoints."""
 
@@ -787,9 +787,21 @@ class ServeCmd(Command):
             self._check_verbose()
             raise RuntimeError(f"Failed to serve agent: {str(e)}") from e
 
+    def __serve_workflow(self, agents_file: str, workflow_file: str, 
+                     host: str = "127.0.0.1", port: int = 8000):
+        """Serve an agent via FastAPI."""
+        try:
+            serve_workflow(agents_file, workflow_file, host, port)
+        except Exception as e:
+            self._check_verbose()
+            raise RuntimeError(f"Failed to serve workflow: {str(e)}") from e
+
     # public options
     def AGENTS_FILE(self):
         return self.args.get("AGENTS_FILE")
+
+    def WORKFLOW_FILE(self):
+        return self.args.get('WORKFLOW_FILE')
 
     def agent_name(self):
         return self.args.get("--agent-name")
@@ -819,14 +831,32 @@ class ServeCmd(Command):
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
-        try:
-            self.__serve_agent(
-                self.AGENTS_FILE(), self.agent_name(), self.host(), self.port()
-            )
-            if not self.silent():
-                Console.ok("Agent server started successfully")
-        except Exception as e:
-            self._check_verbose()
-            Console.error(f"Unable to serve agent: {str(e)}")
-            return 1
+        workflow_file_arg = self.WORKFLOW_FILE()
+        if workflow_file_arg and workflow_file_arg != "None":
+            print("### workflow")
+            try:
+                self.__serve_workflow(
+                    self.AGENTS_FILE(),
+                    self.WORKFLOW_FILE(),
+                    self.host(),
+                    self.port()
+                )
+                if not self.silent():
+                    Console.ok("Workflow server started successfully")
+            except Exception as e:
+                self._check_verbose()
+                Console.error(f"Unable to serve workflow: {str(e)}")
+                return 1
+        else:
+            print("### agent")
+            try:
+                self.__serve_agent(
+                    self.AGENTS_FILE(), self.agent_name(), self.host(), self.port()
+                )
+                if not self.silent():
+                    Console.ok("Agent server started successfully")
+            except Exception as e:
+                self._check_verbose()
+                Console.error(f"Unable to serve agent: {str(e)}")
+                return 1
         return 0

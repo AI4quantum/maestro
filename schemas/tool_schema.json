@@ -45,8 +45,8 @@
               "description": "jsonSchema or reference"
             },
             "schema": {
-              "type": "object",
-              "description": "JsonSchema definition of the tool input"
+              "type": "string",
+              "description": "string JsonSchema definition of the tool input"
             },
             "url": {
               "type": "string",
@@ -66,8 +66,8 @@
               "description": "jsonSchema or text"
             },
             "schema": {
-              "type": "object",
-              "description": "JsonSchema definition of the tool output"
+              "type": "string",
+              "description": "string of JsonSchema definition of the tool output"
             }
           },
 	  "required": [
