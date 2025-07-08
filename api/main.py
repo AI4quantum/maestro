@@ -13,6 +13,7 @@ from datetime import datetime
 import uuid
 import os
 from pathlib import Path
+import builder
 
 # Import our AI agent and database
 from ai_agent import MaestroBuilderAgent
@@ -25,6 +26,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
+app.include_router(builder.router)
 # Add CORS middleware to allow frontend to communicate with API
 app.add_middleware(
     CORSMiddleware,

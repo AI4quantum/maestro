@@ -116,7 +116,12 @@ mkdir -p storage
 
 # Start API server in background
 print_status "Starting API server on http://localhost:8000"
-nohup python main.py > ../logs/api.log 2>&1 &
+# nohup python main.py > ../logs/api.log 2>&1 &
+
+# TODO: FIX THIS
+nohup /Users/gliu/Desktop/work/maestro/.venv/bin/python main.py > ../logs/api.log 2>&1 &
+
+
 API_PID=$!
 echo $API_PID > ../logs/api.pid
 
@@ -168,7 +173,7 @@ cd ..
 # Wait for services to be ready
 print_status "Waiting for services to be ready..."
 
-if wait_for_service "http://localhost:8000" "API service"; then
+if wait_for_service "http://localhost:8000/api/health" "API service"; then
     print_success "API service is ready at http://localhost:8000"
     print_status "API documentation available at http://localhost:8000/docs"
 else
