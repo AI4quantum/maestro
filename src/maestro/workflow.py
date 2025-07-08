@@ -152,7 +152,7 @@ class Workflow:
             if step.get("workflow"):
                 if isinstance(step["workflow"], str):
                     found = False
-                    for workflow  in workflows:
+                    for workflow in workflows:
                         if workflow["name"] == step["workflow"]:
                             step["workflow"] = workflow["url"]
                             found = True

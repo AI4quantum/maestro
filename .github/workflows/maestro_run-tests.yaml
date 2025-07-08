@@ -26,6 +26,10 @@ jobs:
     - name: Install dependencies
       run: |
         uv pip install -e .[crewai]
+    - name: Check code format and style
+      run: |
+        uv run ruff check
+        uv run ruff format --check
     - name: Run tests
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
