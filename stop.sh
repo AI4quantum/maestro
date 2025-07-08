@@ -148,6 +148,7 @@ fi
 # Stop Builder frontend
 if [ -f "logs/builder.pid" ]; then
     stop_process "logs/builder.pid" "Builder frontend" 5174
+    stop_process "logs/builder.pid" "Builder frontend" 5174
 else
     print_warning "Builder PID file not found, checking port 5174..."
     kill_process_by_port 5174 "Builder frontend"
@@ -165,8 +166,8 @@ if check_port 8000; then
     api_stopped=false
 fi
 
-if check_port 5174; then
-    print_error "Builder frontend is still running on port 5174"
+if check_port 5174 || check_port 5173; then
+    print_error "Builder frontend is still running on port 5174 or 5173"
     builder_stopped=false
 fi
 

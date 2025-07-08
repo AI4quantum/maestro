@@ -75,8 +75,8 @@ if check_port 8000; then
     print_warning "API service is already running on port 8000"
 fi
 
-if check_port 5174; then
-    print_warning "Builder frontend is already running on port 5174"
+if check_port 5174 || check_port 5173; then
+    print_warning "Builder frontend is already running on port 5174 or 5173"
 fi
 
 # Start API service
@@ -115,7 +115,7 @@ fi
 mkdir -p storage
 
 # Start API server in background
-print_status "Starting API server on http://localhost:8000"
+print_status "Starting API server on http://localhost:5174"
 # nohup python main.py > ../logs/api.log 2>&1 &
 
 # TODO: FIX THIS
@@ -173,9 +173,10 @@ cd ..
 # Wait for services to be ready
 print_status "Waiting for services to be ready..."
 
-if wait_for_service "http://localhost:8000/api/health" "API service"; then
-    print_success "API service is ready at http://localhost:8000"
-    print_status "API documentation available at http://localhost:8000/docs"
+
+if wait_for_service "http://localhost:5174/api/health" "API service"; then
+    print_success "API service is ready at http://localhost:5174"
+    print_status "API documentation available at http://localhost:5174/docs"
 else
     print_error "API service failed to start properly"
     exit 1
