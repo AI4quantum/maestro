@@ -1,0 +1,26 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: remote workflow
+  labels:
+    app: example
+spec:
+  template:
+    metadata:
+      name: maestro-remote
+      labels:
+        app: example
+        use-case: test
+    agents:
+        - remote_test1
+        - remote_test2
+    workflows:
+        - name: test_workflow1
+          url: "http://127.0.0.1:8001"  
+    prompt: remote workflow prompt
+    steps:
+      - name: remote_step1
+        agent: remote_test1
+      - name: remote_step2
+        agent: remote_test2
+

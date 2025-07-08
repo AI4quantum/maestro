@@ -10,6 +10,7 @@ fi
 declare -i fail=0
 WORKFLOW_FILES=$(find . -path "./.venv" -prune -o -name '*workflow*.yaml' -print)
 AGENT_FILES=$(find . -path "./.venv" -prune -o -name '*agents*.yaml' -print)
+TOOL_FILES=$(find . -path "./.venv" -prune -o -name '*tools*.yaml' -print)
 
 
 echo "|Filename|Type|Stats|" >> "$GITHUB_STEP_SUMMARY"
@@ -48,6 +49,30 @@ for f in $WORKFLOW_FILES
 
 # Check agents
 for f in $AGENT_FILES
+    do
+      EXCLUDE=false
+      for EXCLUDED_FILE in "${EXCLUDED_FILES[@]}"; do
+          if [[ "$f" == "$EXCLUDED_FILE" ]]; then
+	      echo $f
+              EXCLUDE=true
+              break
+          fi
+      done
+      if ! $EXCLUDE
+      then
+        if ! ./maestro validate "$f"
+        then
+          RESULT="FAIL ❌"
+          fail+=1
+        else
+          RESULT="PASS ✅"
+        fi
+        echo "|$f|agent|$RESULT|" >> "$GITHUB_STEP_SUMMARY"
+      fi
+    done
+
+# Check toolss
+for f in $TOOL_FILES
     do
       EXCLUDE=false
       for EXCLUDED_FILE in "${EXCLUDED_FILES[@]}"; do
