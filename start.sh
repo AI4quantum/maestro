@@ -52,20 +52,20 @@ wait_for_service() {
     local service_name=$2
     local max_attempts=30
     local attempt=1
-    
+
     print_status "Waiting for $service_name to be ready..."
-    
+
     while [ $attempt -le $max_attempts ]; do
         if curl -s "$url" >/dev/null 2>&1; then
             print_success "$service_name is ready!"
             return 0
         fi
-        
+
         echo -n "."
         sleep 2
         attempt=$((attempt + 1))
     done
-    
+
     print_error "$service_name failed to start within $((max_attempts * 2)) seconds"
     return 1
 }
@@ -75,8 +75,8 @@ if check_port 8000; then
     print_warning "API service is already running on port 8000"
 fi
 
-if check_port 5173; then
-    print_warning "Builder frontend is already running on port 5173"
+if check_port 5174; then
+    print_warning "Builder frontend is already running on port 5174"
 fi
 
 # Start API service
@@ -155,7 +155,7 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # Start the development server in background
-print_status "Starting Builder frontend on http://localhost:5173"
+print_status "Starting Builder frontend on http://localhost:5174"
 nohup npm run dev > ../logs/builder.log 2>&1 &
 BUILDER_PID=$!
 echo $BUILDER_PID > ../logs/builder.pid
@@ -176,8 +176,8 @@ else
     exit 1
 fi
 
-if wait_for_service "http://localhost:5173" "Builder frontend"; then
-    print_success "Builder frontend is ready at http://localhost:5173"
+if wait_for_service "http://localhost:5174" "Builder frontend"; then
+    print_success "Builder frontend is ready at http://localhost:5174"
 else
     print_error "Builder frontend failed to start properly"
     exit 1
@@ -188,11 +188,11 @@ echo ""
 echo "Services:"
 echo "  - API: http://localhost:8000"
 echo "  - API Docs: http://localhost:8000/docs"
-echo "  - Builder Frontend: http://localhost:5173"
+echo "  - Builder Frontend: http://localhost:5174"
 echo ""
 echo "Logs:"
 echo "  - API logs: logs/api.log"
 echo "  - Builder logs: logs/builder.log"
 echo ""
 echo "To stop all services, run: ./stop.sh"
-echo "To view logs, run: tail -f logs/api.log or tail -f logs/builder.log" 
+echo "To view logs, run: tail -f logs/api.log or tail -f logs/builder.log"
