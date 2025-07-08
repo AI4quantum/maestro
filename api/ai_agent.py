@@ -6,7 +6,7 @@ Integrates with Maestro's existing agent framework to provide intelligent YAML g
 import sys
 import os
 from pathlib import Path
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, Optional
 import yaml
 import json
 

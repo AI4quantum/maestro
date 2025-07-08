@@ -7,12 +7,7 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any, Optional
-import json
-import yaml
 from datetime import datetime
-import uuid
-import os
-from pathlib import Path
 import builder
 
 # Import our AI agent and database

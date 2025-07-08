@@ -1,9 +1,8 @@
 # api/routes/builder.py
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException
 from pydantic import BaseModel
 import requests
-import os
 
 router = APIRouter()
 
