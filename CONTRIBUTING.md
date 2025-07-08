@@ -10,17 +10,22 @@ git clone https://github.com/AI4quantum/maestro.git
 cd maestro
 ```
 
-2. Install dependencies:
-```bash
-uv pip install -e .
-```
-
-3. Activate the virtual environment:
+2. Activate the virtual environment:
 ```bash
 uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
 .venv\Scripts\activate  # On Windows
+```
+
+3. Install dependencies:
+```bash
+uv pip install -e .
+```
+
+4. (optional) Enable pre-commit
+```bash
+uv run pre-commit install
 ```
 
 ## Development Workflow
@@ -43,7 +48,7 @@ git push origin feature/your-feature-name
 
 ## Code Style
 
-We use [black](https://github.com/psf/black) for code formatting. To ensure your code meets our style guidelines:
+We use [ruff](https://docs.astral.sh/ruff/) for code formatting and linting. To ensure your code meets our style guidelines:
 
 1. Install development dependencies:
 ```bash
@@ -52,7 +57,12 @@ uv pip install -e .
 
 2. Run the formatter:
 ```bash
-uv run black
+uv run ruff format
+```
+
+3. Run the linter:
+```bash
+uv run ruff check --fix
 ```
 
 ## Commit Messages
@@ -86,9 +96,10 @@ git commit -m "feat(agent): add new agent type"
 
 1. Ensure all dependencies are installed (`uv pip install -e .`).
 2. Run the test suite (`uv run pytest`).
-3. Run the linter (`uv run black`).
-4. Update documentation if necessary.
-5. Create a pull request with a clear description of the changes.
+3. Run the formatter (`uv run ruff format`).
+4. Run the linter (`uv run ruff check --fix`).
+5. Update documentation if necessary.
+6. Create a pull request with a clear description of the changes.
 
 ## Additional Resources
 
@@ -106,7 +117,7 @@ If you are new to Maestro contributing, we recommend you do the following before
 Maestro uses the following tools to meet code quality standards and ensure a unified code style across the codebase:
 
 We use the following libs to check the Python code: 
-- [Black](https://black.readthedocs.io/) - Code Formatter
+- [ruff](https://docs.astral.sh/ruff/) - Code Formatter and Linter
 
 ## Issues and pull requests
 
@@ -168,12 +179,11 @@ feat(agent): add new OpenAI agent type
 Ref: #15
 ```
 
-6. **Run Linters/Formatters:** Ensure your changes meet code quality standards:
-
-     - lint: use the next command to run Pylint:
+6. **Run Linter/Formatter:** Ensure your changes meet code quality standards:
 
 ```bash
-uv run pylint src/
+uv run ruff format
+uv run ruff check --fix
 ```
   
 

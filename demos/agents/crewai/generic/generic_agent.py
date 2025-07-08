@@ -4,7 +4,7 @@
 # Copyright © 2025 IBM
 
 """
-This script uses the crew.ai framework to find activities suitable for cold or wet weather. 
+This script uses the crew.ai framework to find activities suitable for cold or wet weather.
 
 Dependencies:
 - crewai
@@ -16,7 +16,7 @@ Usage:
 import os
 from crewai import Agent, Crew, Task, Process, LLM
 from crewai.project import CrewBase, agent, task, crew
-from crewai.tools import tool
+
 
 @CrewBase
 class Generic_Crew:
@@ -27,7 +27,7 @@ class Generic_Crew:
     # TODO Set model/URL from configuration
     llm = LLM(
         model=os.getenv("MAESTRO_DEMO_OLLAMA_MODEL", "ollama/llama3.1"),
-        base_url=os.getenv("MAESTRO_DEMO_OLLAMA_URL", "http://localhost:11434")
+        base_url=os.getenv("MAESTRO_DEMO_OLLAMA_URL", "http://localhost:11434"),
     )
 
     @agent
@@ -72,5 +72,3 @@ class Generic_Crew:
             # TODO: disable verbose when working well
             verbose=False,
         )
-
-    

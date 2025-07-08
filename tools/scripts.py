@@ -3,15 +3,18 @@
 
 #!/usr/bin/env python3
 
-import sys, subprocess
+import sys
+import subprocess
 import re
+
 
 def lint():
     try:
-        subprocess.run(["black", "."], check=True)
+        subprocess.run(["ruff", "format", "."], check=True)
         subprocess.run(["ruff", "check", "."], check=True)
     except subprocess.CalledProcessError:
         sys.exit(1)
+
 
 def commit():
     if len(sys.argv) < 2:
@@ -19,10 +22,12 @@ def commit():
         sys.exit(1)
 
     commit_msg = sys.argv[1]
-    if not re.match(r'^(feat|fix|docs|style|refactor|test|chore)(\([a-z-]+\))?: .+', commit_msg):
-        print('Error: Commit message must follow the conventional commits format:')
-        print('<type>(<scope>): <subject>')
-        print('\nTypes: feat, fix, docs, style, refactor, test, chore')
+    if not re.match(
+        r"^(feat|fix|docs|style|refactor|test|chore)(\([a-z-]+\))?: .+", commit_msg
+    ):
+        print("Error: Commit message must follow the conventional commits format:")
+        print("<type>(<scope>): <subject>")
+        print("\nTypes: feat, fix, docs, style, refactor, test, chore")
         sys.exit(1)
 
     print("📦 Adding files...")
@@ -33,5 +38,6 @@ def commit():
 
     print("Successfully committed changes")
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     commit()

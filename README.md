@@ -48,9 +48,14 @@ uv pip install -e .
 uv run pytest
 ```
 
-4. Run formatter:
+4. Run the formatter:
 ```bash
-uv run black
+uv run ruff format
+```
+
+5. Run the linter:
+```bash
+uv run ruff check --fix
 ```
 
 ## Contributing

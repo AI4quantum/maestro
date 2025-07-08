@@ -1,9 +1,6 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
-import os
-import sys
 from typing import Any
 
 from maestro.agents.agent import Agent
@@ -19,7 +16,12 @@ from maestro.agents.prompt_agent import PromptAgent
 # 1. set "custom" to "framework"
 # 2  set the custom agent name to "metadata.labels.custom_agent"
 
-custom_agent = { "slack_agent": SlackAgent, "scoring_agent": ScoringAgent, "prompt_agent": PromptAgent}
+custom_agent = {
+    "slack_agent": SlackAgent,
+    "scoring_agent": ScoringAgent,
+    "prompt_agent": PromptAgent,
+}
+
 
 class CustomAgent(Agent):
     """

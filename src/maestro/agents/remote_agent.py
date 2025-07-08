@@ -1,14 +1,14 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
-import os, dotenv
-import asyncio
+import dotenv
 import requests
 from requests import RequestException
 
 from maestro.agents.agent import Agent
 
 dotenv.load_dotenv()
+
 
 class RemoteAgent(Agent):
     """
@@ -24,7 +24,6 @@ class RemoteAgent(Agent):
         """
         super().__init__(agent)
         self.url = agent["spec"]["url"]
-
 
     async def run(self, prompt: str) -> str:
         """

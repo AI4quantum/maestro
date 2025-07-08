@@ -190,11 +190,163 @@ The Maestro Command Line Interface (CLI) allows users to manage workflows that i
 - `maestro mermaid` WORKFLOW_FILE [options]: generate the mermaid output for the workflow
 - `maestro run` WORKFLOW_FILE [options]: run the workflow with existing agents in command window
 - `maestro run` AGENTS_FILE WORKFLOW_FILE [options]: create agents and run the workflow in command window
+- `maestro serve` AGENTS_FILE WORKFLOW_FILE [options]: serve agents via HTTP API endpoints
+  - the WORKFLOW_FILE is optional.  If it is provided, the workflow is served via HTTP API endpoints 
+  - `--port PORT`: port to serve on (default: 8000)
+  - `--host HOST`: host to bind to (default: 127.0.0.1)
+  - `--agent-name NAME`: specific agent name to serve (if multiple agents in file)
+  - `--streaming`: enable streaming responses
 - `maestro validate` YAML_FILE [options]: validate agent or workflow definition yaml file
 - `maestro validate` SCHEMA_FILE YAML_FILE [options]: validate agent or workflow definition yaml file using the specified schema file 
 - `maestro meta-agents` TEXT_FILE [options]: run maestro meta agent with the given description file
 - `maestro clean` [options]: clean up Streamit servers of maestro
 - `maestro create-cr` YAML_FILE [options]: create maestro custom resources in kubernetes cluster
+
+### Serving Agents via HTTP API
+
+The `maestro serve` command allows you to expose Maestro agents as HTTP API endpoints, making them accessible via REST API calls. This is useful for integrating agents into web applications, microservices, or other systems that need to communicate with AI agents.
+
+#### Basic Usage
+
+```bash
+# Serve a single agent from an agents file
+maestro serve agents.yaml
+
+# Serve on a custom port and host
+maestro serve agents.yaml --port 8080 --host 0.0.0.0
+
+# Serve a specific agent from a multi-agent file
+maestro serve agents.yaml --agent-name my-agent
+
+# Enable streaming responses
+maestro serve agents.yaml --streaming
+```
+
+#### API Endpoints
+
+Once the server is running, the following endpoints are available:
+
+**POST /chat** - Send prompts to the agent
+```bash
+curl -X POST "http://127.0.0.1:8000/chat" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Hello, how are you?", "stream": false}'
+```
+
+Response:
+```json
+{
+  "response": "Hello! I'm doing well, thank you for asking. How can I help you today?",
+  "agent_name": "serve-test-agent",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
+```
+
+**GET /health** - Health check endpoint
+```bash
+curl "http://127.0.0.1:8000/health"
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "agent_name": "serve-test-agent",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
+```
+
+**GET /agents** - List available agents
+```bash
+curl "http://127.0.0.1:8000/agents"
+```
+
+Response:
+```json
+{
+  "agents": ["serve-test-agent"],
+  "current_agent": "serve-test-agent"
+}
+```
+
+**GET /docs** - Auto-generated API documentation (Swagger UI)
+
+#### Example Agent Configuration
+
+```yaml
+apiVersion: maestro.ai4quantum.com/v1alpha1
+kind: Agent
+metadata:
+  name: serve-test-agent
+spec:
+  framework: mock
+  description: A simple test agent for serving via HTTP
+  instructions: You are a helpful assistant. Respond to user prompts in a friendly manner.
+  input: text
+  output: text
+```
+
+#### Use Cases
+
+- **Web Application Integration**: Embed AI agents in web applications
+- **Microservices**: Create AI-powered microservices
+- **API Gateway**: Expose agents through API gateways
+- **Testing**: Test agent functionality via HTTP requests
+- **Integration**: Connect agents to other systems via REST APIs
+
+#### Security Considerations
+
+- The server runs on localhost by default for security
+- Use `--host 0.0.0.0` only when you need external access
+- Consider adding authentication and rate limiting for production use
+- Use HTTPS in production environments
+
+### Serving Workflow via HTTP API
+
+The `maestro serve` command with agants and workflow files allows you to expose Maestro workflow as HTTP API endpoints, making them accessible via REST API calls. This is useful for integrating workflow into another workflows, web applications, microservices, or other systems that need to communicate with AI workflow.
+
+#### Basic Usage
+
+```bash
+# Serve a workflow in a workflow file
+maestro serve agents.yaml workflow.yaml
+
+# Serve on a custom port and host
+maestro serve agents.yaml workflow.yaml --port 8080 --host 0.0.0.0
+```
+
+#### API Endpoints
+
+Once the server is running, the following endpoints are available:
+
+**POST /chat** - Send prompts to the workflow
+```bash
+curl -X POST "http://127.0.0.1:8000/chat" \
+     -H "Content-Type: application/json" \
+     -d '{"prompt": "Hello, how are you?", "stream": false}'
+```
+
+Response:
+```json
+{'response': "{'final_prompt': 'Hello, this is a test!', 'step1': 'Hello, this is a test!', 'step2': 'Hello, this is a test!', 'step3': 'Hello, this is a test!'}", 'workflow_name': 'simple workflow', 'timestamp': '2025-07-08T01:01:35.420413Z'}
+
+```
+
+**GET /health** - Health check endpoint
+```bash
+curl "http://127.0.0.1:8000/health"
+```
+
+Response:
+```json
+{
+  "status": "healthy",
+  "agent_name": "serve-test-agent",
+  "timestamp": "2024-01-01T12:00:00Z"
+}
+```
+
+**GET /docs** - Auto-generated API documentation (Swagger UI)
 
 
 ## Maestro UIs

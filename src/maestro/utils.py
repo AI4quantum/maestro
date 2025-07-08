@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
+
 def eval_expression(expression, prompt):
     """
     Evaluate an expression with a given prompt.
@@ -14,8 +15,9 @@ def eval_expression(expression, prompt):
     local = {"input": prompt}
     return eval(expression, local)
 
+
 def convert_to_list(s):
     if s[0] != "[" or s[-1] != "]":
         raise ValueError("parallel or loop prompt is not a list string")
-    result = s[1:-1].split(',')
+    result = s[1:-1].split(",")
     return result

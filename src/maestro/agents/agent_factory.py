@@ -1,6 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
 from enum import StrEnum
-from typing import Callable, Type, Union
+from typing import Callable, Union
 
 from .beeai_agent import BeeAIAgent, BeeAILocalAgent
 from .crewai_agent import CrewAIAgent
@@ -9,27 +9,41 @@ from .remote_agent import RemoteAgent
 from .mock_agent import MockAgent
 from .custom_agent import CustomAgent
 from .code_agent import CodeAgent
-from .slack_agent import SlackAgent
-from .scoring_agent import ScoringAgent
-from .prompt_agent import PromptAgent
+
 
 class AgentFramework(StrEnum):
     """Enumeration of supported frameworks"""
+
     BEEAI = "beeai"
     CREWAI = "crewai"
-    OPENAI = 'openai'
-    MOCK = 'mock'
-    REMOTE = 'remote'
-    CUSTOM = 'custom'
-    CODE = 'code'
+    OPENAI = "openai"
+    MOCK = "mock"
+    REMOTE = "remote"
+    CUSTOM = "custom"
+    CODE = "code"
 
     # Not yet supported
     # LANGFLOW = 'langflow'
 
+
 class AgentFactory:
     """Factory class for handling agent frameworks"""
+
     @staticmethod
-    def create_agent(framework: AgentFramework, mode="local") -> Callable[..., Union[BeeAIAgent, BeeAILocalAgent, CrewAIAgent, OpenAIAgent, RemoteAgent, CodeAgent, MockAgent]]:
+    def create_agent(
+        framework: AgentFramework, mode="local"
+    ) -> Callable[
+        ...,
+        Union[
+            BeeAIAgent,
+            BeeAILocalAgent,
+            CrewAIAgent,
+            OpenAIAgent,
+            RemoteAgent,
+            CodeAgent,
+            MockAgent,
+        ],
+    ]:
         """Create an instance of the specified agent framework.
 
         Args:
@@ -43,13 +57,13 @@ class AgentFactory:
             AgentFramework.CREWAI: CrewAIAgent,
             AgentFramework.OPENAI: OpenAIAgent,
             AgentFramework.CODE: CodeAgent,
-            AgentFramework.MOCK: MockAgent
+            AgentFramework.MOCK: MockAgent,
         }
 
         remote_factories = {
             AgentFramework.BEEAI: BeeAIAgent,
             AgentFramework.REMOTE: RemoteAgent,
-            AgentFramework.MOCK: MockAgent
+            AgentFramework.MOCK: MockAgent,
         }
         if framework == "custom":
             return CustomAgent
@@ -63,6 +77,19 @@ class AgentFactory:
             return factories[framework]
 
     @classmethod
-    def get_factory(cls, framework: str, mode="local") -> Callable[..., Union[BeeAIAgent, BeeAILocalAgent, CrewAIAgent, OpenAIAgent, RemoteAgent, CodeAgent, MockAgent]]:
+    def get_factory(
+        cls, framework: str, mode="local"
+    ) -> Callable[
+        ...,
+        Union[
+            BeeAIAgent,
+            BeeAILocalAgent,
+            CrewAIAgent,
+            OpenAIAgent,
+            RemoteAgent,
+            CodeAgent,
+            MockAgent,
+        ],
+    ]:
         """Get a factory function for the specified agent type."""
         return cls.create_agent(framework, mode)

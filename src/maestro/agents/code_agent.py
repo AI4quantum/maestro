@@ -1,15 +1,12 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
-import asyncio
-import os
 from dotenv import load_dotenv
-from slack_sdk import WebClient
-from slack_sdk.errors import SlackApiError
 
 from maestro.agents.agent import Agent
 
 load_dotenv()
+
 
 class CodeAgent(Agent):
     """
@@ -21,7 +18,6 @@ class CodeAgent(Agent):
         Initializes the agent with agent definitions.
         """
         super().__init__(agent)
-        
 
     async def run(self, *args, context=None) -> str:
         """
@@ -38,7 +34,7 @@ class CodeAgent(Agent):
             self.print(f"Exception executing code: {e}\n")
             raise e
         answer = str(local["output"])
-        self.print(f"Response from {self.agent_name}: {answer}\n")        
+        self.print(f"Response from {self.agent_name}: {answer}\n")
         return str(local["output"])
 
     async def run_streaming(self, *args, context=None) -> str:
@@ -56,8 +52,5 @@ class CodeAgent(Agent):
             self.print(f"Exception executing code: {e}\n")
             raise e
         answer = str(local["output"])
-        self.print(f"Response from {self.agent_name}: {answer}\n")        
+        self.print(f"Response from {self.agent_name}: {answer}\n")
         return str(local["output"])
-
-
-

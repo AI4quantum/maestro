@@ -11,6 +11,8 @@ Usage:
   maestro mermaid WORKFLOW_FILE [options]
   maestro run WORKFLOW_FILE [options]
   maestro run AGENTS_FILE WORKFLOW_FILE [options]
+  maestro serve AGENTS_FILE [options]
+  maestro serve  AGENTS_FILE WORKFLOW_FILE [options]
   maestro validate YAML_FILE [options]
   maestro validate SCHEMA_FILE YAML_FILE [options]
   maestro meta-agents TEXT_FILE [options]
@@ -38,16 +40,20 @@ Options:
   --flowchart-td         Flowchart TD (top down) mermaid
   --flowchart-lr         Flowchart LR (left right) mermaid
 
+  --port PORT            Port to serve on (default: 8000)
+  --host HOST            Host to bind to (default: 127.0.0.1)
+  --agent-name NAME      Specific agent name to serve (if multiple in file)
+  --streaming            Enable streaming responses
+
   -h --help              Show this screen.
   -v --version           Show version.
 
 """
 
-import sys
-
 from docopt import docopt
 
 from maestro.cli.common import Console
+
 
 def __execute(command):
     try:
@@ -59,12 +65,14 @@ def __execute(command):
         Console.error(str(e))
         return 1
 
+
 def __run_cli():
     from maestro.cli.commands import CLI
-    from maestro.cli.common import Console
-    args = docopt(__doc__, version='Maestro CLI v0.0.4')
+
+    args = docopt(__doc__, version="Maestro CLI v0.0.4")
     command = CLI(args).command()
     return __execute(command)
-        
-if __name__ == '__main__':
+
+
+if __name__ == "__main__":
     __run_cli()
