@@ -3,9 +3,9 @@
 Test script for the Maestro Builder API
 """
 
-import requests
+import requests 
 
-API_BASE_URL = "http://localhost:8000"
+API_BASE_URL = "http://localhost:5174"
 
 def test_root_endpoint():
     """Test the root endpoint"""
