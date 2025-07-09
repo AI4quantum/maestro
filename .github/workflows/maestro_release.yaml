@@ -49,29 +49,19 @@ jobs:
           name="${{ steps.get_name.outputs.release_name }}"
           pattern=$(printf '%s' "$name" | sed -e 's/[]\/$*.^[]/\\&/g')
           sed -i "0,/- $pattern/s//- ~~$name~~/" .release_names.md
-
-
-      - name: Commit and push to new branch
-        run: |
-          name="${{ steps.get_name.outputs.release_name }}"
-          branch="strikeout-${{ github.ref_name }}"
-          git config user.name "github-actions"
-          git config user.email "github-actions@github.com"
-          git checkout -b "$branch"
-          git add .release_names.md
-          git commit -m "chore: strike out used release name '$name'"
-          git push origin "$branch"
           
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: "chore: strike out used release name '${{ steps.get_name.outputs.release_name }}'"
-          branch: strikeout-${{ github.ref_name }}
+          branch: strikeout-${{ github.ref_name }}-${{ github.run_id }}
+          base: main
           title: "chore: strike out used release name '${{ steps.get_name.outputs.release_name }}'"
           body: |
             This PR was automatically created after tagging `${{ github.ref_name }}` to strike through the used release name.
           labels: automated-pr
+
 
   # test:
   #   runs-on: ubuntu-latest
