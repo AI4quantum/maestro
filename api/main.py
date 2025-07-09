@@ -85,31 +85,15 @@ async def root():
 @app.post("/api/chat_builder_agent")
 async def chat_builder_agent(message: ChatMessage):
     import requests
-
+    print("📨 Received POST to /api/chat_builder_agent")
     try:
-        # Step 1: Call TaskInterpreter agent
+        # Step 1: first agent, rest is sequentially passed using maestro serve
         resp_task = requests.post(
             "http://localhost:8000/chat",
             json={"prompt": message.content, "agent": "TaskInterpreter"},
         )
         if resp_task.status_code != 200:
             raise Exception(resp_task.text)
-        task_plan = resp_task.json().get("response", "")
-
-        # Step 2: Call AgentYAMLBuilder with task plan
-        resp_builder = requests.post(
-            "http://localhost:8000/chat",
-            json={"prompt": task_plan, "agent": "AgentYAMLBuilder"},
-        )
-        if resp_builder.status_code != 200:
-            raise Exception(resp_builder.text)
-        agents_yaml = resp_builder.json().get("response", "")
-
-        return {
-            "response": agents_yaml,
-            "yaml_files": [{"name": "agents.yaml", "content": agents_yaml}],
-        }
-
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Builder failed: {e}")
 
