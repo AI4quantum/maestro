@@ -74,6 +74,7 @@ jobs:
 
 jobs:
   release:
+    needs: verify
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
