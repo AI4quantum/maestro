@@ -9,26 +9,28 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - name: Install uv and activate the environment
-      uses: astral-sh/setup-uv@v6
-      with:
-        activate-environment: true
-    - name: Install dependencies
-      run: |
-        uv pip install -e .[crewai]
-    - name: Run tests
-      run: |
-        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        uv run pytest -v
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv and activate the environment
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+      - name: Install dependencies
+        run: |
+          uv pip install -e .[crewai]
+      - name: Run tests
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          uv run pytest -v
 
   build:
     needs: test
     runs-on: ubuntu-latest
+    outputs:
+      release_name: ${{ steps.get_name.outputs.release_name }}
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
@@ -37,8 +39,16 @@ jobs:
           python-version: "3.12"
       - name: Install uv
         uses: astral-sh/setup-uv@v6
+      - name: Install dependencies
+        run: |
+          uv pip install -e .[crewai]
+      - name: Get release name
+        id: get_name
+        run: python tools/get_release_name.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
       - name: Build Maestro
-        shell: bash
         run: uv build
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -50,7 +60,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # TODO: replace with demo repo once its created
+      - uses: actions/checkout@v4 # TODO: replace with demo repo once it's created
         with:
           sparse-checkout: demos
       - uses: actions/download-artifact@v4
@@ -62,15 +72,14 @@ jobs:
         with:
           python-version: "3.12"
       - name: Install maestro
-        shell: bash
         run: pip install dist/*.whl
       - name: Test distribution
         working-directory: demos
-        shell: bash
         run: maestro run workflows/simple/agents.yaml workflows/simple/workflow.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_USER: ${{ github.actor }}
+
   release:
     needs: verify
     runs-on: ubuntu-latest
@@ -79,52 +88,33 @@ jobs:
         with:
           name: maestro-dist
           path: dist
-          
       - uses: actions/checkout@v4
-      
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-
-      - name: Install uv and activate the environment
-        uses: astral-sh/setup-uv@v6
-        with:
-          activate-environment: true
-
-      - name: Install dependencies
-        run: |
-          uv pip install -e .[crewai]
-
-      - name: Get release name
-        id: get_name
-        run: python tools/get_release_name.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
         with:
           files: dist/*
           generate_release_notes: true
-          name: ${{ steps.get_name.outputs.release_name }} – ${{ github.ref_name }}
+          name: ${{ needs.build.outputs.release_name }} – ${{ github.ref_name }}
 
+  strike-release-name:
+    needs: [build, release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
       - name: Strike through used release name
         run: |
-          name="${{ steps.get_name.outputs.release_name }}"
+          name="${{ needs.build.outputs.release_name }}"
           pattern=$(printf '%s' "$name" | sed -e 's/[]\/$*.^[]/\\&/g')
           sed -i "0,/- $pattern/s//- ~~$name~~/" .release_names.md
-          
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: strike out used release name '${{ steps.get_name.outputs.release_name }}'"
+          commit-message: "chore: strike out used release name '${{ needs.build.outputs.release_name }}'"
           branch: strikeout-${{ github.ref_name }}-${{ github.run_id }}
           base: main
-          title: "chore: strike out used release name '${{ steps.get_name.outputs.release_name }}'"
+          title: "chore: strike out used release name '${{ needs.build.outputs.release_name }}'"
           body: |
             This PR was automatically created after tagging `${{ github.ref_name }}` to strike through the used release name.
           labels: automated-pr
