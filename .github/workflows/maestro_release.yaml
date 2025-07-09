@@ -6,6 +6,31 @@ on:
       - "v*"
 
 jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Get release name
+        id: get_name
+        run: python tools/get_release_name.py
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+      - uses: actions/download-artifact@v4
+        with:
+          name: maestro-dist
+          path: dist
+      - name: GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: github.ref_type == 'tag'
+        with:
+          files: dist/*
+          generate_release_notes: true
+          name: ${{ steps.get_name.outputs.release_name }} – ${{ github.ref_name }}
   # test:
   #   runs-on: ubuntu-latest
   #   steps:
@@ -71,29 +96,29 @@ jobs:
   #       env:
   #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   #         GITHUB_USER: ${{ github.actor }}
-  release:
-    needs: verify
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Get release name
-        id: get_name
-        run: python tools/get_release_name.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
-      - uses: actions/download-artifact@v4
-        with:
-          name: maestro-dist
-          path: dist
-      - name: GitHub Release
-        uses: softprops/action-gh-release@v2
-        if: github.ref_type == 'tag'
-        with:
-          files: dist/*
-          generate_release_notes: true
-          name: ${{ steps.get_name.outputs.release_name }} – ${{ github.ref_name }}
+  # release:
+  #   needs: verify
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Set up Python
+  #       uses: actions/setup-python@v5
+  #       with:
+  #         python-version: "3.12"
+  #     - name: Get release name
+  #       id: get_name
+  #       run: python tools/get_release_name.py
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #         GITHUB_REPOSITORY: ${{ github.repository }}
+  #     - uses: actions/download-artifact@v4
+  #       with:
+  #         name: maestro-dist
+  #         path: dist
+  #     - name: GitHub Release
+  #       uses: softprops/action-gh-release@v2
+  #       if: github.ref_type == 'tag'
+  #       with:
+  #         files: dist/*
+  #         generate_release_notes: true
+  #         name: ${{ steps.get_name.outputs.release_name }} – ${{ github.ref_name }}
