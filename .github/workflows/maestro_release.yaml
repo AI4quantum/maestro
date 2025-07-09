@@ -47,7 +47,7 @@ jobs:
       - name: Strike through used release name
         run: |
           name="${{ steps.get_name.outputs.release_name }}"
-          sed -i "s/^- $name$/- ~~$name~~/" release_names.md
+          sed -i "s/^- $name$/- ~~$name~~/" .release_names.md
 
       - name: Commit and push to new branch
         run: |
@@ -56,9 +56,10 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git checkout -b "$branch"
-          git add release_names.md
+          git add .release_names.md
           git commit -m "chore: strike out used release name '$name'"
           git push origin "$branch"
+
   # test:
   #   runs-on: ubuntu-latest
   #   steps:
