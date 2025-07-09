@@ -5,7 +5,7 @@ on:
     tags:
       - "v*"
 
-jobs:
+# jobs:
   # test:
   #   runs-on: ubuntu-latest
   #   steps:
@@ -71,7 +71,6 @@ jobs:
   #       env:
   #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
   #         GITHUB_USER: ${{ github.actor }}
-
   release:
     needs: verify
     runs-on: ubuntu-latest
