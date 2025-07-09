@@ -46,10 +46,12 @@ jobs:
           uv pip install requests
       - name: Get release name
         id: get_name
-        run: uv run python tools/get_release_name.py
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: |
+          uv run env \
+            GITHUB_OUTPUT="$GITHUB_OUTPUT" \
+            GITHUB_TOKEN="${{ secrets.GITHUB_TOKEN }}" \
+            GITHUB_REPOSITORY="${{ github.repository }}" \
+            python tools/get_release_name.py
       - name: Build Maestro
         run: uv build
       - name: Upload artifacts
@@ -62,7 +64,7 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # TODO: replace with demo repo once it's created
+      - uses: actions/checkout@v4
         with:
           sparse-checkout: demos
       - uses: actions/download-artifact@v4
@@ -83,7 +85,7 @@ jobs:
           GITHUB_USER: ${{ github.actor }}
 
   release:
-    needs: verify
+    needs: [build, verify]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v4
@@ -118,4 +120,3 @@ jobs:
           title: "chore: follow-up after release ${{ github.ref_name }}"
           body: |
             This PR was automatically created after tagging `${{ github.ref_name }}` to perform post-release tasks.
-          labels: automated-pr
