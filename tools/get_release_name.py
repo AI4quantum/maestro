@@ -6,6 +6,7 @@
 import os
 import requests
 
+
 def main():
     github_token = os.environ["GITHUB_TOKEN"]
     repo = os.environ["GITHUB_REPOSITORY"]
@@ -14,16 +15,12 @@ def main():
         all_names = [
             line.strip().lstrip("- ")
             for line in f
-            if line.strip()
-            and not line.strip().startswith("**")
-            and "~~" not in line
+            if line.strip() and not line.strip().startswith("**") and "~~" not in line
         ]
-
 
     headers = {"Authorization": f"token {github_token}"}
     response = requests.get(
-        f"https://api.github.com/repos/{repo}/releases",
-        headers=headers
+        f"https://api.github.com/repos/{repo}/releases", headers=headers
     )
 
     if not response.ok:
@@ -45,6 +42,7 @@ def main():
 
     with open(os.environ["GITHUB_OUTPUT"], "a") as f:
         f.write(f"release_name={next_name}\n")
+
 
 if __name__ == "__main__":
     main()
