@@ -47,8 +47,9 @@ jobs:
       - name: Strike through used release name
         run: |
           name="${{ steps.get_name.outputs.release_name }}"
-          escaped_name=$(printf '%s\n' "$name" | sed -e 's/[]\/$*.^[]/\\&/g')
-          sed -i "s/^[-] $escaped_name$/- ~~$name~~/" .release_names.md
+          pattern=$(printf '%s' "$name" | sed -e 's/[]\/$*.^[]/\\&/g')
+          sed -i "0,/- $pattern/s//- ~~$name~~/" .release_names.md
+
 
       - name: Commit and push to new branch
         run: |
