@@ -7,7 +7,7 @@ if uv run which maestro &> /dev/null; then
     echo "✅ Maestro CLI is installed: $(uv run which maestro)"
 else
     echo "❌ Maestro CLI is not installed. Please run:"
-    echo "   uv pip install -e ."
+    echo "   uv sync"
 fi
 
 # Check workflow directory structure

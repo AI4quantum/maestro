@@ -30,7 +30,7 @@ if command -v uv &>/dev/null; then
         echo "✅ Found maestro module via uv"
     else
         echo "🔄 Installing maestro via uv..."
-        uv pip install -e .
+        uv sync
         if uv run which maestro &>/dev/null; then
             MAESTRO_CMD="uv run maestro"
             echo "✅ Successfully installed maestro via uv"
