@@ -85,6 +85,7 @@ async def root():
 @app.post("/api/chat_builder_agent")
 async def chat_builder_agent(message: ChatMessage):
     import requests
+
     print("📨 Received POST to /api/chat_builder_agent")
     try:
         # Step 1: first agent, rest is sequentially passed using maestro serve
