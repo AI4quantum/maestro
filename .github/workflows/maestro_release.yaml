@@ -93,7 +93,7 @@ jobs:
           generate_release_notes: true
           name: ${{ needs.build.outputs.release_name }} – ${{ github.ref_name }}
 
-  strike-release-name:
+  open-followup-pr:
     needs: [build, release]
     runs-on: ubuntu-latest
     steps:
@@ -107,10 +107,10 @@ jobs:
         uses: peter-evans/create-pull-request@v6
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: strike out used release name '${{ needs.build.outputs.release_name }}'"
-          branch: strikeout-${{ github.ref_name }}-${{ github.run_id }}
+          commit-message: "chore: follow-up after release ${{ github.ref_name }}"
+          branch: followup-${{ github.ref_name }}-${{ github.run_id }}
           base: main
-          title: "chore: strike out used release name '${{ needs.build.outputs.release_name }}'"
+          title: "chore: follow-up after release ${{ github.ref_name }}"
           body: |
-            This PR was automatically created after tagging `${{ github.ref_name }}` to strike through the used release name.
+            This PR was automatically created after tagging `${{ github.ref_name }}` to perform post-release tasks.
           labels: automated-pr
