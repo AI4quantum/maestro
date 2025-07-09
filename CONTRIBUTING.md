@@ -20,7 +20,7 @@ source .venv/bin/activate  # On Unix/macOS
 
 3. Install dependencies:
 ```bash
-uv sync
+uv sync --all-extras
 ```
 
 4. (optional) Enable pre-commit
@@ -156,7 +156,7 @@ source .venv/bin/activate  # On Unix/macOS
 3. **Install dependencies:** Install all project dependencies:
 
 ```bash
-uv sync
+uv sync --all-extras
 ```
 
 4. **Setup environmental variables:** Make a copy of `.env.example` file in the repository's root and name it `.env`. Uncomment and update the parameters in the `.env` as needed.

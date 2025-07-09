@@ -20,7 +20,7 @@ source .venv/bin/activate  # On Unix/macOS
 
 3. Install dependencies:
 ```bash
-uv sync
+uv sync --all-extras
 ```
 
 4. (optional) Enable pre-commit
@@ -143,7 +143,7 @@ uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
 .venv\Scripts\activate  # On Windows
-uv sync
+uv sync --all-extras
 ```
 
 ### 3. Configure Environment Variables

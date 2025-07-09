@@ -40,7 +40,7 @@ cd maestro
 
 2. Install development dependencies:
 ```bash
-uv sync
+uv sync --all-extras
 ```
 
 3. Run tests:
