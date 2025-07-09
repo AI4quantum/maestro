@@ -103,10 +103,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
 
-      - name: Mock artifact for test release
-        run: |
-          mkdir -p dist && echo "test" > dist/fake.txt
-
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
