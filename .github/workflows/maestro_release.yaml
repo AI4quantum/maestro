@@ -8,27 +8,36 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
+
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
+
       - name: Install uv and activate the environment
         uses: astral-sh/setup-uv@v6
         with:
           activate-environment: true
+
       - name: Install dependencies
         run: |
           uv pip install -e .[crewai]
+
       - name: Get release name
         id: get_name
         run: python tools/get_release_name.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
+
       - name: Mock artifact for test release
         run: mkdir -p dist && echo "test" > dist/fake.txt
+
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
         if: github.ref_type == 'tag'
@@ -36,6 +45,34 @@ jobs:
           files: dist/*
           generate_release_notes: true
           name: ${{ steps.get_name.outputs.release_name }} – ${{ github.ref_name }}
+
+      # --- New steps start here ---
+
+      - name: Set up Git identity
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Strike through used release name
+        run: |
+          name="${{ steps.get_name.outputs.release_name }}"
+          sed -i "s/^- $name$/- ~~$name~~/" tools/release_names.md
+
+      - name: Commit and push to new branch
+        run: |
+          branch="strikeout-${{ github.ref_name }}"
+          git checkout -b "$branch"
+          git add tools/release_names.md
+          git commit -m "chore: strike out used release name '$name'"
+          git push origin "$branch"
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v6
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          title: "chore: strike out used release name '${{ steps.get_name.outputs.release_name }}'"
+          body: "Auto-generated PR to mark the release name as used after release."
+          branch: "strikeout-${{ github.ref_name }}"
   # test:
   #   runs-on: ubuntu-latest
   #   steps:
