@@ -8,9 +8,6 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v4
 
@@ -36,7 +33,8 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Mock artifact for test release
-        run: mkdir -p dist && echo "test" > dist/fake.txt
+        run: |
+          mkdir -p dist && echo "test" > dist/fake.txt
 
       - name: GitHub Release
         uses: softprops/action-gh-release@v2
@@ -46,33 +44,21 @@ jobs:
           generate_release_notes: true
           name: ${{ steps.get_name.outputs.release_name }} – ${{ github.ref_name }}
 
-      # --- New steps start here ---
-
-      - name: Set up Git identity
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
       - name: Strike through used release name
         run: |
           name="${{ steps.get_name.outputs.release_name }}"
-          sed -i "s/^- $name$/- ~~$name~~/" tools/release_names.md
+          sed -i "s/^- $name$/- ~~$name~~/" release_names.md
 
       - name: Commit and push to new branch
         run: |
+          name="${{ steps.get_name.outputs.release_name }}"
           branch="strikeout-${{ github.ref_name }}"
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
           git checkout -b "$branch"
-          git add tools/release_names.md
+          git add release_names.md
           git commit -m "chore: strike out used release name '$name'"
           git push origin "$branch"
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          title: "chore: strike out used release name '${{ steps.get_name.outputs.release_name }}'"
-          body: "Auto-generated PR to mark the release name as used after release."
-          branch: "strikeout-${{ github.ref_name }}"
   # test:
   #   runs-on: ubuntu-latest
   #   steps:
