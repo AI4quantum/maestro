@@ -37,14 +37,16 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install uv
+      - name: Install uv and activate the environment
         uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: True
       - name: Install dependencies
         run: |
-          uv pip install -e . requests
+          uv pip install requests
       - name: Get release name
         id: get_name
-        run: python tools/get_release_name.py
+        run: uv run python tools/get_release_name.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITHUB_REPOSITORY: ${{ github.repository }}
