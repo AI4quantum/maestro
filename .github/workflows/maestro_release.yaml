@@ -110,7 +110,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Bump version in pyproject.toml and update README.md
+      - name: run bump_version.py
         run: |
           python tools/bump_version.py
         env:
