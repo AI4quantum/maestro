@@ -35,7 +35,6 @@ def strike_through_release_name(name: str, repo_root: Path):
 def main():
     github_tag = os.environ.get("GITHUB_REF_NAME")
     release_name = os.environ.get("RELEASE_NAME")
-
     if not github_tag:
         print("::error::GITHUB_REF_NAME not set.")
         exit(1)
@@ -71,7 +70,6 @@ def main():
     )
     pyproject_path.write_text(updated_pyproject)
     print(f"✔️ Bumped pyproject.toml version to {next_version_str}")
-
     strike_through_release_name(release_name, repo_root)
 
 
