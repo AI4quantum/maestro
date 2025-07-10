@@ -16,9 +16,11 @@ def main():
         print("::error::GITHUB_REF_NAME not set.")
         exit(1)
     if not re.fullmatch(r"v\d+\.\d+\.\d+", github_tag):
-        print(f"::error::Invalid GITHUB_REF_NAME '{github_tag}'. Expected format: vX.Y.Z")
+        print(
+            f"::error::Invalid GITHUB_REF_NAME '{github_tag}'. Expected format: vX.Y.Z"
+        )
         exit(1)
-        
+
     major, minor, patch = parse_version(github_tag)
     current_version_str = f"{major}.{minor}.{patch}"
     next_version_str = f"{major}.{minor + 1}.0"
