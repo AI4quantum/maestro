@@ -1,8 +1,8 @@
 # SPDX-License-Identifier: Apache-2.0
 
-import os
 import dspy
 from .agent import Agent as BaseAgent  # Import BaseAgent first
+
 
 class DspyAgent(BaseAgent):
     """
@@ -26,11 +26,9 @@ class DspyAgent(BaseAgent):
 
         try:
             self.provider_url = agent["spec"].get(
-                   "url"
+                "url"
             )  # Assuming LLM provider URL is here
-            self.agent_model = agent["spec"].get(
-                "model"
-            )  # Assuming model name is here
+            self.agent_model = agent["spec"].get("model")  # Assuming model name is here
         except KeyError as e:
             self.print(
                 f"Failed to load agent {self.agent_name}: Missing configuration key - {e}"
@@ -41,7 +39,7 @@ class DspyAgent(BaseAgent):
         except Exception as e:
             self.print(f"Failed to load agent {self.agent_name}: {e}")
             raise e  # Re-raise other unexpected errors
-        
+
         class BaseDSPySignature(dspy.Signature):
             """You are a good agent that helps user answer questions and carries out tasks.
 
@@ -54,15 +52,15 @@ class DspyAgent(BaseAgent):
                     "Message that summarizes the process result, and the final answer to the user questions and requests."
                 )
             )
-        self.dspy_signature = BaseDSPySignature.with_instructions(f"You are {self.agent_desc}\nYou are expected to do {self.instructions}")
+
+        self.dspy_signature = BaseDSPySignature.with_instructions(
+            f"You are {self.agent_desc}\nYou are expected to do {self.instructions}"
+        )
 
         # os.environ["OPENAI_API_KEY"] = "{your openai key}"
         dspy.configure(lm=dspy.LM(self.agent_model, api_base=self.provider_url))
 
-        self.dspy_agent = dspy.ReAct(
-            self.dspy_signature,
-            tools = []
-        )
+        self.dspy_agent = dspy.ReAct(self.dspy_signature, tools=[])
 
     async def run(self, prompt: str) -> str:
         """
@@ -108,4 +106,3 @@ class DspyAgent(BaseAgent):
         raise NotImplementedError(
             f"Streaming execution for Dspy agent '{self.agent_name}' is not implemented yet."
         )
-
