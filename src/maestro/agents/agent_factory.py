@@ -5,7 +5,7 @@ from typing import Callable, Union
 from .beeai_agent import BeeAIAgent, BeeAILocalAgent
 from .crewai_agent import CrewAIAgent
 from .dspy_agent import DspyAgent
-# from .openai_agent import OpenAIAgent
+from .openai_agent import OpenAIAgent
 from .remote_agent import RemoteAgent
 from .mock_agent import MockAgent
 from .custom_agent import CustomAgent
@@ -41,7 +41,7 @@ class AgentFactory:
             BeeAILocalAgent,
             CrewAIAgent,
             DspyAgent,
-            # OpenAIAgent,
+            OpenAIAgent,
             RemoteAgent,
             CodeAgent,
             MockAgent,
@@ -59,7 +59,7 @@ class AgentFactory:
             AgentFramework.BEEAI: BeeAILocalAgent,
             AgentFramework.CREWAI: CrewAIAgent,
             AgentFramework.DSPY: DspyAgent,
-            # AgentFramework.OPENAI: OpenAIAgent,
+            AgentFramework.OPENAI: OpenAIAgent,
             AgentFramework.CODE: CodeAgent,
             AgentFramework.MOCK: MockAgent,
         }
@@ -90,7 +90,7 @@ class AgentFactory:
             BeeAILocalAgent,
             CrewAIAgent,
             DspyAgent,
-            # OpenAIAgent,
+            OpenAIAgent,
             RemoteAgent,
             CodeAgent,
             MockAgent,
