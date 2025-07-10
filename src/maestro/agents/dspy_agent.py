@@ -58,6 +58,10 @@ class DspyAgent(BaseAgent):
         )
 
         # os.environ["OPENAI_API_KEY"] = "{your openai key}"
+        dspy.configure_cache(
+            enable_disk_cache=False,
+            enable_memory_cache=False,
+        )
         dspy.configure(lm=dspy.LM(self.agent_model, api_base=self.provider_url))
 
         self.dspy_agent = dspy.ReAct(self.dspy_signature, tools=[])
