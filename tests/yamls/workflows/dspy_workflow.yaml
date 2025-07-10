@@ -1,0 +1,22 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: DSPy agent test workflow
+  labels:
+    app: test1
+spec:
+  template:
+    metadata:
+      name: dspy_test
+      labels:
+        app: test
+    agents:
+        - DSPyAgent
+        - test2
+        - test3
+        - test4
+    prompt: Where is the next Olympics game location? 
+    steps:
+      - name: step1
+        agent: DSPyAgent
+

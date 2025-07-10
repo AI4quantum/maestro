@@ -29,6 +29,7 @@ dependencies = [
     "opik>=1.7.22",
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
+    "dspy>=2.6.27",
 ]
 
 [project.optional-dependencies]

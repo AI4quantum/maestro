@@ -1,0 +1,13 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: DSPyAgent
+  labels:
+    app: my-agent
+spec:
+  model: ollama/granite3.2:latest
+  url: "http://localhost:11434"
+  description: DSPy agent that assits user
+  instructions: You are a helpful agent. Respond to the users question, making use of any required tools
+  framework: dspy
+  mode: local

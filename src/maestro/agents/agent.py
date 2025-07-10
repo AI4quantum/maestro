@@ -48,6 +48,7 @@ class Agent:
     EMOJIS: Final[Dict[str, str]] = {
         "beeai": "🐝",
         "crewai": "👥",
+        "dspy": "💭",
         "openai": "🔓",
         "mock": "🤖",
         "remote": "💸",
