@@ -56,6 +56,7 @@ def main():
         r"@v\d+\.\d+\.\d+", f"@v{current_version_str}", readme_content
     )
     readme_path.write_text(updated_readme)
+    print(f"✔️ Updated README.md with version tag @v{current_version_str}")
 
     pyproject_content = pyproject_path.read_text()
     updated_pyproject = re.sub(
@@ -64,6 +65,7 @@ def main():
         pyproject_content,
     )
     pyproject_path.write_text(updated_pyproject)
+    print(f"✔️ Bumped pyproject.toml version to {next_version_str}")
     strike_through_release_name(release_name)
 
 
