@@ -109,14 +109,12 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: run bump_version.py
         run: |
           python tools/bump_version.py
         env:
           GITHUB_REF_NAME: ${{ github.ref_name }}
           RELEASE_NAME: ${{ needs.build.outputs.release_name }}
-
       - name: Create pull request
         uses: peter-evans/create-pull-request@v6
         with:
