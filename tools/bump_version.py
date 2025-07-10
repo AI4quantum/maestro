@@ -9,9 +9,30 @@ def parse_version(tag: str) -> tuple[int, int, int]:
     version_str = tag.lstrip("v")
     return tuple(map(int, version_str.strip().split(".")))
 
+def strike_through_release_name(name: str):
+    file_path = Path(".release_names.md")
+    if not file_path.exists():
+        print(f"::warning::{file_path} not found. Skipping strike-through.")
+        return
+
+    content = file_path.read_text()
+    escaped = re.escape(name)
+    new_content, count = re.subn(
+        rf"^- {escaped}(?!~)",
+        f"- ~~{name}~~",
+        content,
+        count=1,
+        flags=re.MULTILINE
+    )
+    if count == 0:
+        print(f"::warning::Release name '{name}' not found in {file_path}.")
+    else:
+        file_path.write_text(new_content)
+        print(f"✔️ Struck through release name '{name}' in {file_path}")
 
 def main():
     github_tag = os.environ.get("GITHUB_REF_NAME")
+    release_name = os.environ.get("RELEASE_NAME")
     if not github_tag:
         print("::error::GITHUB_REF_NAME not set.")
         exit(1)
@@ -45,7 +66,9 @@ def main():
         pyproject_content,
     )
     pyproject_path.write_text(updated_pyproject)
+    strike_through_release_name(release_name)
 
 
 if __name__ == "__main__":
     main()
+    
