@@ -99,24 +99,41 @@ jobs:
           files: dist/*
           generate_release_notes: true
           name: ${{ needs.build.outputs.release_name }} – ${{ github.ref_name }}
+          
+followup-pr:
+  needs: [build, release]
+  runs-on: ubuntu-latest
+  steps:
+    - uses: actions/checkout@v4
 
-  open-followup-pr:
-    needs: [build, release]
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Strike through used release name
-        run: |
-          name="${{ needs.build.outputs.release_name }}"
-          pattern=$(printf '%s' "$name" | sed -e 's/[]\/$*.^[]/\\&/g')
-          sed -i "0,/- $pattern/s//- ~~$name~~/" .release_names.md
-      - name: Create pull request
-        uses: peter-evans/create-pull-request@v6
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: "chore: follow-up after release ${{ github.ref_name }}"
-          branch: followup-${{ github.ref_name }}-${{ github.run_id }}
-          base: main
-          title: "chore: follow-up after release ${{ github.ref_name }}"
-          body: |
-            This PR was automatically created after tagging `${{ github.ref_name }}` to perform post-release tasks.
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+
+    - name: Strike through used release name
+      run: |
+        name="${{ needs.build.outputs.release_name }}"
+        pattern=$(printf '%s' "$name" | sed -e 's/[]\/$*.^[]/\\&/g')
+        sed -i "0,/- $pattern/s//- ~~$name~~/" .release_names.md
+
+    - name: Bump version in pyproject.toml and update README.md
+      run: |
+        pip install tomli tomli-w
+        python tools/bump_version.py
+      env:
+        GITHUB_REF_NAME: ${{ github.ref_name }}
+
+    - name: Create pull request
+      uses: peter-evans/create-pull-request@v6
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        commit-message: "chore: follow-up after release ${{ github.ref_name }}"
+        branch: followup-${{ github.ref_name }}-${{ github.run_id }}
+        base: main
+        title: "chore: follow-up after release ${{ github.ref_name }}"
+        body: |
+          This PR was automatically created after tagging `${{ github.ref_name }}` to:
+          - Mark the release name as used
+          - Set README.md to point to version `${{ github.ref_name }}`
+          - Bump `pyproject.toml` to next development version
