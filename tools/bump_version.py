@@ -28,7 +28,9 @@ def main():
     readme_path = repo_root / "README.md"
 
     readme_content = readme_path.read_text()
-    updated_readme = re.sub(r"@v\d+\.\d+\.\d+", f"@v{current_version_str}", readme_content)
+    updated_readme = re.sub(
+        r"@v\d+\.\d+\.\d+", f"@v{current_version_str}", readme_content
+    )
     readme_path.write_text(updated_readme)
 
     pyproject_content = pyproject_path.read_text()
