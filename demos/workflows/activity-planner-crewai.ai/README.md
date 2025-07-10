@@ -12,7 +12,7 @@ This demo shows how to use Maestro with CrewAI to create a workflow that plans a
 
 * Install maestro:
     ```bash
-    pip install git+https://github.com/AI4quantum/maestro.git@v0.1.0
+    pip install "maestro[crewai] @ git+https://github.com/AI4quantum/maestro.git@v0.1.0"
     ```
 
 ## Running

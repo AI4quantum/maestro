@@ -25,7 +25,7 @@ jobs:
         activate-environment: true
     - name: Install dependencies
       run: |
-        uv pip install -e .[crewai]
+        uv sync --all-extras
     - name: Check code format and style
       run: |
         uv run ruff check

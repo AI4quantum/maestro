@@ -49,6 +49,9 @@ dev = [
 [project.scripts]
 maestro = "maestro.cli.run_maestro:__run_cli"
 
+[tool.uv]
+package = true
+
 [tool.setuptools.packages.find]
 where = ["src"]
 include = ["maestro*"]

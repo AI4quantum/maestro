@@ -21,7 +21,7 @@ jobs:
         activate-environment: true
     - name: Install dependencies
       run: |
-        uv pip install -e .
+        uv sync
     - name: Check schemas
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src

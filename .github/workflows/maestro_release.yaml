@@ -20,7 +20,7 @@ jobs:
           activate-environment: true
       - name: Install dependencies
         run: |
-          uv pip install -e .[crewai]
+          uv sync --all-extras
       - name: Run tests
         run: |
           export PYTHONPATH=$PYTHONPATH:$(pwd)/src

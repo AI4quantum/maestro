@@ -20,7 +20,7 @@ source .venv/bin/activate  # On Unix/macOS
 
 3. Install dependencies:
 ```bash
-uv pip install -e .
+uv sync --all-extras
 ```
 
 4. (optional) Enable pre-commit
@@ -52,7 +52,7 @@ We use [ruff](https://docs.astral.sh/ruff/) for code formatting and linting. To 
 
 1. Install development dependencies:
 ```bash
-uv pip install -e .
+uv sync
 ```
 
 2. Run the formatter:
@@ -94,7 +94,7 @@ git commit -m "feat(agent): add new agent type"
 
 ## Pull Request Process
 
-1. Ensure all dependencies are installed (`uv pip install -e .`).
+1. Ensure all dependencies are installed (`uv sync`).
 2. Run the test suite (`uv run pytest`).
 3. Run the formatter (`uv run ruff format`).
 4. Run the linter (`uv run ruff check --fix`).
@@ -143,7 +143,7 @@ uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
 .venv\Scripts\activate  # On Windows
-uv pip install -e .
+uv sync --all-extras
 ```
 
 ### 3. Configure Environment Variables
@@ -250,7 +250,7 @@ spec:
 
 ### Debugging Tips
 
-- Ensure all dependencies are installed (`uv pip install -e .`).
+- Ensure all dependencies are installed (`uv sync`).
 - Check for missing agents (`agent_store.json` must contain registered agents).
 - Validate YAML schemas using `maestro validate` before running workflows.
 
