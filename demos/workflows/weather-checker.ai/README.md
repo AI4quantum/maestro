@@ -60,3 +60,8 @@ Directly deploy the workflow via streamlit:
 maestro deploy ./demos/workflows/weather-checker.ai/agents.yaml ./demos/workflows/weather-checker.ai/workflow.yaml
 ```
 (To run for a different city, change the `prompt` field in `workflow.yaml`, or directly as a prompt in the UI)
+
+
+### Scoring
+
+By default, the scoring agent is turned off. Uncomment to turn on, make sure to set `COMET_API_KEY` in the `.env` file; and view log traces in [Opik](https://www.comet.com/opik/).

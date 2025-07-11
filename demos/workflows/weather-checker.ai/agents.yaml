@@ -38,19 +38,19 @@ spec:
 
     Output: The current temperature is colder than the historical temperature.
 
----
-apiVersion: maestro/v1alpha1
-kind: Agent
-metadata:
-  name: score
-  labels: 
-    app: test-example
-    custom_agent: scoring_agent
-spec:
-  model: deepseek-r1:latest
-  framework: custom
-  mode: remote
-  description: gets score, relevance/hallucination using defined model
-  instructions: evaluates the response using Opik
+# ---
+# apiVersion: maestro/v1alpha1
+# kind: Agent
+# metadata:
+#   name: score
+#   labels: 
+#     app: test-example
+#     custom_agent: scoring_agent
+# spec:
+#   model: deepseek-r1:latest
+#   framework: custom
+#   mode: remote
+#   description: gets score, relevance/hallucination using defined model
+#   instructions: evaluates the response using Opik
 
 
