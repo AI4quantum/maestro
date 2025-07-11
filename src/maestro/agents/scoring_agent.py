@@ -49,23 +49,19 @@ class ScoringAgent(Agent):
         ctx = context or [prompt]
 
         try:
-            rel_res = AnswerRelevance(model=self._litellm_model).score(
-                input=prompt, output=response_text, context=ctx
-            )
-            hall_res = Hallucination(model=self._litellm_model).score(
-                input=prompt, output=response_text, context=ctx
-            )
+            answer_relevance = AnswerRelevance(model=self._litellm_model)
+            hallucination = Hallucination(model=self._litellm_model)
 
-            rel = getattr(rel_res, "value", rel_res)
-            hall = getattr(hall_res, "value", hall_res)
+            rel = answer_relevance.score(prompt, response_text, context=ctx).value
+            hall = hallucination.score(prompt, response_text, context=ctx).value
 
             metrics_line = f"relevance: {rel:.2f}, hallucination: {hall:.2f}"
             self.print(f"{response_text}\n[{metrics_line}]")
 
             trace = self._opik.trace()
             trace.end(
-                input={"prompt": prompt},
-                output={"response": response_text},
+                input={"input": prompt},
+                output={"output": response_text},
                 metadata={
                     "model": self._litellm_model,
                     "agent": self.name,
@@ -79,5 +75,4 @@ class ScoringAgent(Agent):
             self.print(
                 f"[ScoringAgent] Warning: could not calculate metrics or log trace: {e}"
             )
-
         return response
