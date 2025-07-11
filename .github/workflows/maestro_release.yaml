@@ -98,7 +98,7 @@ jobs:
         with:
           files: dist/*
           generate_release_notes: true
-          name: ${{ needs.build.outputs.release_name }} – ${{ github.ref_name }}
+          name: ${{ needs.build.outputs.release_name }}
 
   followup-pr:
     needs: [build, release]
