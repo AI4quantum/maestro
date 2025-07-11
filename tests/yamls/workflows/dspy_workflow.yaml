@@ -12,9 +12,6 @@ spec:
         app: test
     agents:
         - DSPyAgent
-        - test2
-        - test3
-        - test4
     prompt: Where is the next Olympics game location? 
     steps:
       - name: step1
