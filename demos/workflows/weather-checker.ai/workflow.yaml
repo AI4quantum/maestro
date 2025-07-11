@@ -12,9 +12,17 @@ spec:
     agents:
       - Temperature Agent
       - hot-or-not Agent
+      - final_score
     prompt: New York City
     steps:
       - name: get_temperature
         agent: Temperature Agent
       - name: compare_temperature
         agent: hot-or-not Agent
+      - name: final_score
+        agent: score
+        inputs:
+          - from: New York City
+          - from: compare_temperature
+        context:
+          - "A correct output should involve a sentence regarding the comparison of temperature"
