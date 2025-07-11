@@ -1,0 +1,3 @@
+FROM localhost/maestro-base:latest
+
+ENTRYPOINT ["maestro"]
