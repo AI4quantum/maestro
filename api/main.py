@@ -10,6 +10,8 @@ from typing import List, Dict, Any, Optional
 from datetime import datetime
 from ai_agent import MaestroBuilderAgent
 from database import Database
+import uuid
+import requests
 
 # Initialize FastAPI app
 app = FastAPI(
@@ -82,27 +84,29 @@ async def root():
     return {"message": "Maestro Builder API", "version": "1.0.0"}
 
 
-@app.post("/api/chat_builder_agent")
+@app.post("/api/chat_builder_agent", response_model=ChatResponse)
 async def chat_builder_agent(message: ChatMessage):
-    import requests
-
-    print("📨 Received POST to /api/chat_builder_agent")
     try:
-        # Step 1: first agent, rest is sequentially passed using maestro serve
-        resp_task = requests.post(
+        resp = requests.post(
             "http://localhost:8000/chat",
             json={"prompt": message.content, "agent": "TaskInterpreter"},
         )
-        if resp_task.status_code != 200:
-            raise Exception(resp_task.text)
+        if resp.status_code != 200:
+            raise Exception(resp.text)
+
+        agent_yaml = resp.json().get("response", "")
+
+        return {
+            "response": agent_yaml,
+            "yaml_files": [{"name": "generated.yaml", "content": agent_yaml}],
+            "chat_id": str(uuid.uuid4()),
+        }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Builder failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Builder Agent failed: {e}")
 
 
 @app.post("/api/chat_builder_workflow")
 async def chat_builder_workflow(message: ChatMessage):
-    import requests
-
     try:
         resp = requests.post(
             "http://localhost:8000/chat",
