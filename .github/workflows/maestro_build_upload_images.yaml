@@ -1,9 +1,8 @@
-name: Maestro Release
+name: Maestro Build and Upload Images
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [ maestroimages2 ]
 
 jobs:
   build-upload:
