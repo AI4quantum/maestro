@@ -2,7 +2,8 @@ name: Maestro Build and Upload Images
 
 on:
   push:
-    branches: [ maestroimages2 ]
+    tags:
+      - "v*"
 
 jobs:
   build-upload:
@@ -22,11 +23,6 @@ jobs:
           uv sync --all-extras
       - name: Build Maestro
         run: uv build
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: maestro-dist
-          path: dist/*
       - name: Build and push the image
         run : |
           VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "pyproject.toml" | \
