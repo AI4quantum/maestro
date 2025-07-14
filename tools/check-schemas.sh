@@ -36,7 +36,7 @@ for f in $WORKFLOW_FILES
       done
       if ! $EXCLUDE
       then
-        if ! ./maestro validate "$f"
+        if ! uv run maestro validate "$f"
         then
           RESULT="FAIL ❌"
           fail+=1
@@ -60,7 +60,7 @@ for f in $AGENT_FILES
       done
       if ! $EXCLUDE
       then
-        if ! ./maestro validate "$f"
+        if ! uv run maestro validate "$f"
         then
           RESULT="FAIL ❌"
           fail+=1
@@ -84,7 +84,7 @@ for f in $TOOL_FILES
       done
       if ! $EXCLUDE
       then
-        if ! ./maestro validate "$f"
+        if ! uv run maestro validate "$f"
         then
           RESULT="FAIL ❌"
           fail+=1

@@ -29,7 +29,7 @@ echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
 for f in $WORKFLOW_FILES
 do
     if ! printf '%s\n' "${EXCLUDE_FILES[@]}" | grep -q "^$f$"; then
-        if ! ./maestro mermaid --verbose "$f"
+        if ! uv run maestro mermaid --verbose "$f"
         then
           RESULT="FAIL ❌"
           fail+=1

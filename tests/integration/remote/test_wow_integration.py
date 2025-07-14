@@ -10,20 +10,7 @@ import sys
 import time
 import subprocess
 import requests
-import shutil
 import socket
-
-
-def find_maestro_executable():
-    """Find the maestro executable."""
-    # Try to find maestro in the current directory or PATH
-    if os.path.exists("./maestro"):
-        return "./maestro"
-    elif shutil.which("maestro"):
-        return "maestro"
-    else:
-        # Try python -m maestro
-        return ["python", "-m", "maestro"]
 
 
 def find_free_port():
@@ -79,29 +66,18 @@ def test_wow_integration():
         f"Workflow file not found at {workflow_remote_file}"
     )
 
-    # Find maestro executable
-    maestro_cmd = find_maestro_executable()
-    if isinstance(maestro_cmd, str):
-        cmd = [
-            maestro_cmd,
-            "serve",
-            agent_remote_file,
-            workflow_remote_file,
-            "--port",
-            "8003",
-            "--host",
-            "127.0.0.1",
-        ]
-    else:
-        cmd = maestro_cmd + [
-            "serve",
-            agent_remote_file,
-            workflow_remote_file,
-            "--port",
-            "8003",
-            "--host",
-            "127.0.0.1",
-        ]
+    cmd = [
+        "uv",
+        "run",
+        "maestro",
+        "serve",
+        agent_remote_file,
+        workflow_remote_file,
+        "--port",
+        "8003",
+        "--host",
+        "127.0.0.1",
+    ]
 
     print(f"Starting server with command: {' '.join(cmd)}")
 
@@ -151,10 +127,7 @@ def test_wow_integration():
             f"Response doesn't contain expected content. Expected: 'Hello from serve-test-agent!', Got: '{response_content}'"
         )
 
-        if isinstance(maestro_cmd, str):
-            cmd = [maestro_cmd, "run", agent_wow_file, workflow_wow_file]
-        else:
-            cmd = maestro_cmd + ["run", agent_wow_file, workflow_wow_file]
+        cmd = ["uv", "run", "maestro", "run", agent_wow_file, workflow_wow_file]
 
         print(f"Starting workflow with command: {' '.join(cmd)}")
 

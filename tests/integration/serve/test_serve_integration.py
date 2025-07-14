@@ -10,20 +10,7 @@ import sys
 import time
 import subprocess
 import requests
-import shutil
 import socket
-
-
-def find_maestro_executable():
-    """Find the maestro executable."""
-    # Try to find maestro in the current directory or PATH
-    if os.path.exists("./maestro"):
-        return "./maestro"
-    elif shutil.which("maestro"):
-        return "maestro"
-    else:
-        # Try python -m maestro
-        return ["python", "-m", "maestro"]
 
 
 def find_free_port():
@@ -69,27 +56,17 @@ def test_serve_integration():
 
     assert os.path.exists(agent_file), f"Agent file not found at {agent_file}"
 
-    # Find maestro executable
-    maestro_cmd = find_maestro_executable()
-    if isinstance(maestro_cmd, str):
-        cmd = [
-            maestro_cmd,
-            "serve",
-            agent_file,
-            "--port",
-            "8001",
-            "--host",
-            "127.0.0.1",
-        ]
-    else:
-        cmd = maestro_cmd + [
-            "serve",
-            agent_file,
-            "--port",
-            "8001",
-            "--host",
-            "127.0.0.1",
-        ]
+    cmd = [
+        "uv",
+        "run",
+        "maestro",
+        "serve",
+        agent_file,
+        "--port",
+        "8001",
+        "--host",
+        "127.0.0.1",
+    ]
 
     print(f"Starting server with command: {' '.join(cmd)}")
 
@@ -190,29 +167,18 @@ def test_serve_workflow_integration():
     assert os.path.exists(agent_file), f"Agent file not found at {agent_file}"
     assert os.path.exists(workflow_file), f"Workflow file not found at {workflow_file}"
 
-    # Find maestro executable
-    maestro_cmd = find_maestro_executable()
-    if isinstance(maestro_cmd, str):
-        cmd = [
-            maestro_cmd,
-            "serve",
-            agent_file,
-            workflow_file,
-            "--port",
-            "8002",
-            "--host",
-            "127.0.0.1",
-        ]
-    else:
-        cmd = maestro_cmd + [
-            "serve",
-            agent_file,
-            workflow_file,
-            "--port",
-            "8002",
-            "--host",
-            "127.0.0.1",
-        ]
+    cmd = [
+        "uv",
+        "run",
+        "maestro",
+        "serve",
+        agent_file,
+        workflow_file,
+        "--port",
+        "8002",
+        "--host",
+        "127.0.0.1",
+    ]
 
     print(f"Starting server with command: {' '.join(cmd)}")
 
