@@ -275,7 +275,7 @@ metadata:
   labels:
     app: mas-example 
 spec:
-  model: llama3.1
+  model: granite3.3:latest
   framework: beeai
   mode: remote
   description: Uses the input to summarize the arxiv papers, news, and patent results
