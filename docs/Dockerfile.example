@@ -1,9 +1,0 @@
-FROM localhost/maestro-base:latest
-
-# COPY <src> agent.yaml      # copy agent file into image
-# COPY <dest> workflow.yaml  # copy workflow file into image
-
-CMD ["serve", "agent.yaml", "workflow.yaml", "--port=5000"]  # for workflow serve
-#CMD ["serve", "agent.yaml", "--port=5000"]                  # for agent serve
-
-ENTRYPOINT ["maestro"]
