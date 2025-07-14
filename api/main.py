@@ -94,11 +94,18 @@ async def chat_builder_agent(message: ChatMessage):
         if resp.status_code != 200:
             raise Exception(resp.text)
 
-        agent_yaml = resp.json().get("response", "")
+        full_output = resp.json().get("response", "")
+        extracted_yaml = ""
+        if "```yaml" in full_output:
+            extracted_yaml = (
+                full_output.split("```yaml", 1)[-1].split("```", 1)[0].strip()
+            )
+        elif "```" in full_output:
+            extracted_yaml = full_output.split("```", 1)[-1].split("```", 1)[0].strip()
 
         return {
-            "response": agent_yaml,
-            "yaml_files": [{"name": "generated.yaml", "content": agent_yaml}],
+            "response": full_output,
+            "yaml_files": [{"name": "agents.yaml", "content": extracted_yaml}],
             "chat_id": str(uuid.uuid4()),
         }
     except Exception as e:
