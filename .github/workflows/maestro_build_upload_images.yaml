@@ -35,8 +35,8 @@ jobs:
           uv run tools/buildimg.sh	  
           docker login --username akihikokuroda --password "${{ secrets.GITHUB_TOKEN }}" ghcr.io
           #docker tag localhost/maestro-base:VERSION  ghcr.io/ai4quantum/maestro-base:$VERSION
-	  docker tag docker.io/library/maestro-base:$VERSION   ghcr.io/ai4quantum/maestro-base:$VERSION
+          docker tag docker.io/library/maestro-base:$VERSION   ghcr.io/ai4quantum/maestro-base:$VERSION
           docker push ghcr.io/ai4quantum/maestro-base:$VERSION
           #docker tag localhost/maestro-cli:$VERSION  ghcr.io/ai4quantum/maestro-base:$VERSION
-	  docker tag docker.io/library/maestro-cli:$VERSION   ghcr.io/ai4quantum/maestro-cli:$VERSION
+          docker tag docker.io/library/maestro-cli:$VERSION   ghcr.io/ai4quantum/maestro-cli:$VERSION
           docker push ghcr.io/ai4quantum/maestro-cli:$VERSION
