@@ -29,7 +29,7 @@ jobs:
           path: dist/*
       - name: Build and push the image
         run : |
-          VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "$PYPROJECT_TOML" | \
+          VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "pyproject.toml" | \
             head -n 1 | \
             sed -E 's/.*"([^"]+)".*/\1/')
           uv run tools/buidimg.sh	  
