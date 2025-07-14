@@ -1,10 +1,11 @@
 #!/bin/bash
 
 CONTAINER_CMD="${CONTAINER_CMD:=docker}"
-VERSION=$1
 
 # extract version from pyproject.toml
 PYPROJECT_TOML="pyproject.toml"
+VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "$PYPROJECT_TOML" | head -n 1 | sed -E 's/.*"([^"]+)".*/\1/')
+echo $VERSION
 
 # build distribution
 uv build
