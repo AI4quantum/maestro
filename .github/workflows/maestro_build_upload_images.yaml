@@ -33,6 +33,6 @@ jobs:
             head -n 1 | \
             sed -E 's/.*"([^"]+)".*/\1/')
           uv run tools/buildimg.sh	  
-          docker login --password "${{ secrets.GITHUB_TOKEN }}" ghcr.io
+          docker login -u ${{ github.actor }} --password "${{ secrets.GITHUB_TOKEN }}" ghcr.io
           docker push ghcr.io/$GITHUB_REPOSITORY/maestro-base:$VERSION
           docker push ghcr.io/$GITHUB_REPOSITORY/maestro-cli:$VERSION
