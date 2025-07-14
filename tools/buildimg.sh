@@ -11,5 +11,5 @@ echo $VERSION
 uv build
 
 # build container images
-$CONTAINER_CMD build -t maestro-base:$VERSION -f Dockerfile-base --build-arg MAESTRO_VERSION=$VERSION .
-$CONTAINER_CMD build -t maestro-cli:$VERSION -f Dockerfile-cli --build-arg MAESTRO_VERSION=$VERSION .
+$CONTAINER_CMD build -t ghcr.io/akihikokuroda/maestro-base:$VERSION -f Dockerfile-base --build-arg MAESTRO_VERSION=$VERSION .
+$CONTAINER_CMD build -t ghcr.io/akihikokuroda/maestro-cli:$VERSION -f Dockerfile-cli --build-arg MAESTRO_VERSION=$VERSION .

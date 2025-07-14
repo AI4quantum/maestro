@@ -1,5 +1,4 @@
 ARG MAESTRO_VERSION
-#FROM localhost/maestro-base:${MAESTRO_VERSION}
-FROM docker.io/library/maestro-base:${MAESTRO_VERSION}
+FROM ghcr.io/akihikokuroda/maestro-base:${MAESTRO_VERSION}
 
 ENTRYPOINT ["maestro"]
