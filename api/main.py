@@ -112,18 +112,27 @@ async def chat_builder_agent(message: ChatMessage):
         raise HTTPException(status_code=500, detail=f"Builder Agent failed: {e}")
 
 
-@app.post("/api/chat_builder_workflow")
+@app.post("/api/chat_builder_workflow", response_model=ChatResponse)
 async def chat_builder_workflow(message: ChatMessage):
     try:
-        resp = requests.post(
-            "http://localhost:8000/chat",
-            json={"prompt": message.content, "agent": "WorkflowYAMLBuilder"},
-        )
+        payload = {
+            "prompt": message.content,
+            "agent": "WorkflowYAMLBuilder",
+        }
+        if message.chat_id:
+            payload["chat_id"] = message.chat_id
+        resp = requests.post("http://localhost:8000/chat", json=payload)
+
         if resp.status_code != 200:
             raise Exception(resp.text)
-        workflow_yaml = resp.json().get("response", "")
+
+        response_json = resp.json()
+        workflow_yaml = response_json.get("response", "")
+        chat_id = response_json.get("chat_id")
+
         return {
             "response": workflow_yaml,
+            "chat_id": chat_id,
             "yaml_files": [{"name": "workflow.yaml", "content": workflow_yaml}],
         }
     except Exception as e:
