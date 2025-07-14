@@ -1,3 +1,4 @@
-FROM localhost/maestro-base:latest
+ARG MAESTRO_VERSION
+FROM localhost/maestro-base:${MAESTRO_VERSION}
 
 ENTRYPOINT ["maestro"]
