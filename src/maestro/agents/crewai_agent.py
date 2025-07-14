@@ -53,7 +53,7 @@ class CrewAIAgent(BeeAgent):
             raise RuntimeError(
                 f"Cannot initialize CrewAIAgent '{agent.get('metadata', {}).get('name', 'Unknown')}': "
                 f"CrewAI support is disabled because the 'crewai' library could not be imported. "
-                "To enable, run `pip install maestro[crewai]`"
+                "To enable, run `uv sync --all-extras` "
                 f"Original error: {CREWAI_IMPORT_ERROR}"
             )
 
