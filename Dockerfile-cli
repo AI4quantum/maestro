@@ -1,4 +1,5 @@
 ARG MAESTRO_VERSION
-FROM ghcr.io/akihikokuroda/maestro:${MAESTRO_VERSION}
+ARG REPOSITORY
+FROM ghcr.io/${REPOSITORY}/maestro:${MAESTRO_VERSION}
 
 ENTRYPOINT ["maestro"]
