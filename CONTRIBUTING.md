@@ -246,7 +246,6 @@ There are a number of tools that make it easier for developers to manage DCO sig
 - Chrome - <https://chrome.google.com/webstore/detail/dco-github-ui/onhgmjhnaeipfgacbglaphlmllkpoijo>
 - Firefox - <https://addons.mozilla.org/en-US/firefox/addon/scott-rigby/?src=search>
 
-
 ## Releases
 
 A GitHub release of maestro is automatically created when a tag of the format `v*` is pushed.
@@ -266,3 +265,17 @@ uv build
 ```
 
 This will generate an installable package in `dist/` that can be pip installed in a clean python environment for testing.
+
+### Container images
+
+The release process genereates 2 container images
+
+1. maestro: ghcr.io/akihikokuroda/beeapi-labs/maestro
+
+This image contains maestro executables.  It can be used as the base image for the specific use case images.
+
+2. maestro-cli: ghcr.io/akihikokuroda/beeapi-labs/maestro-cli
+
+This image extends the maestro image to use as maestro CLI. It runs maestro command when it is started
+
+The `tools/buildimg.sh` script generates development images.  Run `uv build` before executing the script. 
