@@ -1,7 +1,7 @@
 #!/bin/bash
 
 CONTAINER_CMD="${CONTAINER_CMD:=docker}"
-GITHUB_REPOSITORY="${GITHUB_REPOSITORY:=maestro}"
+GITHUB_ORG="${GITHUB_ORG:=ai4quantum}"
 
 # extract version from pyproject.toml
 PYPROJECT_TOML="pyproject.toml"
@@ -12,5 +12,5 @@ echo $VERSION
 uv build
 
 # build container images
-$CONTAINER_CMD build -t ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION -f Dockerfile --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .
-$CONTAINER_CMD build -t ghcr.io/$GITHUB_REPOSITORY/maestro-cli:$VERSION -f Dockerfile-cli --debug --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .
+$CONTAINER_CMD build -t ghcr.io/$GITHUB_ORG/maestro:$VERSION -f Dockerfile --build-arg MAESTRO_VERSION=$VERSION --build-arg GITHUB_ORG=$GITHUB_ORG .
+$CONTAINER_CMD build -t ghcr.io/$GITHUB_ORG/maestro-cli:$VERSION -f Dockerfile-cli --debug --build-arg MAESTRO_VERSION=$VERSION --build-arg GITHUB_ORG=$GITHUB_ORG .

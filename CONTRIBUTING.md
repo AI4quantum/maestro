@@ -268,13 +268,13 @@ This will generate an installable package in `dist/` that can be pip installed i
 
 ### Container images
 
-The release process genereates 2 container images
+The release process generates 2 container images
 
-1. maestro: ghcr.io/akihikokuroda/beeapi-labs/maestro
+1. maestro: `ghcr.io/ai4quantum/maestro`
 
 This image contains maestro executables.  It can be used as the base image for the specific use case images.
 
-2. maestro-cli: ghcr.io/akihikokuroda/beeapi-labs/maestro-cli
+2. maestro-cli: `ghcr.io/ai4quantum/maestro-cli`
 
 This image extends the maestro image to use as maestro CLI. It runs maestro command when it is started
 

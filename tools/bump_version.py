@@ -49,10 +49,12 @@ def main():
     next_version_str = f"{major}.{minor + 1}.0"
 
     print(f"Updating README to {current_version_str}")
+    print(f"Bumping Dockerfile to {next_version_str}")
     print(f"Bumping pyproject.toml to {next_version_str}")
 
     repo_root = Path(__file__).resolve().parent.parent
     pyproject_path = repo_root / "pyproject.toml"
+    dockerfile_path = repo_root / "Dockerfile"
     readme_path = repo_root / "README.md"
 
     readme_content = readme_path.read_text()
@@ -61,6 +63,15 @@ def main():
     )
     readme_path.write_text(updated_readme)
     print(f"✔️ Updated README.md with version tag @v{current_version_str}")
+
+    dockerfile_content = dockerfile_path.read_text()
+    updated_dockerfile = re.sub(
+        r'ARG\s*MAESTRO_VERSION="\d+\.\d+\.\d+"',
+        f'ARG MAESTRO_VERSION="{next_version_str}"',
+        dockerfile_content,
+    )
+    dockerfile_path.write_text(updated_dockerfile)
+    print(f"✔️ Bumped Dockerfile version to {next_version_str}")
 
     pyproject_content = pyproject_path.read_text()
     updated_pyproject = re.sub(

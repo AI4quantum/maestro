@@ -21,11 +21,13 @@ jobs:
       - name: Build Maestro
         run: uv build
       - name: Build and push the image
+        env:
+          GITHUB_ORG: ${{ github.repository_owner }}
         run : |
           VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "pyproject.toml" | \
             head -n 1 | \
             sed -E 's/.*"([^"]+)".*/\1/')
-          uv run tools/buildimg.sh	  
+          uv run tools/buildimg.sh
           docker login -u ${{ github.actor }} --password "${{ secrets.GITHUB_TOKEN }}" ghcr.io
-          docker push ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION
-          docker push ghcr.io/$GITHUB_REPOSITORY/maestro-cli:$VERSION
+          docker push ghcr.io/${{ github.repository_owner }}/maestro:$VERSION
+          docker push ghcr.io/${{ github.repository_owner }}/maestro-cli:$VERSION
