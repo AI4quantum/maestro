@@ -1,0 +1,31 @@
+name: Maestro Build and Upload Images
+
+on:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  build-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install uv and activate the environment
+        uses: astral-sh/setup-uv@v6
+        with:
+          activate-environment: true
+      - name: Build Maestro
+        run: uv build
+      - name: Build and push the image
+        run : |
+          VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "pyproject.toml" | \
+            head -n 1 | \
+            sed -E 's/.*"([^"]+)".*/\1/')
+          uv run tools/buildimg.sh	  
+          docker login -u ${{ github.actor }} --password "${{ secrets.GITHUB_TOKEN }}" ghcr.io
+          docker push ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION
+          docker push ghcr.io/$GITHUB_REPOSITORY/maestro-cli:$VERSION
