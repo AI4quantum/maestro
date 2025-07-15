@@ -269,3 +269,8 @@ MARKDOWN_ACCURACY_REPORT.md
 *.sqlite3
 *.sqlite
 *.db-journal
+
+# Maestro PID files
+.maestro-builder.pid
+api/.maestro-builder.pid
+builder/.maestro-builder.pid

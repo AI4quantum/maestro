@@ -8,9 +8,9 @@ then
 fi
 
 declare -i fail=0
-WORKFLOW_FILES=$(find . -path "./.venv" -prune -o -name '*workflow*.yaml' -print)
-AGENT_FILES=$(find . -path "./.venv" -prune -o -name '*agents*.yaml' -print)
-TOOL_FILES=$(find . -path "./.venv" -prune -o -name '*tools*.yaml' -print)
+WORKFLOW_FILES=$(find . -path "./.venv" -prune -o -path "./.github/workflows" -prune -o -name '*workflow*.yaml' -print)
+AGENT_FILES=$(find . -path "./.venv" -prune -o -path "./.github/workflows" -prune -o -name '*agents*.yaml' -print)
+TOOL_FILES=$(find . -path "./.venv" -prune -o -path "./.github/workflows" -prune -o -name '*tools*.yaml' -print)
 
 
 echo "|Filename|Type|Stats|" >> "$GITHUB_STEP_SUMMARY"
