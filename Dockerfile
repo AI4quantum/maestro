@@ -6,6 +6,7 @@ ARG MAESTRO_VERSION="0.3.0"
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV HOME=/usr/src/app
 
 # Install pip and dependencies
 RUN pip install --upgrade pip

@@ -127,4 +127,4 @@ jobs:
             This PR was automatically created after tagging `${{ github.ref_name }}` to:
             - Mark the release name as used
             - Set README.md to point to version `${{ github.ref_name }}`
-            - Bump `pyproject.toml` to next development version
+            - Bump `pyproject.toml` and `Dockerfile` to next development version
