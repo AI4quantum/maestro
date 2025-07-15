@@ -36,15 +36,17 @@ wait_for_service() {
     print_status "Waiting for $name to be ready..."
 
     while [ $attempt -le $max_attempts ]; do
+        echo -n "[INFO] $name: attempt $attempt..."
         if curl -s "$url" >/dev/null 2>&1; then
+            echo ""
             print_success "$name is ready!"
             return 0
         fi
-        echo -n "."
         sleep 2
         attempt=$((attempt + 1))
     done
 
+    echo ""
     print_error "$name failed to start within $((max_attempts * 2)) seconds"
     return 1
 }
@@ -64,29 +66,17 @@ fi
 
 cd api
 
-if ! command -v python3 &>/dev/null; then
-    print_error "Python 3 is required but not installed."
+VENV_PYTHON="/Users/gliu/Desktop/work/maestro/.venv/bin/python"
+
+if [ ! -x "$VENV_PYTHON" ]; then
+    print_error "Expected Python binary not found at $VENV_PYTHON"
     exit 1
 fi
-
-if [ ! -d "venv" ] && [ ! -d ".venv" ]; then
-    print_status "Creating Python virtual environment..."
-    python3 -m venv venv
-    source venv/bin/activate
-    pip install -r requirements.txt
-else
-    source venv/bin/activate 2>/dev/null || source .venv/bin/activate
-fi
-
-
 
 mkdir -p storage
 
 print_status "Starting API server on http://localhost:8001"
-# nohup python main.py > ../logs/api.log 2>&1 &
-
-# TODO: FIX THIS
-nohup /Users/gliu/Desktop/work/maestro/.venv/bin/python main.py > ../logs/api.log 2>&1 &
+nohup "$VENV_PYTHON" main.py > ../logs/api.log 2>&1 &
 API_PID=$!
 echo $API_PID > ../logs/api.pid
 
@@ -107,6 +97,12 @@ cd builder
 
 if ! command -v node &>/dev/null; then
     print_error "Node.js is required but not installed."
+    exit 1
+fi
+
+NODE_VERSION=$(node -v | cut -d 'v' -f2 | cut -d '.' -f1)
+if [ "$NODE_VERSION" -lt 20 ]; then
+    print_error "Node.js v20+ is required. Current version: $(node -v)"
     exit 1
 fi
 
