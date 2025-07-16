@@ -7,8 +7,23 @@ on:
 
 jobs:
   build-upload:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x86_64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    runs-on: ${{ matrix.runner }}
+    outputs:
+      version: ${{ steps.build_push.outputs.version }}
     steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
       - uses: actions/checkout@v4
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -21,11 +36,35 @@ jobs:
       - name: Build Maestro
         run: uv build
       - name: Build and push the image
+        id: build_push
+        env:
+          GITHUB_ORG: ${{ github.repository_owner }}
         run : |
           VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "pyproject.toml" | \
             head -n 1 | \
             sed -E 's/.*"([^"]+)".*/\1/')
-          uv run tools/buildimg.sh	  
-          docker login -u ${{ github.actor }} --password "${{ secrets.GITHUB_TOKEN }}" ghcr.io
-          docker push ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION
-          docker push ghcr.io/$GITHUB_REPOSITORY/maestro-cli:$VERSION
+          uv run tools/buildimg.sh
+          docker tag ghcr.io/${{ github.repository_owner }}/maestro:$VERSION ghcr.io/${{ github.repository_owner }}/maestro:$VERSION-${{ matrix.arch }}
+          docker tag ghcr.io/${{ github.repository_owner }}/maestro-cli:$VERSION ghcr.io/${{ github.repository_owner }}/maestro-cli:$VERSION-${{ matrix.arch }}
+          docker push ghcr.io/${{ github.repository_owner }}/maestro:$VERSION-${{ matrix.arch }}
+          docker push ghcr.io/${{ github.repository_owner }}/maestro-cli:$VERSION-${{ matrix.arch }}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+  upload-manifest:
+    needs: build-upload
+    runs-on: ubuntu-latest
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Push multiarch image to ghcr.io
+        run: |
+          docker manifest create ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }} \
+            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-x86_64 \
+            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-arm64 &&
+          docker manifest create ghcr.io/${{ github.repository_owner }}/maestro-cli:${{ needs.build-upload.outputs.version }} \
+            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-x86_64 \
+            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-arm64 &&
+          docker manifest push ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}
+          docker manifest push ghcr.io/${{ github.repository_owner }}/maestro-cli:${{ needs.build-upload.outputs.version }}
