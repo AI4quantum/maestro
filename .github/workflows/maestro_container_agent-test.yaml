@@ -29,7 +29,7 @@ jobs:
         export VERSION=latest
         docker build -t docker.io/library/maestro:latest -f Dockerfile . 
         docker tag docker.io/library/maestro:latest ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION
-        docker build -t container-agent -f Dockerfile-agent . --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .
+        docker build -t container-agent -f Dockerfile-agent --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .
         docker tag docker.io/library/container-agent:latest localhost/container-agent:latest
     - name: Install Kind
       run: |
