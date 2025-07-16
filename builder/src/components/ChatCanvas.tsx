@@ -25,7 +25,8 @@ export function ChatCanvas({ messages, isLoading = false }: ChatCanvasProps) {
 
   const renderMessage = (message: Message) => {
     const isUser = message.role === 'user'
-    
+    const isYaml = message.content.includes('```yaml')
+
     return (
       <div
         key={message.id}
@@ -54,13 +55,9 @@ export function ChatCanvas({ messages, isLoading = false }: ChatCanvasProps) {
               {formatTime(message.timestamp)}
             </span>
           </div>
-          
-          <div className="text-sm text-gray-700 leading-relaxed">
-            {message.content}
-          </div>
 
-          {/* YAML Preview (if message contains YAML) */}
-          {message.content.includes('```yaml') && (
+          {/* YAML or Text Content */}
+          {isYaml ? (
             <div className="mt-4 p-4 bg-white border border-gray-200 rounded-xl shadow-sm">
               <div className="flex items-center gap-2 mb-3">
                 <FileText size={16} className="text-gray-400" />
@@ -68,9 +65,15 @@ export function ChatCanvas({ messages, isLoading = false }: ChatCanvasProps) {
                   Generated YAML
                 </span>
               </div>
-              <pre className="text-sm bg-gray-50 p-4 rounded-lg overflow-x-auto border font-['Courier_New']">
-                <code className="text-gray-800">{message.content.replace(/```yaml\n?|\n?```/g, '')}</code>
+              <pre className="text-sm bg-gray-50 p-4 rounded-lg overflow-x-auto border font-mono whitespace-pre-wrap break-words">
+                <code className="text-gray-800">
+                  {message.content.replace(/```yaml\n?|\n?```/g, '')}
+                </code>
               </pre>
+            </div>
+          ) : (
+            <div className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+              {message.content}
             </div>
           )}
         </div>
@@ -105,7 +108,7 @@ export function ChatCanvas({ messages, isLoading = false }: ChatCanvasProps) {
         ) : (
           <div className="divide-y divide-gray-100">
             {messages.map(renderMessage)}
-            
+
             {/* Loading indicator */}
             {isLoading && (
               <div className="flex gap-4 p-6 bg-gray-50">
@@ -129,4 +132,4 @@ export function ChatCanvas({ messages, isLoading = false }: ChatCanvasProps) {
       </div>
     </div>
   )
-} 
+}
