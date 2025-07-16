@@ -65,7 +65,6 @@ function App() {
       const session = await apiService.getChatSession(chatId)
       
       if (session) {
-        // Convert session messages to app format
         const sessionMessages: Message[] = session.messages.map(msg => ({
           id: msg.id.toString(),
           role: msg.role as 'user' | 'assistant',
@@ -78,12 +77,12 @@ function App() {
           {
             name: 'agents.yaml',
             content: session.yaml_files['agents.yaml'] || '# Agents configuration will be generated here\nagents:\n  # Your agents will appear here',
-            language: 'yaml' as const
+            language: 'yaml'
           },
           {
             name: 'workflow.yaml',
             content: session.yaml_files['workflow.yaml'] || '# Workflow configuration will be generated here\nworkflow:\n  # Your workflow will appear here',
-            language: 'yaml' as const
+            language: 'yaml'
           }
         ]
 
@@ -248,20 +247,18 @@ function App() {
         onDeleteAllChats={deleteAllChats}
       />
       
-      {/* Main Content Area */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Chat Canvas */}
-        <div className="flex-1 overflow-hidden">
+      {/* Main Chat Area */}
+      <div className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <div className="flex-1">
           <ChatCanvas messages={messages} isLoading={isLoading} />
         </div>
-        
         {/* Chat Input */}
-        <div className="border-t border-gray-100 p-6">
+        <div className="border-t border-gray-100 p-6 shrink-0">
           <ChatInput onSendMessage={handleSendMessage} disabled={isLoading} />
         </div>
       </div>
       
-      {/* Right Panel - YAML Files */}
+      {/* Right Panel - YAML */}
       <YamlPanel yamlFiles={yamlFiles} isLoading={isLoading} />
     </div>
   )
