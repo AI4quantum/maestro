@@ -6,15 +6,11 @@ on:
   pull_request:
     branches: [ main ]
 
-defaults:
-  run:
-    working-directory: . # run from root directory
-
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4 # TODO: replace with demo repo once its created
+      - uses: actions/checkout@v4
         with:
           repository: AI4quantum/maestro-demos
       - name: Set up Python
