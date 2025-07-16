@@ -52,8 +52,8 @@ jobs:
     - name: Deploy test agents, workflow, configmap and workflowrun
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-        maestro create-cr demos/workflows/weather-checker.ai/agents.yaml
-        maestro create-cr demos/workflows/weather-checker.ai/workflow.yaml
+        maestro create-cr https://raw.githubusercontent.com/AI4quantum/maestro-demos/refs/heads/main/workflows/weather-checker.ai/agents.yaml
+        maestro create-cr https://raw.githubusercontent.com/AI4quantum/maestro-demos/refs/heads/main/workflows/weather-checker.ai/workflow.yaml
         kubectl apply -f operator/test/config/test-configmap.yaml
         kubectl apply -f operator/test/config/test-workflowrun.yaml
         sleep 15

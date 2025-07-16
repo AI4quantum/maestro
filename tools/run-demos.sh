@@ -1,11 +1,10 @@
 #!/bin/bash
 
 echo "🚀 Running all demos in CI..."
-REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-echo "📂 Running from: $REPO_ROOT"
-
-WORKFLOWS_DIR="$REPO_ROOT/maestro/demos/workflows"
-COMMON_DIR="$REPO_ROOT/maestro/demos/workflows/common"
+echo "📂 Note: Demos have been moved to https://github.com/AI4quantum/maestro-demos"
+echo "📂 Please run demos from the maestro-demos repository instead."
+echo "📂 This script is deprecated and will exit."
+exit 0
 
 if [[ ! -d "$WORKFLOWS_DIR" ]]; then
     echo "❌ Error: Workflows directory not found at $WORKFLOWS_DIR"

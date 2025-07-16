@@ -8,10 +8,14 @@
 # filters out any WARNING output, and then uses Perl to replace everything
 # between the existing <!-- MERMAID_START --> and <!-- MERMAID_END --> markers
 # with the newly generated Mermaid diagram.
+# NOTE: Demos have been moved to https://github.com/AI4quantum/maestro-demos
+# This script is deprecated and will exit.
 #
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-DEMOS_DIR="${PROJECT_ROOT}/demos"
+echo "This script is deprecated. Demos have been moved to https://github.com/AI4quantum/maestro-demos"
+echo "Please run this script from the maestro-demos repository instead."
+exit 0
 
 START_MARKER="<!-- MERMAID_START -->"
 END_MARKER="<!-- MERMAID_END -->"

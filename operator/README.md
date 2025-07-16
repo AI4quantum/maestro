@@ -69,8 +69,8 @@ The agents used in the workflow are created when the workflowrun custom resource
         make deploy
 5. Deploy test agents, workflow, configmap and workflowrun
         cd ..
-        python deploycr.py demos/workflows/weather-checker.ai/agents.yaml
-        python deploycr.py demos/workflows/weather-checker.ai/workflow.yaml
+        python deploycr.py https://github.com/AI4quantum/maestro-demos/blob/main/workflows/weather-checker.ai/agents.yaml
+python deploycr.py https://github.com/AI4quantum/maestro-demos/blob/main/workflows/weather-checker.ai/workflow.yaml
         kubectl apply -f operator/test/config/test-configmap.yaml
         kubectl apply -f operator/test/config/test-workflowrun.yaml
 6. open a browser to 127.0.0.1:30051

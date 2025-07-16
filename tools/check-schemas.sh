@@ -17,8 +17,6 @@ echo "|Filename|Type|Stats|" >> "$GITHUB_STEP_SUMMARY"
 echo "|---|---|---|" >> "$GITHUB_STEP_SUMMARY"
 
 EXCLUDED_FILES=("./crewai_test/src/crewai_test/config/agents.yaml"
-		"./demos/agents/crewai/generic/config/agents.yaml"
-		"./demos/agents/crewai/activity_planner/config/agents.yaml"
 		"./operator/config/rbac/workflowrun_editor_role.yaml"
 		"./operator/config/rbac/workflowrun_viewer_role.yaml")
 

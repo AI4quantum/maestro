@@ -66,7 +66,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4 # TODO: replace with demo repo once it's created
         with:
-          sparse-checkout: demos
+          repository: AI4quantum/maestro-demos
       - uses: actions/download-artifact@v4
         with:
           name: maestro-dist
@@ -78,7 +78,6 @@ jobs:
       - name: Install maestro
         run: pip install dist/*.whl
       - name: Test distribution
-        working-directory: demos
         run: maestro run workflows/simple/agents.yaml workflows/simple/workflow.yaml
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

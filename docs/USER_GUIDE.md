@@ -5,7 +5,7 @@
 2. [Maestro CLI](#maestro-cli)
 3. [Maestro UIs](#maestro-uis)
 4. [Examples](#examples)
-5. [Demos](#demos)
+5. [Demos](https://github.com/AI4quantum/maestro-demos)
 
 ## Maestro Language
 
@@ -392,7 +392,7 @@ The `maestro run` command output comes out in the command window.
 
 ## Examples
 
-### [Weather Checker AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/weather-checker.ai/README.md): Simple Sequential Workflow
+### [Weather Checker AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/weather-checker.ai/README.md): Simple Sequential Workflow
 The weather checker ai is a simple sequential workflow.  I have 2 agents Temperature agent that retrieves the current temperature of the given location and hot-or-not Agent that retrieves the historical temperature of the given location and returns whether the current temperature is hotter or colder.
 
 #### agent.yaml
@@ -568,20 +568,21 @@ spec:
 
 ## Demos
 
-Some demo workflows are available. For setting up the demo environment refer to [README.md](https://github.com/AI4quantum/maestro/blob/main/demos/README.md)
+For comprehensive demos and examples, visit: [https://github.com/AI4quantum/maestro-demos](https://github.com/AI4quantum/maestro-demos)
+
 ### Demos with workflow
 
-- [Activity Planner AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/activity-planner.ai/README.md)
-- [CBOM AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/cbom.ai/README.md)
-- [IBM Summary AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/ibm-summary.ai/README.md)
-- [Summary AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/summary.ai/README.md)
-- [Weather Checker AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/weather-checker.ai/README.md)
+- [Activity Planner AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/activity-planner.ai/README.md)
+- [CBOM AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/cbom.ai/README.md)
+- [IBM Summary AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/ibm-summary.ai/README.md)
+- [Summary AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/summary.ai/README.md)
+- [Weather Checker AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/weather-checker.ai/README.md)
 
 ## Demos with agent / tool integration
 
-- [Activity Planner CrewAI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/activity-planner-crewai.ai/README.md)
-- [MCP GH Tools AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/mcp-gh-tools.ai/README.md)
-- [OpenAI MCP AI](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/mcp-gh-tools.ai/README.md)
+- [Activity Planner CrewAI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/activity-planner-crewai.ai/README.md)
+- [MCP GH Tools AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/mcp-gh-tools.ai/README.md)
+- [OpenAI MCP AI](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/mcp-gh-tools.ai/README.md)
 
 ## Demo Meta Agent
-- [Meta Agents](https://github.com/AI4quantum/maestro/blob/main/demos/workflows/meta-agents/README.md)
+- [Meta Agents](https://github.com/AI4quantum/maestro-demos/blob/main/workflows/meta-agents/README.md)
