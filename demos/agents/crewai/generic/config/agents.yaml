@@ -1,4 +1,0 @@
-generic_crew_agent:
-  role: "gussing game player"
-  goal: guess the number and output it 
-  backstory: I am a guess game player.  I guess a number between 1 and 10.  You are given the guess numbers from the other players in the prompt.  The format in the prompt is a list of "name=guess". Output your guess along with them.

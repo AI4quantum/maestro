@@ -13,7 +13,7 @@ This report contains all TODO items found throughout the Maestro codebase, organ
 | Category | Count | Description |
 |----------|-------|-------------|
 | **Core Python Code** | 11 | Main Maestro functionality in `src/maestro/` |
-| **Demo Code** | 8 | Example implementations in `demos/` |
+| **Demo Code** | 8 | Example implementations in [maestro-demos](https://github.com/AI4quantum/maestro-demos) |
 | **Test Code** | 6 | Test files and test-related TODOs |
 | **Go/Kubernetes** | 8 | Operator and Kubernetes-related code |
 | **Shell Scripts** | 3 | Build and utility scripts |
@@ -70,9 +70,9 @@ This report contains all TODO items found throughout the Maestro codebase, organ
 
 ---
 
-## 2. Demo Code (`demos/`)
+## 2. Demo Code ([maestro-demos](https://github.com/AI4quantum/maestro-demos))
 
-### `demos/agents/crewai/activity_planner/activity_planner.py`
+### `agents/crewai/activity_planner/activity_planner.py` (in maestro-demos)
 - **Line 13**: `# TODO Make a more representative crew agent. This is simple`
   - **Category**: Demo Enhancement
   - **Description**: Improve the demo agent to be more representative of real-world usage
@@ -97,7 +97,7 @@ This report contains all TODO items found throughout the Maestro codebase, organ
   - **Category**: Debugging
   - **Description**: Reduce verbose output once functionality is stable
 
-### `demos/agents/crewai/generic/generic_agent.py`
+### `agents/crewai/generic/generic_agent.py` (in maestro-demos)
 - **Line 22**: `# TODO Set model/URL from configuration`
   - **Category**: Configuration
   - **Description**: Move hardcoded model/URL to configuration files
@@ -106,7 +106,7 @@ This report contains all TODO items found throughout the Maestro codebase, organ
   - **Category**: Debugging
   - **Description**: Reduce verbose output once functionality is stable
 
-### `demos/workflows/activity-planner.ai/src/run.py`
+### `workflows/activity-planner.ai/src/run.py` (in maestro-demos)
 - **Line 9**: `# TODO: dd crewai agent path to path explicitly - this should be found on path, but may require base change`
   - **Category**: Path Management
   - **Description**: Fix path resolution for crewai agent modules
@@ -177,7 +177,7 @@ This report contains all TODO items found throughout the Maestro codebase, organ
   - **Category**: Code Cleanup
   - **Description**: Remove duplicate code in mermaid checking scripts
 
-### `tools/run-demos.sh`
+### `tools/run-demos.sh` (deprecated - demos moved to maestro-demos)
 - **Line 82**: `# TODO: Demos may need complex setup/environment. For now they can create their own`
   - **Category**: Demo Infrastructure
   - **Description**: Improve demo setup and environment management
@@ -186,7 +186,7 @@ This report contains all TODO items found throughout the Maestro codebase, organ
 
 ## 6. Demo Scripts
 
-### `demos/workflows/openai-mcp.ai/test.sh`
+### `workflows/openai-mcp.ai/test.sh` (in maestro-demos)
 - **Line 87**: `# TODO: Setup langfuse for observability (if applicable)`
   - **Category**: Observability
   - **Description**: Integrate Langfuse for better observability and monitoring
@@ -199,7 +199,7 @@ This report contains all TODO items found throughout the Maestro codebase, organ
 
 ## 7. Documentation
 
-### `demos/workflows/activity-planner.ai/README.md`
+### `workflows/activity-planner.ai/README.md` (in maestro-demos)
 - **Line 1**: `TODO the demo does not currently function out of the box as the workflow schema / automation are not supported by the demo as of yet. Merging this early and will address after we've moved name/repos.`
   - **Category**: Demo Functionality
   - **Description**: Demo needs to be updated to work with current workflow schema

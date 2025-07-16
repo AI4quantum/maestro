@@ -1,7 +1,0 @@
-generic_task:
-  description: >
-    You are playing a guessing game.  One person has a number between 1 and 10 in mind.  You guess the number.
-  expected_output: >
-    your answer format is "CrewAI=" + guessed number
-    {prompt} are the guess numbers from the other players.  The format of guesses is a list of "name=guess".  Output your answer along with them for the next player.
-  agent: generic_crew_agent

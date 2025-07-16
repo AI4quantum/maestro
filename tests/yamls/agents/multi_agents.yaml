@@ -25,7 +25,7 @@ metadata:
   name: Generic_Crew
   labels:
     app: multi-agent
-    module: demos.agents.crewai.generic.generic_agent
+    module: agents.crewai.generic.generic_agent
     class: Generic_Crew
     factory: generic_crew
 spec:

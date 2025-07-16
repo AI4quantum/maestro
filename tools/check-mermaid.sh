@@ -17,8 +17,6 @@ EXCLUDE_FILES=("./tests/yamls/workflowrun/simple_workflow_run.yaml"
 	       "./operator/config/rbac/workflowrun_editor_role.yaml"
 	       "./operator/config/rbac/workflowrun_viewer_role.yaml"
 	       "./operator/config/samples/maestro_v1alpha1_workflowrun.yaml"
-	       "./demos/workflows/ibm-summary.ai/workflowrun.yaml"
-	       "./demos/workflows/cbom.ai/workflowrun.yaml"
 	       "./operator/test/config/test-workflowrun.yaml")
 
 echo "|Filename|Type|Stats|" >> "$GITHUB_STEP_SUMMARY"

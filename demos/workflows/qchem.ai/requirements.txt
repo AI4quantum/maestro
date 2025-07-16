@@ -1,6 +1,0 @@
-openfermion
-pubchempy
-rdkit
-arxiv
-requests
-GoogleNews

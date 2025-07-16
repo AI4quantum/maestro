@@ -2,7 +2,7 @@
 
 # Runs all the tools and checks
 
-list=("./tools/check-schemas.sh" "./tools/check-mermaid.sh" "./tools/run-demos.sh" "./tools/run-meta-agent.sh")
+list=("./tools/check-schemas.sh" "./tools/check-mermaid.sh" "./tools/run-meta-agent.sh")
    
 for item in "${list[@]}"; do
     echo "Running 🏃🏽‍♀️‍➡️ $item"

@@ -221,7 +221,7 @@ api/                        # FastAPI app
   └── builder.py            # Endpoints for meta-agent generation
   └── main.py               # FastAPI app entrypoint
 
-demos/workflows/meta-agents-v2/
+https://github.com/AI4quantum/maestro-demos/blob/main/workflows/meta-agents-v2/
   └── agents_file_generation/
         ├── agents.yaml     # Meta-agents like TaskInterpreter, WorkflowYAMLBuilder, etc.
         └── workflow.yaml   # Workflow logic for meta-agent execution
@@ -234,17 +234,17 @@ How to Run the Full System (Two Services)
 This powers the actual meta-agent chat orchestration (TaskInterpreter, AgentYAMLBuilder, WorkflowYAMLBuilder).
 
 ```
-maestro serve ./demos/workflows/meta-agents-v2/SELECTED_META_FILE/agents.yaml ./demos/workflows/meta-agents-v2/SELECTED_META_FILE/workflow.yaml
+maestro serve ./workflows/meta-agents-v2/SELECTED_META_FILE/agents.yaml ./workflows/meta-agents-v2/SELECTED_META_FILE/workflow.yaml
 ```
 
 So to create the agents.yaml: 
 ```
-maestro serve ./demos/workflows/meta-agents-v2/agents_file_generation/agents.yaml ./demos/workflows/meta-agents-v2/agents_file_generation/workflow.yaml
+maestro serve ./workflows/meta-agents-v2/agents_file_generation/agents.yaml ./workflows/meta-agents-v2/agents_file_generation/workflow.yaml
 ```
 
 Otherwise if we are creating the workflow.yaml:
 ```
-maestro serve ./demos/workflows/meta-agents-v2/workflow_file_generation/agents.yaml ./demos/workflows/meta-agents-v2/workflow_file_generation/workflow.yaml
+maestro serve ./workflows/meta-agents-v2/workflow_file_generation/agents.yaml ./workflows/meta-agents-v2/workflow_file_generation/workflow.yaml
 ```
 
 In both cases you should see:

@@ -8,7 +8,7 @@ on:
 
 defaults:
   run:
-    working-directory: demos # run from demo dir rather than root
+    working-directory: . # run from root directory
 
 jobs:
   test:
@@ -16,7 +16,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4 # TODO: replace with demo repo once its created
         with:
-          sparse-checkout: demos
+          repository: AI4quantum/maestro-demos
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
