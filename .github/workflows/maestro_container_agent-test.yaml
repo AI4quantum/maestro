@@ -13,6 +13,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install uv and activate the environment
+      uses: astral-sh/setup-uv@v6
+      with:
+        activate-environment: true
+    - name: Build Maestro
+      run: uv build
     - name: Build the Docker image
       run: |
         export GITHUB_REPOSITORY=localhost
@@ -33,14 +43,6 @@ jobs:
     - name: Load images cluster
       run: |
         kind load docker-image localhost/container-agent:latest 
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.12"
-    - name: Install uv and activate the environment
-      uses: astral-sh/setup-uv@v6
-      with:
-        activate-environment: true
     - name: Install dependencies
       run: |
         uv sync --all-extras
