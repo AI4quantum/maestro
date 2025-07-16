@@ -93,7 +93,7 @@ jobs:
         NODE_PORT=$(kubectl get svc containeredagnet1 -o jsonpath="{.spec.ports[0].nodePort}")
         
         # Send request
-        echo "Sending request to http://127.0.0.1:${NODE_PORT}/
+        echo "Sending request to http://127.0.0.1:${NODE_PORT}/"
         curl -X POST "http://127.0.0.1:${NODE_PORT}/chat" -H "Content-Type: application/json" -d '{"prompt": "Hello, how are you?", "stream": false}'
 
         # Check pod status
