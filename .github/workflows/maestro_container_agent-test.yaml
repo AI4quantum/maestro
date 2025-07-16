@@ -1,0 +1,108 @@
+name: Maestro Container Agent Test
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - '**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - '**'
+jobs:
+  test-in-kind:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: |
+        export GITHUB_REPOSITORY=localhost
+	export VERSION=latest
+        docker build -t docker.io/library/maestro:latest -f Dockerfile . 
+        docker tag docker.io/library/maestro:latest ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION
+        docker build -t container-agent -f Dockerfile-agent . --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .
+        docker tag docker.io/library/container-agent:latest localhost/container-agent:latest
+    - name: Install Kind
+      run: |
+        curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-$(uname)-amd64"
+        chmod +x ./kind
+        sudo mv kind /usr/local/bin
+        which kind
+    - name: Create Kind cluster
+      run: |
+        kind create cluster --config tests/integration/deploys/kind-config.yaml 
+    - name: Load images cluster
+      run: |
+        kind load docker-image localhost/container-agent:latest 
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install uv and activate the environment
+      uses: astral-sh/setup-uv@v6
+      with:
+        activate-environment: true
+    - name: Install dependencies
+      run: |
+        uv sync --all-extras
+    - name: create container agent
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+        maestro serve  tests/yamls/agents/simple_containered_agent.yaml --host 0.0.0.0 --port 30051
+        sleep 15
+
+        svc=$(kubectl get svc containeredagnet1)
+        if [ -z "$svc" ]; then
+            exit 1
+        else
+            echo "Service is created"
+        fi
+        pods=$(kubectl get pod -l app=containeredagnet1)
+        # Check if there are any pods
+        if [ -z "$pods" ]; then
+          exit 1
+        else
+          echo "Pod is created"
+        fi
+
+    - name: Wait for pod to be ready
+      run: |
+        kubectl wait --for=condition=ready pod -l app=containeredagnet1 --timeout=60s
+
+    - name: Configure service and send request
+      run: |
+        # Convert service to NodePort
+        kubectl patch svc containeredagnet1 -p '{"spec": {"type": "NodePort"}}'
+        
+        # Wait for service to be ready
+        echo "Waiting for service to be ready..."
+        sleep 10
+        
+        # Debug information
+        echo "Checking pod status..."
+        kubectl get pods -l app=containeredagnet1
+        echo "Checking service status..."
+        kubectl get svc containeredagnet1
+        echo "Checking pod logs..."
+        kubectl logs -l app=containeredagnet1
+        
+        # Get NodePort
+        NODE_PORT=$(kubectl get svc containeredagnet1 -o jsonpath="{.spec.ports[0].nodePort}")
+        
+        # Send request
+        echo "Sending request to http://127.0.0.1:${NODE_PORT}/
+	curl -X POST "http://127.0.0.1:${NODE_PORT}/chat" -H "Content-Type: application/json" -d '{"prompt": "Hello, how are you?", "stream": false}'
+
+
+        # Check pod status
+        POD_DETAILS=$(kubectl get pod -l app=containeredagnet1 -o json)
+        RESTART_COUNT=$(echo $POD_DETAILS | jq -r '.items[0].status.containerStatuses[0].restartCount')
+        if [ "$RESTART_COUNT" -eq 0 ]; then
+            echo "Pod has not been restarted."
+        else
+            exit 1
+        fi
+
+    - name: Cleanup
+      if: always()
+      run: |
+        kind delete cluster

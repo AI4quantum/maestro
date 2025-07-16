@@ -1,0 +1,9 @@
+ARG MAESTRO_VERSION
+ARG MAESTRO_REPOSITORY
+FROM ghcr.io/${MAESTRO_REPOSITORY}/maestro:${MAESTRO_VERSION}
+
+COPY tests/yamls/agents/simple_agent.yaml .
+COPY tools/container-agent.sh .
+
+EXPOSE 8000
+ENTRYPOINT ["./container-agent.sh"]
