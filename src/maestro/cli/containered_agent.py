@@ -70,7 +70,7 @@ def create_deployment_service(
                         client.V1Container(
                             name=app_name,
                             image=image_url,
-                            imagePullPolicy="IfNotPresent",
+                            image_pull_policy="IfNotPresent",
                             ports=[
                                 client.V1ContainerPort(container_port=container_port)
                             ],
