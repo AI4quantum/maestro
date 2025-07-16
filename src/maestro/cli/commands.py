@@ -24,6 +24,7 @@ from maestro.cli.common import Console, parse_yaml
 from maestro.file_logger import FileLogger
 from datetime import datetime, UTC
 from maestro.cli.fastapi_serve import serve_agent, serve_workflow
+from maestro.cli.containered_agent import create_containered_agent
 
 
 # Root CLI class
@@ -780,12 +781,20 @@ class ServeCmd(Command):
         host: str = "127.0.0.1",
         port: int = 8000,
     ):
-        """Serve an agent via FastAPI."""
-        try:
-            serve_agent(agents_file, agent_name, host, port)
-        except Exception as e:
-            self._check_verbose()
-            raise RuntimeError(f"Failed to serve agent: {str(e)}") from e
+        framework = self._get_agent_framework(agents_file, agent_name)
+        if framework == "container":
+            try:
+                create_containered_agent(agents_file, agent_name, host, port)
+            except Exception as e:
+                self._check_verbose()
+                raise RuntimeError(f"Failed to serve container agent: {str(e)}") from e
+        else:
+            """Serve an agent via FastAPI."""
+            try:
+                serve_agent(agents_file, agent_name, host, port)
+            except Exception as e:
+                self._check_verbose()
+                raise RuntimeError(f"Failed to serve agent: {str(e)}") from e
 
     def __serve_workflow(
         self,
@@ -800,6 +809,20 @@ class ServeCmd(Command):
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"Failed to serve workflow: {str(e)}") from e
+
+    def _get_agent_framework(self, agents_file, agent_name):
+        """return agent framework type."""
+        try:
+            agents_yaml = parse_yaml(agents_file)
+            framework = agents_yaml[0]["spec"]["framework"]
+
+            for agent_def in agents_yaml:
+                if agent_name == agent_def["metadata"]["name"]:
+                    framework = agent_def["spec"]["framework"]
+            return framework
+        except Exception as e:
+            Console.error(f"Failed to get agent framework: {str(e)}")
+            raise
 
     # public options
     def AGENTS_FILE(self):
@@ -838,7 +861,6 @@ class ServeCmd(Command):
         """
         workflow_file_arg = self.WORKFLOW_FILE()
         if workflow_file_arg and workflow_file_arg != "None":
-            print("### workflow")
             try:
                 self.__serve_workflow(
                     self.AGENTS_FILE(), self.WORKFLOW_FILE(), self.host(), self.port()
@@ -850,7 +872,6 @@ class ServeCmd(Command):
                 Console.error(f"Unable to serve workflow: {str(e)}")
                 return 1
         else:
-            print("### agent")
             try:
                 self.__serve_agent(
                     self.AGENTS_FILE(), self.agent_name(), self.host(), self.port()
