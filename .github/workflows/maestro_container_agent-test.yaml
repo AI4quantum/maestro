@@ -69,6 +69,7 @@ jobs:
     - name: Wait for pod to be ready
       run: |
         kubectl wait --for=condition=ready pod -l app=containeredagnet1 --timeout=60s
+        kubectl logs -l app=containeredagnet1 
 
     - name: Configure service and send request
       run: |
