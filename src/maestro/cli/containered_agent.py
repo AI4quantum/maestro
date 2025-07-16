@@ -99,7 +99,7 @@ def create_deployment_service(
         metadata=client.V1ObjectMeta(name=app_name, labels={"app": app_name}),
         spec=client.V1ServiceSpec(
             selector={"app": app_name},
-            ports=[client.V1ServicePort(port=service_port, target_port=container_port)],
+            ports=[client.V1ServicePort(port=service_port, target_port=container_port, node_port=30051)],
             type=service_type,
         ),
     )
