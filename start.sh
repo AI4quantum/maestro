@@ -78,8 +78,6 @@ else
     source venv/bin/activate 2>/dev/null || source .venv/bin/activate
 fi
 
-
-
 mkdir -p storage
 
 print_status "Starting API server on http://localhost:8001"
@@ -88,7 +86,7 @@ print_status "Starting API server on http://localhost:8001"
 # TODO: FIX THIS
 nohup /Users/gliu/Desktop/work/maestro/.venv/bin/python main.py > ../logs/api.log 2>&1 &
 API_PID=$!
-echo $API_PID > ../logs/api.pid
+echo $API_PID > .maestro-builder.pid
 
 print_success "API service started with PID: $API_PID"
 
@@ -123,7 +121,7 @@ fi
 print_status "Starting Builder frontend on http://localhost:5174"
 nohup npm run dev > ../logs/builder.log 2>&1 &
 BUILDER_PID=$!
-echo $BUILDER_PID > ../logs/builder.pid
+echo $BUILDER_PID >> .maestro-builder.pid
 
 print_success "Builder frontend started with PID: $BUILDER_PID"
 

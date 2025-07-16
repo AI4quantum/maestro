@@ -43,15 +43,13 @@ is_process_running() {
     fi
 }
 
-# Function to safely stop a process
-stop_process() {
-    local pid_file=$1
+# Function to safely stop a process by PID
+stop_process_by_pid() {
+    local pid=$1
     local service_name=$2
     local port=$3
     
-    if [ -f "$pid_file" ]; then
-        local pid=$(cat "$pid_file")
-        
+    if [ -n "$pid" ]; then
         if is_process_running "$pid"; then
             print_status "Stopping $service_name (PID: $pid)..."
             
@@ -77,16 +75,14 @@ stop_process() {
                 return 1
             else
                 print_success "$service_name stopped successfully"
-                rm -f "$pid_file"
                 return 0
             fi
         else
             print_warning "$service_name is not running (PID: $pid)"
-            rm -f "$pid_file"
             return 0
         fi
     else
-        print_warning "PID file for $service_name not found"
+        print_warning "Invalid PID for $service_name"
         return 0
     fi
 }
@@ -137,20 +133,43 @@ kill_process_by_port() {
 
 print_status "Stopping Maestro services..."
 
-# Stop API service
-if [ -f "logs/api.pid" ]; then
-    stop_process "logs/api.pid" "API service" 8000
+# Read PIDs from .maestro-builder.pid file
+if [ -f ".maestro-builder.pid" ]; then
+    print_status "Reading PIDs from .maestro-builder.pid..."
+    
+    # Read all PIDs from the file
+    pids=()
+    while IFS= read -r pid; do
+        if [ -n "$pid" ]; then
+            pids+=("$pid")
+        fi
+    done < ".maestro-builder.pid"
+    
+    # Stop each process
+    for pid in "${pids[@]}"; do
+        if is_process_running "$pid"; then
+            # Try to determine service name based on port
+            if lsof -p "$pid" | grep -q ":8001"; then
+                service_name="API service"
+                port="8001"
+            elif lsof -p "$pid" | grep -q ":5173\|:5174"; then
+                service_name="Builder frontend"
+                port="5173/5174"
+            else
+                service_name="Unknown service"
+                port="unknown"
+            fi
+            
+            stop_process_by_pid "$pid" "$service_name" "$port"
+        fi
+    done
+    
+    # Remove the PID file after processing
+    rm -f ".maestro-builder.pid"
+    print_success "Removed .maestro-builder.pid file"
 else
-    print_warning "API PID file not found, checking port 8000..."
-    kill_process_by_port 8000 "API service"
-fi
-
-# Stop Builder frontend
-if [ -f "logs/builder.pid" ]; then
-    stop_process "logs/builder.pid" "Builder frontend" 5174
-    stop_process "logs/builder.pid" "Builder frontend" 5174
-else
-    print_warning "Builder PID file not found, checking port 5174..."
+    print_warning ".maestro-builder.pid file not found, checking ports..."
+    kill_process_by_port 8001 "API service"
     kill_process_by_port 5174 "Builder frontend"
 fi
 
@@ -161,8 +180,8 @@ print_status "Verifying services are stopped..."
 api_stopped=true
 builder_stopped=true
 
-if check_port 8000; then
-    print_error "API service is still running on port 8000"
+if check_port 8001; then
+    print_error "API service is still running on port 8001"
     api_stopped=false
 fi
 
