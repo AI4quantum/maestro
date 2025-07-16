@@ -85,11 +85,11 @@ def create_deployment_service(
         api_apps_v1.create_namespaced_deployment(
             body=deployment_manifest, namespace=namespace
         )
-        print(
+        Console.print(
             f"Deployment '{app_name}' created successfully in namespace '{namespace}'."
         )
     except client.ApiException as e:
-        print(f"Error creating Deployment: {e}")
+        Console.print(f"Error creating Deployment: {e}")
 
     # Define Service
     service_manifest = client.V1Service(
@@ -108,20 +108,8 @@ def create_deployment_service(
         api_core_v1.create_namespaced_service(
             body=service_manifest, namespace=namespace
         )
-        print(f"Service '{app_name}' created successfully in namespace '{namespace}'.")
+        Console.print(
+            f"Service '{app_name}' created successfully in namespace '{namespace}'."
+        )
     except client.ApiException as e:
-        print(f"Error creating Service: {e}")
-
-
-if __name__ == "__main__":
-    # Example usage:
-    image = "nginx:latest"
-    app = "containeredagent"
-    create_deployment_service(
-        image,
-        app,
-        replicas=2,
-        container_port=80,
-        service_port=8080,
-        service_type="NodePort",
-    )
+        Console.print(f"Error creating Service: {e}")
