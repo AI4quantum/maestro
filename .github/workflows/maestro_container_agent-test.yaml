@@ -65,6 +65,7 @@ jobs:
         else
           echo "Pod is created"
         fi
+        kubectl get pod  -l app=containeredagnet1 -o yaml
 
     - name: Wait for pod to be ready
       run: |
