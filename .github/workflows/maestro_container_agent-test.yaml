@@ -16,7 +16,7 @@ jobs:
     - name: Build the Docker image
       run: |
         export GITHUB_REPOSITORY=localhost
-	export VERSION=latest
+        export VERSION=latest
         docker build -t docker.io/library/maestro:latest -f Dockerfile . 
         docker tag docker.io/library/maestro:latest ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION
         docker build -t container-agent -f Dockerfile-agent . --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .
@@ -91,7 +91,6 @@ jobs:
         # Send request
         echo "Sending request to http://127.0.0.1:${NODE_PORT}/
 	curl -X POST "http://127.0.0.1:${NODE_PORT}/chat" -H "Content-Type: application/json" -d '{"prompt": "Hello, how are you?", "stream": false}'
-
 
         # Check pod status
         POD_DETAILS=$(kubectl get pod -l app=containeredagnet1 -o json)
