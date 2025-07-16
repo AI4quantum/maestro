@@ -22,7 +22,7 @@ function computeDiffLines(oldText: string, newText: string): DiffLine[] {
   const dmp = new DiffMatchPatch()
   const diff = dmp.diff_main(oldText, newText)
   dmp.diff_cleanupSemantic(diff)
-  
+
   const lines: DiffLine[] = []
   diff.forEach(([op, data]: [number, string]) => {
     const split = data.split('\n')
@@ -35,6 +35,11 @@ function computeDiffLines(oldText: string, newText: string): DiffLine[] {
     })
   })
   return lines
+}
+
+// Function to decode escaped characters in YAML content
+function decodeEscaped(content: string) {
+  return content.replace(/\\n/g, '\n').replace(/\\'/g, "'").replace(/\\"/g, '"')
 }
 
 export function YamlPanel({ yamlFiles, isLoading = false }: YamlPanelProps) {
@@ -61,12 +66,12 @@ export function YamlPanel({ yamlFiles, isLoading = false }: YamlPanelProps) {
     filesToShow.forEach(file => {
       const currentContent = file.content.trim()
       const lastContent = lastUpdateRef.current[file.name] || ''
-      
+
       // If content changed and we had previous content, store it for diff
       if (currentContent !== lastContent && lastContent !== '') {
         prevYamlRef.current[file.name] = lastContent
       }
-      
+
       // Update the last known content
       if (currentContent !== '') {
         lastUpdateRef.current[file.name] = currentContent
@@ -109,7 +114,7 @@ export function YamlPanel({ yamlFiles, isLoading = false }: YamlPanelProps) {
         </div>
         <div className="flex-1">
           <pre className="text-sm font-mono p-4 overflow-x-auto bg-white font-['Courier_New'] whitespace-pre">
-            <code className="language-yaml whitespace-pre">{content}</code>
+            <code className="language-yaml whitespace-pre">{decodeEscaped(content)}</code>
           </pre>
         </div>
       </div>
@@ -121,34 +126,33 @@ export function YamlPanel({ yamlFiles, isLoading = false }: YamlPanelProps) {
       // No diff to show, just render the new content
       return (
         <pre className="text-sm font-mono p-4 overflow-x-auto bg-white font-['Courier_New'] whitespace-pre">
-          <code className="language-yaml whitespace-pre">{newContent}</code>
+          <code className="language-yaml whitespace-pre">{decodeEscaped(newContent)}</code>
         </pre>
       )
     }
 
     const lines = computeDiffLines(oldContent, newContent)
-    console.log('Diff lines:', lines) // Debug log
-    
+
     return (
       <div>
         <div className="px-4 py-2 bg-blue-50 border-b border-blue-200 text-xs text-blue-700 font-medium">
           Showing changes (green = added, red = removed)
         </div>
-        <div className="text-sm font-mono p-4 overflow-x-auto bg-white font-['Courier_New'] whitespace-pre">
+        <div className="text-sm font-mono px-4 py-2 overflow-y-auto h-[500px] bg-white font-['Courier_New'] whitespace-pre">
           {lines.map((line, idx) => {
-            const lineStyle = line.type === 'insert' 
+            const lineStyle = line.type === 'insert'
               ? { backgroundColor: '#dcfce7', color: '#166534' } // green-100 bg, green-800 text
-              : line.type === 'delete' 
+              : line.type === 'delete'
               ? { backgroundColor: '#fee2e2', color: '#991b1b' } // red-100 bg, red-800 text
               : { color: '#1f2937' } // gray-800 text
-            
+
             return (
-              <div 
-                key={idx} 
+              <div
+                key={idx}
                 style={lineStyle}
                 className="w-full"
               >
-                {line.type === 'insert' ? '+' : line.type === 'delete' ? '-' : ' '} {line.text}
+                {line.type === 'insert' ? '+' : line.type === 'delete' ? '-' : ' '} {decodeEscaped(line.text)}
               </div>
             )
           })}
@@ -281,7 +285,7 @@ export function YamlPanel({ yamlFiles, isLoading = false }: YamlPanelProps) {
                 renderLineNumbers(filesToShow[activeFile].content)
               ) : (
                 <pre className="text-sm font-mono p-6 overflow-x-auto bg-gray-50 font-['Courier_New'] whitespace-pre">
-                  <code className="language-yaml whitespace-pre">{filesToShow[activeFile].content}</code>
+                  <code className="language-yaml whitespace-pre">{decodeEscaped(filesToShow[activeFile].content)}</code>
                 </pre>
               )}
             </div>
@@ -300,4 +304,4 @@ export function YamlPanel({ yamlFiles, isLoading = false }: YamlPanelProps) {
       </div>
     </div>
   )
-} 
+}
