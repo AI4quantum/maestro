@@ -30,6 +30,7 @@ dependencies = [
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
     "dspy>=2.6.27",
+    "kubernetes>=33.1.0",
 ]
 
 [project.optional-dependencies]
