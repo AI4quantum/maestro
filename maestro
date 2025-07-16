@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-if [ -n "$VIRTUAL_ENV" ]; then
-  PYTHON="$VIRTUAL_ENV/bin/python"
-else
-  PYTHON="python3"
-fi
-
-$PYTHON -m src.maestro.cli.run_maestro "$@"

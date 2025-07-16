@@ -10,8 +10,6 @@ import unittest
 
 from unittest import TestCase
 
-MAESTRO_PATH = os.path.join(os.path.dirname(__file__), "../../../maestro")
-
 
 def _maestro(*args) -> (str, int):
     """
@@ -25,7 +23,7 @@ def _maestro(*args) -> (str, int):
     """
     try:
         result = subprocess.run(
-            [MAESTRO_PATH, *args], capture_output=True, text=True, check=True
+            ["uv", "run", "maestro", *args], capture_output=True, text=True, check=True
         )
         return (result.stdout, 0)
     except subprocess.CalledProcessError as e:
