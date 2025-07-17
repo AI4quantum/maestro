@@ -75,18 +75,6 @@ jobs:
         # Convert service to NodePort
         kubectl patch svc containeredagnet1 -p '{"spec": {"type": "NodePort"}}'
         
-        # Wait for service to be ready
-        echo "Waiting for service to be ready..."
-        sleep 10
-        
-        # Debug information
-        echo "Checking pod status..."
-        kubectl get pods -l app=containeredagnet1
-        echo "Checking service status..."
-        kubectl get svc containeredagnet1
-        echo "Checking pod logs..."
-        kubectl logs -l app=containeredagnet1
-        
         # Get NodePort
         NODE_PORT=$(kubectl get svc containeredagnet1 -o jsonpath="{.spec.ports[0].nodePort}")
         
