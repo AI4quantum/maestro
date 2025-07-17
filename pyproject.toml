@@ -1,6 +1,6 @@
 [project]
 name = "maestro"
-version = "0.3.0"
+version = "0.4.0"
 description = "A multi-agent platform with the vision to facilitate deploy and run AI agents."
 authors = [
     {name = "IBM"}

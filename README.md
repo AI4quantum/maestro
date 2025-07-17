@@ -5,12 +5,12 @@ Maestro is a tool for managing and running AI agents and workflows.
 ## Installation
 
 ```bash
-pip install git+https://github.com/AI4quantum/maestro.git@v0.2.0
+pip install git+https://github.com/AI4quantum/maestro.git@v0.3.0
 ```
 
 Note: If using scoring or crewai agents, install:
 ```bash
-pip install "maestro[crewai] @ git+https://github.com/AI4quantum/maestro.git@v0.2.0"
+pip install "maestro[crewai] @ git+https://github.com/AI4quantum/maestro.git@v0.3.0"
 ```
 
 ## Usage
