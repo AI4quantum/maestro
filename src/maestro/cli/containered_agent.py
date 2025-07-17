@@ -21,7 +21,6 @@ def create_containered_agent(
                     agent_def["spec"]["image"],
                     name,
                     container_port=port,
-                    service_type="NodePort",
                 )
                 break
     except Exception as e:
@@ -37,6 +36,7 @@ def create_deployment_service(
     container_port=80,
     service_port=80,
     service_type="LoadBalancer",
+    node_port=30051
 ):
     """
     Creates a Kubernetes Deployment and Service for a given container image.
@@ -99,7 +99,7 @@ def create_deployment_service(
         metadata=client.V1ObjectMeta(name=app_name, labels={"app": app_name}),
         spec=client.V1ServiceSpec(
             selector={"app": app_name},
-            ports=[client.V1ServicePort(port=service_port, target_port=container_port, node_port=30051)],
+            ports=[client.V1ServicePort(port=service_port, target_port=container_port, node_port=node_port)],
             type=service_type,
         ),
     )
