@@ -27,10 +27,8 @@ jobs:
       run: |
         export GITHUB_REPOSITORY=localhost
         export VERSION=latest
-        docker build -t docker.io/library/maestro:latest -f Dockerfile . 
-        docker tag docker.io/library/maestro:latest ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION
-        docker build -t container-agent -f Dockerfile-agent --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .
-        docker tag docker.io/library/container-agent:latest localhost/container-agent:latest
+        docker build -t ghcr.io/$GITHUB_REPOSITORY/maestro:$VERSION -f Dockerfile . 
+        docker build -t localhost/container-agent:latest -f Dockerfile-agent --build-arg MAESTRO_VERSION=$VERSION --build-arg MAESTRO_REPOSITORY=$GITHUB_REPOSITORY .	
     - name: Install Kind
       run: |
         curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-$(uname)-amd64"
@@ -104,6 +102,14 @@ jobs:
         else
             exit 1
         fi
+
+    - uses: chainguard-dev/actions/kind-diag@main
+      # Only upload logs on failure.
+      if: ${{ failure() }}
+      with:
+        cluster-resources: nodes,namespaces,crds
+        namespace-resources: configmaps,pods,svc,pvc,ingress
+        artifact-name: logs-${{ github.run_id }}
 
     - name: Cleanup
       if: always()
