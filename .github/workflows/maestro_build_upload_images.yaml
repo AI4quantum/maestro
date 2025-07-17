@@ -35,19 +35,22 @@ jobs:
           activate-environment: true
       - name: Build Maestro
         run: uv build
+      - name: get docker-compatible GITHUB_ORG
+        run: |
+          echo "GITHUB_ORG=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
       - name: Build and push the image
         id: build_push
-        env:
-          GITHUB_ORG: ${{ github.repository_owner }}
         run : |
           VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "pyproject.toml" | \
             head -n 1 | \
             sed -E 's/.*"([^"]+)".*/\1/')
           uv run tools/buildimg.sh
-          docker tag ghcr.io/${{ github.repository_owner }}/maestro:$VERSION ghcr.io/${{ github.repository_owner }}/maestro:$VERSION-${{ matrix.arch }}
-          docker tag ghcr.io/${{ github.repository_owner }}/maestro-cli:$VERSION ghcr.io/${{ github.repository_owner }}/maestro-cli:$VERSION-${{ matrix.arch }}
-          docker push ghcr.io/${{ github.repository_owner }}/maestro:$VERSION-${{ matrix.arch }}
-          docker push ghcr.io/${{ github.repository_owner }}/maestro-cli:$VERSION-${{ matrix.arch }}
+          docker tag ghcr.io/$GITHUB_ORG/maestro:$VERSION ghcr.io/$GITHUB_ORG/maestro:$VERSION-${{ matrix.arch }}
+          docker tag ghcr.io/$GITHUB_ORG/maestro-cli:$VERSION ghcr.io/$GITHUB_ORG/maestro-cli:$VERSION-${{ matrix.arch }}
+          docker push ghcr.io/$GITHUB_ORG/maestro:$VERSION-${{ matrix.arch }}
+          docker push ghcr.io/$GITHUB_ORG/maestro-cli:$VERSION-${{ matrix.arch }}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
   upload-manifest:
     needs: build-upload
@@ -58,13 +61,18 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+      - name: get docker-compatible GITHUB_ORG
+        run: |
+          echo "GITHUB_ORG=${OWNER,,}" >>${GITHUB_ENV}
+        env:
+          OWNER: '${{ github.repository_owner }}'
       - name: Push multiarch image to ghcr.io
         run: |
-          docker manifest create ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }} \
-            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-x86_64 \
-            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-arm64 &&
-          docker manifest create ghcr.io/${{ github.repository_owner }}/maestro-cli:${{ needs.build-upload.outputs.version }} \
-            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-x86_64 \
-            --amend ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}-arm64 &&
-          docker manifest push ghcr.io/${{ github.repository_owner }}/maestro:${{ needs.build-upload.outputs.version }}
-          docker manifest push ghcr.io/${{ github.repository_owner }}/maestro-cli:${{ needs.build-upload.outputs.version }}
+          docker manifest create ghcr.io/$GITHUB_ORG/maestro:${{ needs.build-upload.outputs.version }} \
+            --amend ghcr.io/$GITHUB_ORG/maestro:${{ needs.build-upload.outputs.version }}-x86_64 \
+            --amend ghcr.io/$GITHUB_ORG/maestro:${{ needs.build-upload.outputs.version }}-arm64 &&
+          docker manifest create ghcr.io/$GITHUB_ORG/maestro-cli:${{ needs.build-upload.outputs.version }} \
+            --amend ghcr.io/$GITHUB_ORG/maestro:${{ needs.build-upload.outputs.version }}-x86_64 \
+            --amend ghcr.io/$GITHUB_ORG/maestro:${{ needs.build-upload.outputs.version }}-arm64 &&
+          docker manifest push ghcr.io/$GITHUB_ORG/maestro:${{ needs.build-upload.outputs.version }}
+          docker manifest push ghcr.io/$GITHUB_ORG/maestro-cli:${{ needs.build-upload.outputs.version }}
