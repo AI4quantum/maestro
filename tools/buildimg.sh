@@ -9,7 +9,7 @@ VERSION=$(grep -E '^(version|tool\.poetry\.version) *= *"[^"]+"' "$PYPROJECT_TOM
 echo $VERSION
 
 # build distribution
-#uv build
+uv build
 
 # build container images
 $CONTAINER_CMD build -t ghcr.io/$GITHUB_ORG/maestro:$VERSION -f Dockerfile --build-arg MAESTRO_VERSION=$VERSION --build-arg GITHUB_ORG=$GITHUB_ORG .
