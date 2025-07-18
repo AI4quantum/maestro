@@ -22,6 +22,7 @@ from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
 from maestro.cli.common import Console, parse_yaml
 from maestro.file_logger import FileLogger
+from maestro.mcptool import create_mcptools
 from datetime import datetime, UTC
 from maestro.cli.fastapi_serve import serve_agent, serve_workflow
 from maestro.cli.containered_agent import create_containered_agent
@@ -166,6 +167,8 @@ class ValidateCmd(Command):
             return os.path.join(project_root, "schemas/agent_schema.json")
         elif kind == "Tool":
             return os.path.join(project_root, "schemas/tool_schema.json")
+        elif kind == "MCPTool":
+            return os.path.join(project_root, "schemas/tool_toolhive_schema_full.json")
         elif kind == "Workflow":
             return os.path.join(project_root, "schemas/workflow_schema.json")
         elif kind == "WorkflowRun":
@@ -257,7 +260,10 @@ class CreateCmd(Command):
 
     def __create_agents(self, agents_yaml):
         try:
-            create_agents(agents_yaml)
+            if agents_yaml[0]["kind"] == "Agent":
+                create_agents(agents_yaml)
+            elif agents_yaml[0]["kind"] == "MCPTool":
+                create_mcptools(agents_yaml)
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
