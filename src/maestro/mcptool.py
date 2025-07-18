@@ -5,18 +5,6 @@
 
 from kubernetes import client, config
 
-
-def create_mcptools(tool_defs):
-    for tool_def in tool_defs:
-        create_mcptool(tool_def)
-
-
-# Load kubeconfig
-config.load_kube_config()
-
-# Create an instance of the API class for the custom resource definition
-api_instance = client.CustomObjectsApi()
-
 # Define the plural and singular names for the custom resource
 plural = "mcpservers"
 singular = "mcpserver"
@@ -26,8 +14,15 @@ group = "toolhive.stacklok.dev"
 version = "v1alpha1"
 kind = "MCPServer"
 
+def create_mcptools(tool_defs):
+    # Load kubeconfig
+    config.load_kube_config()
+    for tool_def in tool_defs:
+        create_mcptool(tool_def)
 
 def create_mcptool(body):
+    # Create an instance of the API class for the custom resource definition
+    api_instance = client.CustomObjectsApi()
     # Create the CRD instance
     body["apiVersion"] = f"{group}/{version}"
     body["kind"] = "MCPServer"
