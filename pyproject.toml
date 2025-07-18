@@ -15,7 +15,6 @@ dependencies = [
     "jsonschema>=4.23.0",
     "docopt-ng>=0.9.0",
     "langchain-community>=0.3.16",
-    "duckduckgo-search>=7.3.0",
     "streamlit>=1.44.0",
     "streamlit-mermaid>=0.3.0",
     "psutil>=7.0.0",
@@ -31,6 +30,7 @@ dependencies = [
     "uvicorn[standard]>=0.24.0",
     "dspy>=2.6.27",
     "kubernetes>=33.1.0",
+    "ddgs>=9.3.1",
 ]
 
 [project.optional-dependencies]
