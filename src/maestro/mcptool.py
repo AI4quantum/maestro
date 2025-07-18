@@ -14,11 +14,13 @@ group = "toolhive.stacklok.dev"
 version = "v1alpha1"
 kind = "MCPServer"
 
+
 def create_mcptools(tool_defs):
     # Load kubeconfig
     config.load_kube_config()
     for tool_def in tool_defs:
         create_mcptool(tool_def)
+
 
 def create_mcptool(body):
     # Create an instance of the API class for the custom resource definition
