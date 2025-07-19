@@ -40,7 +40,7 @@ jobs:
     - name: Create tools
       run: |
         export PYTHONPATH=$PYTHONPATH:$(pwd)/src
-	uv run maestro create tests/yamls/tools/mcp_tool.yaml 
+        uv run maestro create tests/yamls/tools/mcp_tool.yaml 
         sleep 15
 
         svc=$(kubectl get svc -l app.kubernetes.io/instance=osv)
