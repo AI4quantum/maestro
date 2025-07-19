@@ -43,13 +43,13 @@ jobs:
         uv run maestro create tests/yamls/tools/mcp_tool.yaml 
         sleep 15
 
-        svc=$(kubectl get svc -l app.kubernetes.io/instance=osv)
+        svc=$(kubectl get svc -l app.kubernetes.io/instance=fetch)
         if [ -z "$svc" ]; then
             exit 1
         else
             echo "Service is created"
         fi
-        pods=$(kubectl get pod -l app.kubernetes.io/instance=osv)
+        pods=$(kubectl get pod -l app.kubernetes.io/instance=fetch)
         # Check if there are any pods
         if [ -z "$pods" ]; then
           exit 1
@@ -59,22 +59,22 @@ jobs:
 
     - name: Wait for pod to be ready
       run: |
-        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=osv --timeout=60s
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=fetch --timeout=60s
 
     - name: Configure service and send request
       run: |
         # Convert service to NodePort
-        kubectl patch svc weather-checker-ai -p '{"spec": {"type": "NodePort"}}'
+        kubectl patch svc mcp-fetch-proxy  -p '{"spec": {"type": "NodePort"}}'
         
         # Get NodePort
-        NODE_PORT=$(kubectl get svc weather-checker-ai -o jsonpath="{.spec.ports[0].nodePort}")
+        NODE_PORT=$(kubectl get svc mcp-fetch-proxy  -o jsonpath="{.spec.ports[0].nodePort}")
         
         # Send request
-        echo "Sending request to http://127.0.0.1:${NODE_PORT}/?Prompt=Los+angels"
-        curl -v -L --max-time 30 "http://127.0.0.1:${NODE_PORT}/?Prompt=Los+angels"
+	responce =  $(uv run python tests/utils/mcpclient.py)
+	echo $response
         
         # Check pod status
-        POD_DETAILS=$(kubectl get pod -l app.kubernetes.io/instance=weather-checker-ai -o json)
+        POD_DETAILS=$(kubectl get pod -l app.kubernetes.io/instance=fetch -o json)
         RESTART_COUNT=$(echo $POD_DETAILS | jq -r '.items[0].status.containerStatuses[0].restartCount')
         if [ "$RESTART_COUNT" -eq 0 ]; then
             echo "Pod has not been restarted."
