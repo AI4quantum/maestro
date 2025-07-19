@@ -1,0 +1,42 @@
+apiVersion: maestro/v1alpha1
+kind: MCPTool
+metadata:
+  name: osv
+  namespace:  default
+spec:
+  image: ghcr.io/stackloklabs/osv-mcp/server
+  transport: sse
+  port: 30051
+  permissionProfile:
+    type: builtin
+    name: network
+  resources:
+    limits:
+      cpu: '100m'
+      memory: '128Mi'
+    requests:
+      cpu: '50m'
+      memory: '64Mi'
+
+---
+
+apiVersion: maestro/v1alpha1
+kind: MCPTool
+metadata:
+  name: fetch
+  namespace:  default
+spec:
+  image: ghcr.io/stackloklabs/gofetch/server:latest
+  transport: streamable-http
+  port: 30051
+  permissionProfile:
+    type: builtin
+    name: network
+  resources:
+    limits:
+      cpu: '100m'
+      memory: '128Mi'
+    requests:
+      cpu: '50m'
+      memory: '64Mi'
+
