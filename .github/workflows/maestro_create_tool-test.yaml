@@ -70,7 +70,7 @@ jobs:
         NODE_PORT=$(kubectl get svc mcp-fetch-proxy  -o jsonpath="{.spec.ports[0].nodePort}")
 
         # Send request
-	responce =  $(uv run python tests/utils/mcpclient.py)
+        responce =  $(uv run python tests/utils/mcpclient.py)
         echo $response
 
         # Check pod status
