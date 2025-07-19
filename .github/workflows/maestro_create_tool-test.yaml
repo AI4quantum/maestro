@@ -1,0 +1,96 @@
+name: Maestro Create tool Test
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - '**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - '**'
+jobs:
+  test-in-kind:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Kind
+      run: |
+        curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-$(uname)-amd64"
+        chmod +x ./kind
+        sudo mv kind /usr/local/bin
+        which kind
+    - name: Create Kind cluster
+      run: |
+        kind create cluster --config tests/integration/deploys/kind-config.yaml 
+    - name: Install ToolHive
+      run: |
+        helm upgrade -i toolhive-operator-crds oci://ghcr.io/stacklok/toolhive/toolhive-operator-crds
+        helm upgrade -i toolhive-operator oci://ghcr.io/stacklok/toolhive/toolhive-operator -n toolhive-system --create-namespace
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install uv and activate the environment
+      uses: astral-sh/setup-uv@v6
+      with:
+        activate-environment: true
+    - name: Install dependencies
+      run: |
+        uv sync --all-extras
+    - name: Create tools
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+	uv run maestro create tests/yamls/tools/mcp_tool.yaml 
+        sleep 15
+
+        svc=$(kubectl get svc -l app.kubernetes.io/instance=osv)
+        if [ -z "$svc" ]; then
+            exit 1
+        else
+            echo "Service is created"
+        fi
+        pods=$(kubectl get pod -l app.kubernetes.io/instance=osv)
+        # Check if there are any pods
+        if [ -z "$pods" ]; then
+          exit 1
+        else
+          echo "Pod is created"
+        fi
+
+    - name: Wait for pod to be ready
+      run: |
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=osv --timeout=60s
+
+    - name: Configure service and send request
+      run: |
+        # Convert service to NodePort
+        kubectl patch svc weather-checker-ai -p '{"spec": {"type": "NodePort"}}'
+        
+        # Get NodePort
+        NODE_PORT=$(kubectl get svc weather-checker-ai -o jsonpath="{.spec.ports[0].nodePort}")
+        
+        # Send request
+        echo "Sending request to http://127.0.0.1:${NODE_PORT}/?Prompt=Los+angels"
+        curl -v -L --max-time 30 "http://127.0.0.1:${NODE_PORT}/?Prompt=Los+angels"
+        
+        # Check pod status
+        POD_DETAILS=$(kubectl get pod -l app.kubernetes.io/instance=weather-checker-ai -o json)
+        RESTART_COUNT=$(echo $POD_DETAILS | jq -r '.items[0].status.containerStatuses[0].restartCount')
+        if [ "$RESTART_COUNT" -eq 0 ]; then
+            echo "Pod has not been restarted."
+        else
+            exit 1
+        fi
+
+    - uses: chainguard-dev/actions/kind-diag@main
+      # Only upload logs on failure.
+      if: ${{ failure() }}
+      with:
+        cluster-resources: nodes,namespaces,crds
+        namespace-resources: configmaps,pods,svc,pvc,ingress
+        artifact-name: logs-${{ github.run_id }}
+
+    - name: Cleanup
+      if: always()
+      run: |
+        kind delete cluster
