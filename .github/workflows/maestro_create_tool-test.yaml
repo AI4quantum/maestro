@@ -65,12 +65,10 @@ jobs:
       run: |
         # Convert service to NodePort
         kubectl patch svc mcp-fetch-proxy  -p '{"spec": {"type": "NodePort"}}'
-
-        # Get NodePort
-        NODE_PORT=$(kubectl get svc mcp-fetch-proxy  -o jsonpath="{.spec.ports[0].nodePort}")
+        kubectl patch service mcp-fetch-proxy -p '{"spec":{"ports":[{"name":"http","nodePort":30051, "port":30051,"protocol":"TCP", "targetPort":30051}]}}'
 
         # Send request
-        response=$(uv run python tests/utils/mcpclient.py $NODE_PORT)
+        response=$(uv run python tests/utils/mcpclient.py)
         echo $response
 
         # Check pod status
