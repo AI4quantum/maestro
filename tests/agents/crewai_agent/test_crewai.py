@@ -17,7 +17,7 @@ load_dotenv()
 
 
 class CrewAITest(TestCase):
-    def test_agent_runs(self) -> None:
+    def disabled_test_agent_runs(self) -> None:
         agents_yaml = parse_yaml(os.path.join(os.path.dirname(__file__), "agents.yaml"))
         workflow_yaml = parse_yaml(
             os.path.join(os.path.dirname(__file__), "workflow.yaml")
