@@ -9,7 +9,7 @@
 
 ## Maestro Language
 
-Maestro defines agents and workflows in yaml format. 
+Maestro defines agents, workflows and tools in yaml format. 
 ### Agent
 Agent example defined in yaml format is: 
 ```yaml
@@ -159,7 +159,7 @@ The step has properties that define the work of the step.  Everything is optiona
   - agent2
   ```
 
-### event
+#### event
 
 The event is one way to trigger workflow execution.  Only cron event is supported now.
 
@@ -169,13 +169,39 @@ The event is one way to trigger workflow execution.  Only cron event is supporte
 - **steps**: step name executed in event processing
 - **exit**: cron job exit condition.  Python statement that evaluates the execution output.  True for exit
 
-### exception
+#### exception
 
 The exception is executed when an exception happens during the execution of the workflow.
 
 - **name**: name of exception definition
 - **agent**: name of agent executed in exception handling
 
+### Tool
+Tool example defined in yaml format is: 
+```yaml
+apiVersion: maestro/v1alpha1
+kind: MCPTool
+metadata:
+  name: fetch
+  namespace:  default
+spec:
+  image: ghcr.io/stackloklabs/gofetch/server:latest
+  transport: streamable-http
+```
+The syntax of the agent definition is defined in the [json schema](https://github.com/AI4quantum/maestro/blob/main/schemas/tool_schema.json).
+The schema is same as ToolHive CRD definition except `apiVersion` and `kind`.
+Maestro deploy MCP servers for the defnied tools.  The list of available tools are [ToolHive `thv list`](https://docs.stacklok.com/toolhive/reference/cli/thv_list) command.
+
+- **apiVersion**: version of agent definition format.  This must be `maestro/v1alpha1` now.
+- **kind**: type of object. `MCPTool` for agent definition
+- **metadata**:
+  - **name**: name of tool
+  - **labels**: array of key, value pairs. This is optional and can be used to associate any information to this agent 
+- **spec**:
+  - **image**: LLM model name used by the agent  eg. "llama3.1:latest"
+  - **transport**: Transport is the transport method for the MCP server (stdio, streamable-http, sse)
+
+The full schema is documeted in [ToolHive Docs](https://docs.stacklok.com/toolhive/reference/crd-spec)
 ## Maestro CLI
 
 The Maestro Command Line Interface (CLI) allows users to manage workflows that includes validate, run, deploy and some other commands.
@@ -183,6 +209,7 @@ The Maestro Command Line Interface (CLI) allows users to manage workflows that i
 ### Basic Commands
 
 - `maestro create` AGENTS_FILE [options]: create agent  
+- `maestro create` TOOLS_FILE [options]: create tool (MCP server for the tool.  This requires a kubernetes cluster)  
 - `maestro deploy` AGENTS_FILE WORKFLOW_FILE [options] [ENV...] deploy and run the workflow in docker, kubernetes or Streamit
   - target option: `--deocker`: deployed in docker, `--k8s`: deployed in kubernetes cluster, `--streamlit`: deployed in streamlit
   - environment option: `env` takes a string that has list of key=value separated by comma.
