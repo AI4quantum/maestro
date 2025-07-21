@@ -58,19 +58,11 @@ uv run ruff format
 uv run ruff check --fix
 ```
 
-## Builder Development
+## Builder Frontend and Demos
 
 The Maestro Builder (web interface) has been moved to a separate repository: [maestro-builder](https://github.com/AI4quantum/maestro-builder)
 
-For detailed instructions and development setup, please visit the [maestro-builder repository](https://github.com/AI4quantum/maestro-builder).
-
-Quick start for the builder:
-```bash
-git clone https://github.com/AI4quantum/maestro-builder.git
-cd maestro-builder
-./start.sh    # Start both API and frontend
-./stop.sh     # Stop all services
-```
+Example use cases are also in a separate repository: [maestro-demos](https://github.com/AI4quantum/maestro-demos)
 
 ## Contributing
 
