@@ -37,4 +37,4 @@ class CrewAITest(TestCase):
 
 if __name__ == "__main__":
     crewtest = CrewAITest()
-    crewtest.test_agent_runs()
+    # crewtest.test_agent_runs()

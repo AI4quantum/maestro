@@ -67,7 +67,8 @@ RUN pip3 install --no-cache-dir --upgrade \
     pydantic-ai \
     logfire \
     litellm \
-    dspy
+    dspy \
+    ddgs    
 
 COPY ./src ./src
 COPY ./operator/entrypoint_api.sh .
