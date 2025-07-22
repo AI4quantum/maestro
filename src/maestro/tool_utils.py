@@ -44,7 +44,7 @@ def find_mcp_service(name):
             return service.metadata.name, f"http://{service.metadata.name}:{service.spec.ports[0].port}", transport, external
     return None, None, None, None
 
-async def get_http_tools(url):
+async def get_http_tools(url, converter):
     async with streamablehttp_client(url+"/mcp") as (
         read_stream,
         write_stream,
@@ -53,16 +53,26 @@ async def get_http_tools(url):
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
             tools = await session.list_tools()
-            return tools
+            if converter:
+                converted = []
+                for tool in tools.tools:
+                    converted.append(converter(session, tool))
+                return(converted)    
+            return tools.tools
 
-async def get_sse_tools(url):
+async def get_sse_tools(url, converter):
     async with sse_client(url+"/sse") as streams:
         async with ClientSession(streams[0], streams[1]) as session:
             await session.initialize()
             tools = await session.list_tools()
-            return tools
+            if converter:
+                converted = []
+                for tool in tools.tools:
+                    converted.append(converter(session, tool))
+                return(converted)    
+            return tools.tools
 
-async def get_mcp_tools(service_name):
+async def get_mcp_tools(service_name, converter):
     service, service_url, transport, external = find_mcp_service(service_name)
 
     if service:
@@ -80,20 +90,21 @@ async def get_mcp_tools(service_name):
             url = service_url
         
         if transport == "streamable-http":
-            tools = await get_http_tools(url)
+            tools = await get_http_tools(url, converter)
         elif transport == "sse":
-            tools = await get_sse_tools(url)
+            tools = await get_sse_tools(url, converter)
         else:
             print(f"{transport} transport not supported") 
-        print(f"Available tools: {[tool.name for tool in tools.tools]}")
-        for tool in tools.tools:
+        print(f"Available tools: {[tool.name for tool in tools]}")
+        for tool in tools:
             print(tool)
+        return(tools)
     else:
         print(f"Service: {service_name} not found")
 
 if __name__ == "__main__":
     import sys
-    if len(sys.argv) != 2:
-        print("Usage: python main.py <service_name>")
-    else:
-        asyncio.run(get_mcp_tools(sys.argv[1]))
+    converter = None
+    if len(sys.argv) == 3:
+        converter = sys.argv[2]
+    asyncio.run(get_mcp_tools(sys.argv[1], converter))
