@@ -17,6 +17,7 @@ group = "toolhive.stacklok.dev"
 version = "v1alpha1"
 kind = "MCPServer"
 
+
 def find_mcp_service(name):
     """
     Look for the service of mcp server name if it exist, it returns the service namd, url, and transport type for the server
@@ -34,17 +35,25 @@ def find_mcp_service(name):
     )
     for service in services.items:
         # Fetch the MCPServer CRD instance
-        crd = apis.get_namespaced_custom_object(group=group, version=version, name=name, namespace=namespace, plural=plural)
+        crd = apis.get_namespaced_custom_object(
+            group=group, version=version, name=name, namespace=namespace, plural=plural
+        )
         if crd:
             transport = crd["spec"]["transport"]
             external = None
             if service.spec.type == "NodePort" and service.spec.ports[0].node_port:
                 external = f"http://127.0.0.1:{service.spec.ports[0].node_port}"
-            return service.metadata.name, f"http://{service.metadata.name}:{service.spec.ports[0].port}", transport, external
+            return (
+                service.metadata.name,
+                f"http://{service.metadata.name}:{service.spec.ports[0].port}",
+                transport,
+                external,
+            )
     return None, None, None, None
 
+
 async def get_http_tools(url, converter):
-    async with streamablehttp_client(url+"/mcp") as (
+    async with streamablehttp_client(url + "/mcp") as (
         read_stream,
         write_stream,
         _,
@@ -59,11 +68,12 @@ async def get_http_tools(url, converter):
                         converted.append(converter(session, tool))
                     except Exception as e:
                         print(e)
-                return(converted)    
+                return converted
             return tools.tools
 
+
 async def get_sse_tools(url, converter):
-    async with sse_client(url+"/sse") as streams:
+    async with sse_client(url + "/sse") as streams:
         async with ClientSession(streams[0], streams[1]) as session:
             await session.initialize()
             tools = await session.list_tools()
@@ -71,11 +81,11 @@ async def get_sse_tools(url, converter):
                 converted = []
                 for tool in tools.tools:
                     converted.append(converter(session, tool))
-                return(converted)    
+                return converted
             return tools.tools
 
-async def get_mcp_tools(service_name, converter):
 
+async def get_mcp_tools(service_name, converter):
     service, service_url, transport, external = find_mcp_service(service_name)
 
     if service:
@@ -85,11 +95,13 @@ async def get_mcp_tools(service_name, converter):
         print(f"External: {external}")
 
         url = external
-        if os.getenv('KUBERNETES_SERVICE_HOST') and os.getenv('KUBERNETES_SERVICE_PORT'):
+        if os.getenv("KUBERNETES_SERVICE_HOST") and os.getenv(
+            "KUBERNETES_SERVICE_PORT"
+        ):
             url = service_url
-        if os.getenv('KUBERNETES_POD') == 'true':
+        if os.getenv("KUBERNETES_POD") == "true":
             url = service_url
-        if os.path.exists('/var/run/secrets/kubernetes.io/serviceaccount/token'):
+        if os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount/token"):
             url = service_url
 
         if transport == "streamable-http":
@@ -97,16 +109,18 @@ async def get_mcp_tools(service_name, converter):
         elif transport == "sse":
             tools = await get_sse_tools(url, converter)
         else:
-            print(f"{transport} transport not supported") 
+            print(f"{transport} transport not supported")
         print(f"Available tools: {[tool.name for tool in tools]}")
         for tool in tools:
             print(tool)
-        return(tools)
+        return tools
     else:
         print(f"Service: {service_name} not found")
 
+
 if __name__ == "__main__":
     import sys
+
     converter = None
     if len(sys.argv) == 3:
         converter = sys.argv[2]
