@@ -34,7 +34,6 @@ def find_mcp_service(name):
     )
     for service in services.items:
         # Fetch the MCPServer CRD instance
-        print(service.metadata.name)
         crd = apis.get_namespaced_custom_object(group=group, version=version, name=name, namespace=namespace, plural=plural)
         if crd:
             transport = crd["spec"]["transport"]
@@ -56,7 +55,10 @@ async def get_http_tools(url, converter):
             if converter:
                 converted = []
                 for tool in tools.tools:
-                    converted.append(converter(session, tool))
+                    try:
+                        converted.append(converter(session, tool))
+                    except Exception as e:
+                        print(e)
                 return(converted)    
             return tools.tools
 
@@ -73,6 +75,7 @@ async def get_sse_tools(url, converter):
             return tools.tools
 
 async def get_mcp_tools(service_name, converter):
+
     service, service_url, transport, external = find_mcp_service(service_name)
 
     if service:
@@ -88,7 +91,7 @@ async def get_mcp_tools(service_name, converter):
             url = service_url
         if os.path.exists('/var/run/secrets/kubernetes.io/serviceaccount/token'):
             url = service_url
-        
+
         if transport == "streamable-http":
             tools = await get_http_tools(url, converter)
         elif transport == "sse":
