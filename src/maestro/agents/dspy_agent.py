@@ -30,7 +30,7 @@ class DspyAgent(BaseAgent):
                 "url"
             )  # Assuming LLM provider URL is here
             self.agent_model = agent["spec"].get("model")  # Assuming model name is here
-            self.tool_names =  agent["spec"].get("tools")
+            self.tool_names = agent["spec"].get("tools")
         except KeyError as e:
             self.print(
                 f"Failed to load agent {self.agent_name}: Missing configuration key - {e}"
