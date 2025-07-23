@@ -1,6 +1,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import dspy
+from maestro.tool_utils import get_mcp_tools
 from .agent import Agent as BaseAgent  # Import BaseAgent first
 
 
@@ -29,6 +30,7 @@ class DspyAgent(BaseAgent):
                 "url"
             )  # Assuming LLM provider URL is here
             self.agent_model = agent["spec"].get("model")  # Assuming model name is here
+            self.tool_names =  agent["spec"].get("tools")
         except KeyError as e:
             self.print(
                 f"Failed to load agent {self.agent_name}: Missing configuration key - {e}"
@@ -60,8 +62,6 @@ class DspyAgent(BaseAgent):
         # os.environ["OPENAI_API_KEY"] = "{your openai key}"
         dspy.configure(lm=dspy.LM(self.agent_model, api_base=self.provider_url))
 
-        self.dspy_agent = dspy.ReAct(self.dspy_signature, tools=[])
-
     async def run(self, prompt: str) -> str:
         """
         Executes the Dspy agent with the given prompt. The agent's `kickoff` method is called with the input.
@@ -75,9 +75,20 @@ class DspyAgent(BaseAgent):
             Exception: If there is an error in retrieving or executing the agent's method.
         """
 
-        self.print(f"Running Dspy agent: {self.agent_name} with prompt: {prompt}\n")
-
         try:
+            tools = []
+            if self.tool_names and len(self.tool_names):
+                for tool_name in self.tool_names:
+                    tool_list = await get_mcp_tools(tool_name, dspy.Tool.from_mcp_tool)
+                    for tool in tool_list:
+                        tools.append(tool)
+            print(tools)
+        except Exception as e:
+            self.print(f"Adding tool error {e}")
+
+        self.print(f"Running Dspy agent: {self.agent_name} with prompt: {prompt}\n")
+        try:
+            self.dspy_agent = dspy.ReAct(self.dspy_signature, tools=tools)
             result = self.dspy_agent(user_request=prompt)
             self.print(f"Response from {self.agent_name}: {result.process_result}\n")
             return result.process_result
