@@ -25,11 +25,13 @@ from beeai_framework.errors import FrameworkError
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.template import PromptTemplateInput
 from beeai_framework.tools import AnyTool
+from beeai_framework.tools.mcp import MCPTool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.weather import OpenMeteoTool
 from beeai_framework.utils import AbortSignal
 
 from maestro.agents.agent import Agent
+from maestro.tool_utils import get_mcp_tools
 
 dotenv.load_dotenv()
 
@@ -296,6 +298,23 @@ class BeeAILocalAgent(Agent):
             )
             tools.append(sandbox_tool)
             self.print(sandbox_tool.name)
+
+        for tool in self.agent_tools:
+            if tool.lower() not in [
+                "weather",
+                "openmeteo",
+                "openmeteotool",
+                "web_search",
+                "search",
+                "duckduckgo",
+                "duckduckgosearchtool",
+                "code_interpreter",
+                "code",
+                "pythontool",
+            ]:
+                mcp_tools = await get_mcp_tools(tool.lower(), MCPTool)
+                tools.extend(mcp_tools)
+                self.print(mcp_tools[0].name)
 
         self.agent = ToolCallingAgent(
             llm=llm,

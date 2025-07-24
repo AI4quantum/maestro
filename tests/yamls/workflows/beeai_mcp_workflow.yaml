@@ -1,0 +1,20 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: beeai workflow
+  labels:
+    app: example2
+spec:
+  template:
+    metadata:
+      name: maestro-deployment
+      labels:
+        app: example
+        use-case: test
+    agents:
+        - test1
+    prompt: This is a test input
+    steps:
+      - name: step1
+        agent: test1
+
