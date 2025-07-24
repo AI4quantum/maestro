@@ -8,6 +8,7 @@ import requests
 import json
 
 from beeai_framework.agents.tool_calling import ToolCallingAgent
+from beeai_framework.backend import ChatModel
 from beeai_framework.tools.code import PythonTool, LocalPythonStorage, SandboxTool
 from openai import AssistantEventHandler, OpenAI
 from openai.types.beta import AssistantStreamEvent
@@ -16,7 +17,6 @@ from openai.types.beta.threads.runs import RunStep, RunStepDelta, ToolCall
 from typing import Any, Callable
 from pydantic import BaseModel
 
-from beeai_framework.adapters.ollama import OllamaChatModel
 from beeai_framework.agents import AgentExecutionConfig, AgentMeta
 from beeai_framework.emitter import Emitter, EmitterOptions, EventMeta
 from beeai_framework.errors import FrameworkError
@@ -245,7 +245,9 @@ class BeeAILocalAgent(Agent):
         self.agent = None
 
     async def _create_agent(self):
-        llm = OllamaChatModel(self.agent_model)
+        llm = ChatModel.from_name(
+            self.agent_model, base_url=self.agent["spec"].get("url")
+        )
 
         templates: dict[str, Any] = {
             "user": user_template_func,

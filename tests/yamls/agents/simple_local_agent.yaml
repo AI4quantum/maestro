@@ -6,7 +6,7 @@ metadata:
     app: test-example
 spec:
 
-  model: llama3.1
+  model: ollama/llama3.1
   framework: beeai
   mode: local
   description: this is a test
@@ -24,7 +24,7 @@ metadata:
   labels:
     app: test-example
 spec:
-  model: llama3.1
+  model: ollama/llama3.1
   mode: local
   framework: beeai
   description: this is a test
@@ -42,7 +42,7 @@ metadata:
   labels:
     app: test-example
 spec:
-  model: llama3.1
+  model: ollama/llama3.1
   framework: beeai
   mode: local
   description: this is a test
@@ -60,7 +60,7 @@ metadata:
   labels:
     app: test-example
 spec:
-  model: llama3.1
+  model: ollama/llama3.1
   framework: beeai
   mode: local
   description: this is a test
@@ -78,7 +78,7 @@ metadata:
   labels:
     app: test-example
 spec:
-  model: llama3.1
+  model: ollama/llama3.1
   framework: beeai
   mode: local
   description: this is a test

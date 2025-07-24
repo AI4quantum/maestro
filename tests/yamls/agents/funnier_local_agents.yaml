@@ -19,7 +19,7 @@ metadata:
   labels:
     app: funnier-example
 spec:
-  model: llama3.1
+  model: ollama/llama3.1
   framework: beeai
   mode: local
   instructions: you are a joke telling agent
