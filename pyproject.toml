@@ -5,7 +5,7 @@ description = "A multi-agent platform with the vision to facilitate deploy and r
 authors = [
     {name = "IBM"}
 ]
-license = {text = "Apache-2.0"}
+license = "Apache-2.0"
 readme = "README.md"
 requires-python = ">=3.11,<3.13"
 dependencies = [
