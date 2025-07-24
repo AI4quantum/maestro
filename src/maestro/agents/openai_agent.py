@@ -54,8 +54,10 @@ class OpenAIAgent(MaestroAgent):
 
         spec_dict = agent_definition.get("spec", {})
         self.model_name: str = spec_dict.get("model", OPENAI_DEFAULT_MODEL)
-        self.base_url: str = os.getenv("OPENAI_BASE_URL", OPENAI_DEFAULT_URL)
-        self.api_key: Optional[str] = os.getenv("OPENAI_API_KEY")
+        self.base_url: str = spec_dict.get(
+            "url", os.getenv("OPENAI_BASE_URL", OPENAI_DEFAULT_URL)
+        )
+        self.api_key: Optional[str] = os.getenv("OPENAI_API_KEY", "dummy_key")
         self.uses_chat_completions: bool = self.base_url != OPENAI_DEFAULT_URL
         self.use_litellm: bool = (
             os.getenv("MAESTRO_OPENAI_USE_LITELLM", "false").lower() == "true"

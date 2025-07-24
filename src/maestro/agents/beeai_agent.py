@@ -46,7 +46,9 @@ class BeeAIAgent(Agent):
         """
         super().__init__(agent)
 
-        url = f"{os.getenv('BEE_API')}/v1/assistants"
+        self.base_url = f"{agent['spec'].get('url', os.getenv('BEE_API'))}/v1"
+
+        url = f"{self.base_url}/assistants"
         headers = {
             "accept": "application/json",
             "Authorization": "Bearer sk-proj-testkey",
@@ -85,7 +87,8 @@ class BeeAIAgent(Agent):
         """
         self.print(f"Running {self.agent_name}...\n")
         client = OpenAI(
-            base_url=f"{os.getenv('BEE_API')}/v1", api_key=os.getenv("BEE_API_KEY")
+            base_url=f"{self.base_url}/v1",
+            api_key=os.getenv("BEE_API_KEY", "dummy_key"),
         )
         # TODO: Unused currently
         # assistant = client.beta.assistants.retrieve(self.agent_id)
@@ -108,7 +111,8 @@ class BeeAIAgent(Agent):
         """
         self.print(f"Running {self.agent_name}...\n")
         client = OpenAI(
-            base_url=f"{os.getenv('BEE_API')}/v1", api_key=os.getenv("BEE_API_KEY")
+            base_url=f"{self.base_url}/v1",
+            api_key=os.getenv("BEE_API_KEY", "dummy_key"),
         )
         # TODO: Unused currently
         # assistant = client.beta.assistants.retrieve(self.agent_id)
