@@ -7,6 +7,7 @@ import tempfile
 import requests
 import json
 
+from beeai_framework.adapters.ollama import OllamaChatModel
 from beeai_framework.agents.tool_calling import ToolCallingAgent
 from beeai_framework.backend import ChatModel
 from beeai_framework.tools.code import PythonTool, LocalPythonStorage, SandboxTool
@@ -245,9 +246,14 @@ class BeeAILocalAgent(Agent):
         self.agent = None
 
     async def _create_agent(self):
-        llm = ChatModel.from_name(
-            self.agent_model, base_url=self.agent["spec"].get("url")
-        )
+        if len(self.agent_model.split("/")) < 2:
+            llm = OllamaChatModel(
+                self.agent_model, base_url=self.agent["spec"].get("url")
+            )
+        else:
+            llm = ChatModel.from_name(
+                self.agent_model, base_url=self.agent["spec"].get("url")
+            )
 
         templates: dict[str, Any] = {
             "user": user_template_func,
