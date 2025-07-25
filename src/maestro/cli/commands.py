@@ -17,6 +17,7 @@ import jsonschema
 import psutil
 
 from jsonschema.exceptions import ValidationError, SchemaError
+from maestro.cli.schemas import SCHEMA_MAP
 
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
@@ -155,7 +156,13 @@ class ValidateCmd(Command):
 
     # private
 
-    def __discover_schema_file(self, yaml_file):
+    def __get_schema(self, kind):
+        """Get schema for the given kind."""
+        if kind not in SCHEMA_MAP:
+            raise ValueError(f"Unknown kind: {kind}")
+        return SCHEMA_MAP[kind]
+
+    def __discover_schema(self, yaml_file):
         yaml_data = parse_yaml(yaml_file)
         if isinstance(yaml_data, list) and len(yaml_data) > 0:
             yaml_data = yaml_data[0]
@@ -177,36 +184,33 @@ class ValidateCmd(Command):
         elif kind == "CustomResourceDefinition":
             Console.ok("CustomResourceDefinition is not supported")
             return None
-        else:
-            raise ValueError(f"Unknown kind: {kind}")
+
+        return self.__get_schema(kind)
 
     def __validate(self, schema_file, yaml_file):
-        Console.print(f"validating {yaml_file} with schema {schema_file}")
-        if schema_file is None:
-            # Try to discover the schema file based on the yaml file
-            project_root = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "../../../")
-            )
-            if "agents.yaml" in yaml_file:
-                schema_file = os.path.join(project_root, "schemas/agent_schema.json")
-            elif "workflow.yaml" in yaml_file:
-                schema_file = os.path.join(project_root, "schemas/workflow_schema.json")
-            else:
-                raise RuntimeError(
-                    "Could not determine schema file from yaml file name"
-                )
-        with open(schema_file, "r", encoding="utf-8") as f:
-            schema = json.load(f)
+        Console.print(f"validating {yaml_file}")
+
+        if schema_file:
+            with open(schema_file, "r", encoding="utf-8") as f:
+                schema = json.load(f)
+        else:
+            schema = self.__discover_schema(yaml_file)
+            if schema is None:
+                return 0
+            Console.print(f"using embedded schema for {yaml_file}")
+
         with open(yaml_file, "r", encoding="utf-8") as f:
-            yamls = yaml.safe_load_all(f)
-            for yaml_data in yamls:
+            yamls = list(yaml.safe_load_all(f))
+
+            if len(yamls) == 1:
+                # Single document - simple validation
                 try:
                     if self.verbose():
                         Console.print(
-                            f"Validating YAML data: {json.dumps(yaml_data, indent=2)}"
+                            f"Validating YAML data: {json.dumps(yamls[0], indent=2)}"
                         )
                         Console.print(f"Against schema: {json.dumps(schema, indent=2)}")
-                    jsonschema.validate(yaml_data, schema)
+                    jsonschema.validate(yamls[0], schema)
                     if not self.silent():
                         Console.ok("YAML file is valid.")
                 except ValidationError as ve:
@@ -217,6 +221,50 @@ class ValidateCmd(Command):
                     self._check_verbose()
                     Console.error(f"Schema file is NOT valid:\n {str(se.message)}")
                     return 1
+            else:
+                Console.print(f"Found {len(yamls)} documents to validate:")
+                for i, yaml_data in enumerate(yamls, 1):
+                    try:
+                        name = yaml_data.get("metadata", {}).get(
+                            "name", f"document {i}"
+                        )
+                        kind = yaml_data.get("kind", "unknown")
+
+                        if not self.silent():
+                            Console.print(
+                                f"  [{i}/{len(yamls)}] Validating {kind} '{name}'..."
+                            )
+
+                        if self.verbose():
+                            Console.print(
+                                f"Validating YAML data: {json.dumps(yaml_data, indent=2)}"
+                            )
+                            Console.print(
+                                f"Against schema: {json.dumps(schema, indent=2)}"
+                            )
+
+                        jsonschema.validate(yaml_data, schema)
+
+                        if not self.silent():
+                            Console.ok(
+                                f"  [{i}/{len(yamls)}] ✓ {kind} '{name}' is valid"
+                            )
+
+                    except ValidationError as ve:
+                        self._check_verbose()
+                        Console.error(
+                            f"  [{i}/{len(yamls)}] ✗ {kind} '{name}' is NOT valid:\n {str(ve.message)}"
+                        )
+                        return 1
+                    except SchemaError as se:
+                        self._check_verbose()
+                        Console.error(
+                            f"  [{i}/{len(yamls)}] ✗ Schema error for {kind} '{name}':\n {str(se.message)}"
+                        )
+                        return 1
+
+                if not self.silent():
+                    Console.ok(f"All {len(yamls)} documents are valid!")
         return 0
 
     # public
@@ -236,17 +284,8 @@ class ValidateCmd(Command):
         Returns:
             int: Return code (0 for success, 1 for failure)
         """
-        if self.SCHEMA_FILE() is None or self.SCHEMA_FILE() == "":
-            discovered_schema_file = ""
-            try:
-                discovered_schema_file = self.__discover_schema_file(self.YAML_FILE())
-                if not discovered_schema_file:
-                    return 0
-            except Exception as e:
-                Console.error(f"Invalid YAML file: {self.YAML_FILE()}: {str(e)}")
-                return 1
-            return self.__validate(discovered_schema_file, self.YAML_FILE())
-        return self.__validate(self.SCHEMA_FILE(), self.YAML_FILE())
+        schema_file = self.SCHEMA_FILE() if self.SCHEMA_FILE() else None
+        return self.__validate(schema_file, self.YAML_FILE())
 
 
 # Create command group
