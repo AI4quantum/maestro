@@ -194,10 +194,16 @@ class ValidateCmd(Command):
             with open(schema_file, "r", encoding="utf-8") as f:
                 schema = json.load(f)
         else:
-            schema = self.__discover_schema(yaml_file)
-            if schema is None:
+            discovered_schema = self.__discover_schema(yaml_file)
+            if discovered_schema is None:
                 return 0
-            Console.print(f"using embedded schema for {yaml_file}")
+            if isinstance(discovered_schema, str):
+                with open(discovered_schema, "r", encoding="utf-8") as f:
+                    schema = json.load(f)
+                Console.print(f"using discovered schema file: {discovered_schema}")
+            else:
+                schema = discovered_schema
+                Console.print(f"using embedded schema for {yaml_file}")
 
         with open(yaml_file, "r", encoding="utf-8") as f:
             yamls = list(yaml.safe_load_all(f))
