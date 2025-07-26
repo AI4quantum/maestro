@@ -17,6 +17,7 @@ import jsonschema
 import psutil
 
 from jsonschema.exceptions import ValidationError, SchemaError
+from importlib.resources import files
 
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
@@ -160,17 +161,16 @@ class ValidateCmd(Command):
         if isinstance(yaml_data, list) and len(yaml_data) > 0:
             yaml_data = yaml_data[0]
         kind = yaml_data.get("kind")
-        project_root = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "../../../")
-        )
         if kind == "Agent":
-            return os.path.join(project_root, "schemas/agent_schema.json")
+            return str(files("maestro").joinpath("schemas/agent_schema.json"))
         elif kind == "Tool":
-            return os.path.join(project_root, "schemas/tool_schema.json")
+            return str(files("maestro").joinpath("schemas/tool_schema.json"))
         elif kind == "MCPTool":
-            return os.path.join(project_root, "schemas/tool_toolhive_schema_full.json")
+            return str(
+                files("maestro").joinpath("schemas/tool_toolhive_schema_full.json")
+            )
         elif kind == "Workflow":
-            return os.path.join(project_root, "schemas/workflow_schema.json")
+            return str(files("maestro").joinpath("schemas/workflow_schema.json"))
         elif kind == "WorkflowRun":
             Console.ok("WorkflowRun is not supported")
             return None
@@ -184,13 +184,14 @@ class ValidateCmd(Command):
         Console.print(f"validating {yaml_file} with schema {schema_file}")
         if schema_file is None:
             # Try to discover the schema file based on the yaml file
-            project_root = os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "../../../")
-            )
             if "agents.yaml" in yaml_file:
-                schema_file = os.path.join(project_root, "schemas/agent_schema.json")
+                schema_file = str(
+                    files("maestro").joinpath("schemas/agent_schema.json")
+                )
             elif "workflow.yaml" in yaml_file:
-                schema_file = os.path.join(project_root, "schemas/workflow_schema.json")
+                schema_file = str(
+                    files("maestro").joinpath("schemas/workflow_schema.json")
+                )
             else:
                 raise RuntimeError(
                     "Could not determine schema file from yaml file name"

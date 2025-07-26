@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/AI4quantum/maestro/schemas/tool_schema.json",
+  "$id": "https://github.com/AI4quantum/maestro/src/maestro/schemas/tool_schema.json",
   "title": "Maestro Tool",
   "description": "A schema for defining Maestro MetaAgent tool in YAML or JSON",
   "type": "object",

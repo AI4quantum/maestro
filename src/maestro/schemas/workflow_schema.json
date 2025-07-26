@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/AI4quantum/maestro/schemas/workflow_schema.json",
+  "$id": "https://github.com/AI4quantum/maestro/src/maestro/schemas/workflow_schema.json",
   "title": "Maestro Workflow",
   "description": "A schema for defining Maestro workflows in YAML or JSON",
   "type": "object",

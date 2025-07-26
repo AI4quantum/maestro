@@ -1,6 +1,6 @@
 {
             "$schema": "https://json-schema.org/draft/2020-12/schema",
-            "$id": "https://github.com/AI4quantum/maestro/schemas/tool_toolhive_schema_full.json",
+            "$id": "https://github.com/AI4quantum/maestro/src/maestro/schemas/tool_toolhive_schema_full.json",
             "title": "Maestro Tool",
             "type": "object",  
             "description": "MCPServer is the Schema for the mcpservers API",

@@ -53,7 +53,7 @@ where = ["src"]
 include = ["maestro*"]
 
 [tool.setuptools.package-data]
-"maestro" = ["images/*.png"]
+"maestro" = ["images/*.png", "schemas/*.json"]
 
 [tool.pytest.ini_options]
 addopts = "-v -s --ignore=framework"
