@@ -6,19 +6,19 @@
 import os
 import unittest
 from unittest import TestCase, mock
+from importlib.resources import files
 
 from maestro.cli.commands import CLI
 
 
 class TestCommand(TestCase):
     TEST_FIXTURES_ROOT_PATH = os.path.join(os.path.dirname(__file__), "..")
-    SCHEMAS_ROOT_PATH = os.path.join(os.path.dirname(__file__), "../../schemas")
 
     def get_fixture(self, file_name):
         return os.path.join(self.TEST_FIXTURES_ROOT_PATH, file_name)
 
     def get_schema(self, file_name):
-        return os.path.join(self.SCHEMAS_ROOT_PATH, file_name)
+        return str(files("maestro").joinpath(f"schemas/{file_name}"))
 
 
 # `deploy` commmand tests
