@@ -106,7 +106,7 @@ async def get_mcp_tools(service_name, converter):
 
         if transport == "streamable-http":
             tools = await get_http_tools(url, converter)
-        elif transport == "sse":
+        elif transport == "sse" or transport == "stdio":
             tools = await get_sse_tools(url, converter)
         else:
             print(f"{transport} transport not supported")
@@ -116,6 +116,37 @@ async def get_mcp_tools(service_name, converter):
         return tools
     else:
         print(f"Service: {service_name} not found")
+
+
+def get_mcp_tool_url(service_name):
+    service, service_url, transport, external = find_mcp_service(service_name)
+
+    if service:
+        print(f"Service Name: {service}")
+        print(f"Service URL: {service_url}")
+        print(f"Transport: {transport}")
+        print(f"External: {external}")
+
+        url = external
+        if os.getenv("KUBERNETES_SERVICE_HOST") and os.getenv(
+            "KUBERNETES_SERVICE_PORT"
+        ):
+            url = service_url
+        if os.getenv("KUBERNETES_POD") == "true":
+            url = service_url
+        if os.path.exists("/var/run/secrets/kubernetes.io/serviceaccount/token"):
+            url = service_url
+
+        if transport == "streamable-http":
+            return url + "/mcp", "streamable_http"
+        elif transport == "sse" or transport == "stdio":
+            return url + "/sse", "sse"
+        else:
+            print(f"{transport} transport not supported")
+            return None, None
+    else:
+        print(f"Service: {service_name} not found")
+        return None, None
 
 
 if __name__ == "__main__":

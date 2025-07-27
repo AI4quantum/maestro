@@ -134,7 +134,7 @@ async def get_mcp_servers(tools):
                 # print("###")
                 print(tool_name)
                 print(url + "/sse")
-                if transport == "sse":
+                if transport == "sse" or transport == "stdio":
                     server = MCPServerSse(name=tool_name, params={"url": url + "/sse"})
                 else:
                     server = MCPServerStreamableHttp(

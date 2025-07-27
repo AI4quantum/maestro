@@ -1,8 +1,12 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import dspy
-from maestro.tool_utils import get_mcp_tools
+from maestro.tool_utils import get_mcp_tool_url
 from .agent import Agent as BaseAgent  # Import BaseAgent first
+
+from mcp import ClientSession
+from mcp.client.streamable_http import streamablehttp_client
+from mcp.client.sse import sse_client
 
 
 class DspyAgent(BaseAgent):
@@ -76,23 +80,39 @@ class DspyAgent(BaseAgent):
         """
 
         try:
-            tools = []
+            dspy_tools = []
             if self.tool_names and len(self.tool_names):
                 for tool_name in self.tool_names:
-                    tool_list = await get_mcp_tools(tool_name, dspy.Tool.from_mcp_tool)
-                    for tool in tool_list:
-                        tools.append(tool)
-            print(tools)
-        except Exception as e:
-            self.print(f"Adding tool error {e}")
+                    tool_url, transport = get_mcp_tool_url(tool_name)
+                    if transport == "streamable-http":
+                        client_factory = streamablehttp_client
+                    else:
+                        client_factory = sse_client
+                    async with client_factory(tool_url) as streams:
+                        async with ClientSession(streams[0], streams[1]) as session:
+                            await session.initialize()
+                            tools = await session.list_tools()
+                            for tool in tools.tools:
+                                dspy_tools.append(
+                                    dspy.Tool.from_mcp_tool(session, tool)
+                                )
 
-        self.print(f"Running Dspy agent: {self.agent_name} with prompt: {prompt}\n")
-        try:
-            self.dspy_agent = dspy.ReAct(self.dspy_signature, tools=tools)
-            result = self.dspy_agent(user_request=prompt)
-            self.print(f"Response from {self.agent_name}: {result.process_result}\n")
+                            self.print(
+                                f"Running Dspy agent: {self.agent_name} with prompt: {prompt}\n"
+                            )
+                            self.dspy_agent = dspy.ReAct(
+                                self.dspy_signature, dspy_tools
+                            )
+                            try:
+                                result = await self.dspy_agent.acall(
+                                    user_request=prompt
+                                )
+                            except Exception as e:
+                                print(f"Agent error: {e}")
+                            self.print(
+                                f"Response from {self.agent_name}: {result.process_result}\n"
+                            )
             return result.process_result
-
         except Exception as e:
             self.print(f"Failed to execute dspy agent: {self.agent_name}: {e}\n")
             raise RuntimeError(f"Error executing Dspy agent {self.agent_name}") from e
