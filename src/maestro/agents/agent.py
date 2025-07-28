@@ -23,6 +23,7 @@ class Agent:
         self.agent_name = agent["metadata"]["name"]
         self.agent_framework = agent["spec"]["framework"]
         self.agent_model = agent["spec"].get("model")
+        self.agent_url = agent["spec"].get("url")
 
         self.agent_tools = agent["spec"].get("tools", [])
 

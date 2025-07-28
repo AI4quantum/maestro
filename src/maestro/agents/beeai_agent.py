@@ -247,13 +247,9 @@ class BeeAILocalAgent(Agent):
 
     async def _create_agent(self):
         if len(self.agent_model.split("/")) < 2:
-            llm = OllamaChatModel(
-                self.agent_model, base_url=self.agent["spec"].get("url")
-            )
+            llm = OllamaChatModel(self.agent_model, base_url=self.agent_url)
         else:
-            llm = ChatModel.from_name(
-                self.agent_model, base_url=self.agent["spec"].get("url")
-            )
+            llm = ChatModel.from_name(self.agent_model, base_url=self.agent_url)
 
         templates: dict[str, Any] = {
             "user": user_template_func,
