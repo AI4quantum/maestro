@@ -255,7 +255,7 @@ class OpenAIAgent(MaestroAgent):
             active_mcp_servers, mcp_stack = await setup_mcp_servers(
                 print_func=self.print, agent_name=self.agent_name
             )
-            maestro_mcp_servers = await get_mcp_servers(self.tools)
+            maestro_mcp_servers = await get_mcp_servers(self.tools, mcp_stack)
             active_mcp_servers.extend(maestro_mcp_servers)
 
             async with mcp_stack:

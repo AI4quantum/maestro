@@ -262,23 +262,20 @@ class BeeAILocalAgent(Agent):
         }
 
         tools: list[AnyTool] = []
+        embedded_tools = []
 
-        if any(
-            tool in ["weather", "openmeteo", "openmeteotool"]
-            for tool in [x.lower() for x in self.agent_tools]
-        ):
+        weather_tools = ["weather", "openmeteo", "openmeteotool"]
+        if any(tool in weather_tools for tool in [x.lower() for x in self.agent_tools]):
             tools.append(OpenMeteoTool())
+        embedded_tools.extend(weather_tools)
 
-        if any(
-            tool in ["web_search", "search", "duckduckgo", "duckduckgosearchtool"]
-            for tool in [x.lower() for x in self.agent_tools]
-        ):
+        search_tools = ["web_search", "search", "duckduckgo", "duckduckgosearchtool"]
+        if any(tool in search_tools for tool in [x.lower() for x in self.agent_tools]):
             tools.append(DuckDuckGoSearchTool())
+        embedded_tools.extend(search_tools)
 
-        if any(
-            tool in ["code_interpreter", "code", "pythontool"]
-            for tool in [x.lower() for x in self.agent_tools]
-        ):
+        code_tools = ["code_interpreter", "code", "pythontool"]
+        if any(tool in code_tools for tool in [x.lower() for x in self.agent_tools]):
             tools.append(
                 PythonTool(
                     os.getenv("CODE_INTERPRETER_URL", "http://localhost:50081"),
@@ -290,6 +287,7 @@ class BeeAILocalAgent(Agent):
                     ),
                 )
             )
+        embedded_tools.extend(code_tools)
 
         if self.agent_code:
             sandbox_tool = await SandboxTool.from_source_code(
@@ -300,21 +298,9 @@ class BeeAILocalAgent(Agent):
             self.print(sandbox_tool.name)
 
         for tool in self.agent_tools:
-            if tool.lower() not in [
-                "weather",
-                "openmeteo",
-                "openmeteotool",
-                "web_search",
-                "search",
-                "duckduckgo",
-                "duckduckgosearchtool",
-                "code_interpreter",
-                "code",
-                "pythontool",
-            ]:
+            if tool.lower() not in embedded_tools:
                 mcp_tools = await get_mcp_tools(tool.lower(), MCPTool)
                 tools.extend(mcp_tools)
-                self.print(mcp_tools[0].name)
 
         self.agent = ToolCallingAgent(
             llm=llm,

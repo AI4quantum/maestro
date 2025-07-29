@@ -113,7 +113,7 @@ async def setup_mcp_servers(
     return active_servers, stack
 
 
-async def get_mcp_servers(tools):
+async def get_mcp_servers(tools, stack):
     mcp_servers = []
     if tools:
         for tool_name in tools:
@@ -130,10 +130,6 @@ async def get_mcp_servers(tools):
                     "/var/run/secrets/kubernetes.io/serviceaccount/token"
                 ):
                     url = service_url
-
-                # print("###")
-                print(tool_name)
-                print(url + "/sse")
                 if transport == "sse" or transport == "stdio":
                     server = MCPServerSse(name=tool_name, params={"url": url + "/sse"})
                 else:
@@ -142,4 +138,5 @@ async def get_mcp_servers(tools):
                     )
                 await server.connect()
                 mcp_servers.append(server)
+                await stack.enter_async_context(server)
     return mcp_servers
