@@ -10,6 +10,7 @@ import json
 from beeai_framework.adapters.ollama import OllamaChatModel
 from beeai_framework.agents.tool_calling import ToolCallingAgent
 from beeai_framework.backend import ChatModel
+from beeai_framework.backend.utils import find_provider_def
 from beeai_framework.tools.code import PythonTool, LocalPythonStorage, SandboxTool
 from openai import AssistantEventHandler, OpenAI
 from openai.types.beta import AssistantStreamEvent
@@ -88,8 +89,8 @@ class BeeAIAgent(Agent):
         """
         self.print(f"Running {self.agent_name}...\n")
         client = OpenAI(
-            base_url=f"{self.base_url}/v1",
-            api_key=os.getenv("BEE_API_KEY", "dummy_key"),
+            base_url=self.base_url,
+            api_key=os.getenv("BEE_API_KEY", "sk-proj-testkey"),
         )
         # TODO: Unused currently
         # assistant = client.beta.assistants.retrieve(self.agent_id)
@@ -112,8 +113,8 @@ class BeeAIAgent(Agent):
         """
         self.print(f"Running {self.agent_name}...\n")
         client = OpenAI(
-            base_url=f"{self.base_url}/v1",
-            api_key=os.getenv("BEE_API_KEY", "dummy_key"),
+            base_url=self.base_url,
+            api_key=os.getenv("BEE_API_KEY", "sk-proj-testkey"),
         )
         # TODO: Unused currently
         # assistant = client.beta.assistants.retrieve(self.agent_id)
@@ -246,10 +247,10 @@ class BeeAILocalAgent(Agent):
         self.agent = None
 
     async def _create_agent(self):
-        if len(self.agent_model.split("/")) < 2:
-            llm = OllamaChatModel(self.agent_model, base_url=self.agent_url)
-        else:
+        if find_provider_def(self.agent_model.split(":")[0]) is not None:
             llm = ChatModel.from_name(self.agent_model, base_url=self.agent_url)
+        else:
+            llm = OllamaChatModel(self.agent_model, base_url=self.agent_url)
 
         templates: dict[str, Any] = {
             "user": user_template_func,
