@@ -52,40 +52,40 @@ def find_mcp_service(name):
     return None, None, None, None
 
 
-async def get_http_tools(url, converter):
-    async with streamablehttp_client(url + "/mcp") as (
-        read_stream,
-        write_stream,
-        _,
-    ):
-        async with ClientSession(read_stream, write_stream) as session:
-            await session.initialize()
-            tools = await session.list_tools()
-            if converter:
-                converted = []
-                for tool in tools.tools:
-                    try:
-                        converted.append(converter(session, tool))
-                    except Exception as e:
-                        print(e)
-                return converted
-            return tools.tools
+async def get_http_tools(url, converter, stack):
+    transport = await stack.enter_async_context(streamablehttp_client(url + "/mcp"))
+    stdio, write = transport
+    session = await stack.enter_async_context(ClientSession(stdio, write))
+    await session.initialize()
+    tools = await session.list_tools()
+    if converter:
+        converted = []
+        for tool in tools.tools:
+            try:
+                print(f"puttings ession:{session}")
+                converted.append(converter(session, tool))
+            except Exception as e:
+                print(e)
+        return converted
+    return tools.tools
 
 
-async def get_sse_tools(url, converter):
-    async with sse_client(url + "/sse") as streams:
-        async with ClientSession(streams[0], streams[1]) as session:
-            await session.initialize()
-            tools = await session.list_tools()
-            if converter:
-                converted = []
-                for tool in tools.tools:
-                    converted.append(converter(session, tool))
-                return converted
-            return tools.tools
+async def get_sse_tools(url, converter, stack):
+    transport = await stack.enter_async_context(sse_client(url + "/sse"))
+    stdio, write = transport
+    session = await stack.enter_async_context(ClientSession(stdio, write))
+    await session.initialize()
+    tools = await session.list_tools()
+    if converter:
+        converted = []
+        for tool in tools.tools:
+            print(f"puttings ession:{session}")
+            converted.append(converter(session, tool))
+        return converted
+    return tools.tools
 
 
-async def get_mcp_tools(service_name, converter):
+async def get_mcp_tools(service_name, converter, stack):
     service, service_url, transport, external = find_mcp_service(service_name)
 
     if service:
@@ -105,9 +105,9 @@ async def get_mcp_tools(service_name, converter):
             url = service_url
 
         if transport == "streamable-http":
-            tools = await get_http_tools(url, converter)
+            tools = await get_http_tools(url, converter, stack)
         elif transport == "sse" or transport == "stdio":
-            tools = await get_sse_tools(url, converter)
+            tools = await get_sse_tools(url, converter, stack)
         else:
             print(f"{transport} transport not supported")
         print(f"Available tools: {[tool.name for tool in tools]}")

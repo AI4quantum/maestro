@@ -32,6 +32,7 @@ from beeai_framework.utils import AbortSignal
 
 from maestro.agents.agent import Agent
 from maestro.tool_utils import get_mcp_tools
+from contextlib import AsyncExitStack
 
 dotenv.load_dotenv()
 
@@ -246,6 +247,7 @@ class BeeAILocalAgent(Agent):
             agent_name (str): The name of the agent.
         """
         super().__init__(agent)
+        self.mcp_stack = AsyncExitStack()
         self.agent = None
 
     async def _create_agent(self):
@@ -299,7 +301,7 @@ class BeeAILocalAgent(Agent):
 
         for tool in self.agent_tools:
             if tool.lower() not in embedded_tools:
-                mcp_tools = await get_mcp_tools(tool.lower(), MCPTool)
+                mcp_tools = await get_mcp_tools(tool.lower(), MCPTool, self.mcp_stack)
                 tools.extend(mcp_tools)
 
         self.agent = ToolCallingAgent(
@@ -347,6 +349,7 @@ class BeeAILocalAgent(Agent):
             signal=AbortSignal.timeout(2 * 60 * 1000),
         ).observe(self._observer)
         answer = response.result.text
+        await self.mcp_stack.aclose()
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
 
@@ -367,5 +370,6 @@ class BeeAILocalAgent(Agent):
             signal=AbortSignal.timeout(2 * 60 * 1000),
         ).observe(self._observer)
         answer = response.result.text
+        await self.mcp_stack.aclose()
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
