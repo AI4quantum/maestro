@@ -594,6 +594,43 @@ spec:
 🐝 Response from countdown: happy
 ```
 
+### Simple code agent
+
+If you just want an agent to run some python code without calling an LLM you can create a code agent
+
+#### agent.yaml
+```yaml
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: github-lister
+  labels:
+    app: simple-example
+spec:
+  framework: code
+  mode: local
+  description: list repos from GitHub
+  instructions: list my GitHub repos using the GitHub API
+  code: |
+    import os
+    import requests
+
+    token = os.getenv("GITHUB_TOKEN")
+    user = os.getenv("GITHUB_USER")
+    if not token or not user:
+        output["error"] = "GITHUB_TOKEN or GITHUB_USER not set"
+    else:
+        headers = {"Authorization": f"Bearer {token}"}
+        url = f"https://api.github.com/users/{user}/repos"
+        r = requests.get(url, headers=headers)
+        repos = [repo["name"] for repo in r.json()]
+        output["repos"] = repos
+```
+
+This agent runs the python code in `spec.code` passing the value of prompt in the `input` var and returns whatever that code puts in the `output` var.
+
+The value of `spec.code` can also be set to a url or file path containing the code block to be run. The file path is relative to where maestro is run.
+
 ## Demos
 
 For comprehensive demos and examples, visit: [https://github.com/AI4quantum/maestro-demos](https://github.com/AI4quantum/maestro-demos)
