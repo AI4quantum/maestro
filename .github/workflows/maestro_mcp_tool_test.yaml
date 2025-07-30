@@ -88,6 +88,7 @@ jobs:
         uv pip install .
         cp ../tests/utils/responses.yml responses.yml	
         mockllm start --responses responses.yml &
+	sleep(10)
 
         # Run workflow
         uv run maestro run tests/yamls/agents/openai_mcp_agent.yaml tests/yamls/workflows/openai_mcp_workflow.yaml
