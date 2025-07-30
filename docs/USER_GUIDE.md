@@ -43,6 +43,7 @@ The syntax of the agent definition is defined in the [json schema](https://githu
   - **mode**: Remote or Local.  Some agents support agent remotely.  Remote is supported by "beeai" and "remote" 
   - **description**: Description of this agent
   - **tools**: array of tool names. This is not implemented yet.
+  - **instructions**: the instructions for the agent, can be a (multi-line) string, a url, or a file path. The file path is relative to where maestro is run
 
 ### Workflow
 Workflow example defined in yaml format is:
