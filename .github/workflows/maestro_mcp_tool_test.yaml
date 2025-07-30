@@ -85,7 +85,7 @@ jobs:
         # Install and start mockllm
         git clone https://github.com/stacklok/mockllm.git
         cd mockllm
-	uv pip install .
+        uv pip install .
         cp tests/utils/responses.yml responses.yml	
         mockllm start --responses responses.yml &
 
