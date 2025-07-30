@@ -83,9 +83,9 @@ jobs:
     - name: Run a workflow
       run: |
         # Install and start mockllm
-        pip install mockllm
+        uv pip install mockllm
         cp tests/utils/responses.yml responses.yml	
-        mockllm start --responses responses.yml
+        uv run mockllm start --responses responses.yml
 
         # Run workflow
         uv run maestro run tests/yamls/agents/openai_mcp_agent.yaml tests/yamls/workflows/openai_mcp_workflow.yaml
