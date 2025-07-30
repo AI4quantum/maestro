@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
+import os
 from maestro.agents.agent import Agent
 from opik.evaluation.metrics import AnswerRelevance, Hallucination
-from opik import Opik
+from opik import opik_context
 
 from dotenv import load_dotenv
 
@@ -25,7 +26,6 @@ class ScoringAgent(Agent):
             self._litellm_model = raw_model
         else:
             self._litellm_model = f"ollama/{raw_model}"
-        self._opik = Opik()
 
     async def run(
         self, prompt: str, response: str, context: list[str] | None = None
@@ -48,31 +48,47 @@ class ScoringAgent(Agent):
         response_text = response
         ctx = context or [prompt]
 
+        # Temporarily disable Opik tracing so metric calls don't create traces
+        original_disable = os.environ.get("OPIK_TRACK_DISABLE", "false")
+        os.environ["OPIK_TRACK_DISABLE"] = "true"
+
         try:
             answer_relevance = AnswerRelevance(model=self._litellm_model)
             hallucination = Hallucination(model=self._litellm_model)
-
             rel = answer_relevance.score(prompt, response_text, context=ctx).value
             hall = hallucination.score(prompt, response_text, context=ctx).value
-
-            metrics_line = f"relevance: {rel:.2f}, hallucination: {hall:.2f}"
-            self.print(f"{response_text}\n[{metrics_line}]")
-
-            trace = self._opik.trace()
-            trace.end(
-                input={"input": prompt},
-                output={"output": response_text},
+        finally:
+            if original_disable == "false":
+                os.environ.pop("OPIK_TRACK_DISABLE", None)
+            else:
+                os.environ["OPIK_TRACK_DISABLE"] = original_disable
+        try:
+            opik_context.update_current_trace(
+                feedback_scores=[
+                    {"name": "answer_relevance", "value": rel},
+                    {"name": "hallucination", "value": hall},
+                ],
                 metadata={
+                    "relevance": rel,
+                    "hallucination": hall,
                     "model": self._litellm_model,
                     "agent": self.name,
                     "provider": "ollama",
-                    "relevance": rel,
-                    "hallucination": hall,
                 },
             )
+        except Exception:
+            pass
 
-        except Exception as e:
-            self.print(
-                f"[ScoringAgent] Warning: could not calculate metrics or log trace: {e}"
-            )
-        return response
+        metrics_line = f"relevance: {rel:.2f}, hallucination: {hall:.2f}"
+        self.print(f"{response_text}\n[{metrics_line}]")
+
+        return {
+            "prompt": response_text,
+            "scoring_metrics": {
+                "relevance": rel,
+                "hallucination": hall,
+                "model": self._litellm_model,
+                "agent": self.name,
+                "provider": "ollama",
+            },
+        }

@@ -1,0 +1,26 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: simple_test
+  labels:
+    app: testapp
+spec:
+  model: deepseek-r1:latest
+  description: Simple test agent
+  instructions: Answer the question truthfully
+  framework: beeai
+  mode: remote
+---
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: score
+  labels: 
+    app: test-example
+    custom_agent: scoring_agent
+spec:
+  model: deepseek-r1:latest
+  framework: custom
+  mode: remote
+  description: gets score, relevance/hallucination using defined model
+  instructions: evaluates the response using Opik 

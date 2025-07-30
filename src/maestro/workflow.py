@@ -7,6 +7,7 @@ import os
 import time
 import pycron
 from dotenv import load_dotenv
+from opik import Opik
 
 from maestro.mermaid import Mermaid
 from maestro.step import Step
@@ -46,6 +47,8 @@ class Workflow:
         self.workflow = workflow or {}
         self.workflow_id = workflow_id
         self.logger = logger
+        self._opik = Opik()
+        self.scoring_metrics = None
 
     def to_mermaid(self, kind="sequenceDiagram", orientation="TD") -> str:
         wf = self.workflow
@@ -59,6 +62,8 @@ class Workflow:
         self._create_or_restore_agents()
 
         template = self.workflow["spec"]["template"]
+        initial_prompt = template["prompt"]
+
         try:
             if template.get("event"):
                 result = await self._condition()
@@ -66,6 +71,8 @@ class Workflow:
             else:
                 return await self._condition()
         except Exception as err:
+            self._create_workflow_trace(initial_prompt, f"ERROR: {str(err)}", {})
+
             exc_def = template.get("exception")
             if exc_def:
                 agent_name = exc_def.get("agent")
@@ -217,6 +224,9 @@ class Workflow:
 
             prompt = result.get("prompt")
             step_results[current] = prompt
+            if isinstance(result, dict) and "scoring_metrics" in result:
+                self.scoring_metrics = result["scoring_metrics"]
+
             step_index += 1
 
             if "next" in result:
@@ -227,6 +237,8 @@ class Workflow:
                     break
                 idx = self.find_index(steps, current)
                 current = steps[idx + 1]["name"]
+
+        self._create_workflow_trace(initial_prompt, prompt, step_results)
 
         return {"final_prompt": prompt, **step_results}
 
@@ -307,6 +319,32 @@ class Workflow:
                 current = steps[idx + 1]["name"]
 
         yield {"final_result": {"final_prompt": prompt, **step_results}}
+
+    def _create_workflow_trace(self, initial_prompt, final_prompt, step_results):
+        """
+        Create a single trace for the entire workflow run with scoring metrics as metadata.
+        """
+        try:
+            metadata = {
+                "workflow_id": self.workflow_id,
+                "workflow_name": self.workflow.get("metadata", {}).get(
+                    "name", "unknown"
+                ),
+                "steps_executed": list(step_results.keys()),
+                "total_steps": len(step_results),
+            }
+
+            if self.scoring_metrics:
+                metadata.update(self.scoring_metrics)
+
+            trace = self._opik.trace()
+            trace.end(
+                input={"input": initial_prompt},
+                output={"output": final_prompt},
+                metadata=metadata,
+            )
+        except Exception as e:
+            print(f"[Workflow] Warning: could not create trace: {e}")
 
     async def process_event(self, result):
         ev = self.workflow["spec"]["template"]["event"]
