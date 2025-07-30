@@ -85,8 +85,7 @@ jobs:
         # Install and start mockllm
         git clone https://github.com/stacklok/mockllm.git
         cd mockllm
-        curl -sSL https://install.python-poetry.org | python3 -
-        poetry install
+	uv pip install .
         cp tests/utils/responses.yml responses.yml	
         mockllm start --responses responses.yml &
 
