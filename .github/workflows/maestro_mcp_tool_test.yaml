@@ -83,6 +83,7 @@ jobs:
     - name: Run a workflow
       env:
          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+         OPENAI_BASE_URL: ${{ vars.OPENAI_BASE_URL }}
       run: |
         # Install and start mockllm
         git clone https://github.com/stacklok/mockllm.git
