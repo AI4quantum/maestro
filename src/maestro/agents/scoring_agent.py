@@ -53,8 +53,8 @@ class ScoringAgent(Agent):
         os.environ["OPIK_TRACK_DISABLE"] = "true"
 
         try:
-            answer_relevance = AnswerRelevance(model="ollama/qwen3")
-            hallucination = Hallucination(model="ollama/qwen3")
+            answer_relevance = AnswerRelevance(model=self._litellm_model)
+            hallucination = Hallucination(model=self._litellm_model)
 
             rel_eval = answer_relevance.score(prompt, response_text, context=ctx)
             hall_eval = hallucination.score(prompt, response_text, context=ctx)

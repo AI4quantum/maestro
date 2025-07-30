@@ -19,7 +19,7 @@ metadata:
     app: test-example
     custom_agent: scoring_agent
 spec:
-  model: deepseek-r1:latest
+  model: qwen3
   framework: custom
   mode: remote
   description: gets score, relevance/hallucination using defined model
