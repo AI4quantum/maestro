@@ -86,7 +86,7 @@ jobs:
         git clone https://github.com/stacklok/mockllm.git
         cd mockllm
         uv pip install .
-        cp tests/utils/responses.yml responses.yml	
+        cp ../maestro/tests/utils/responses.yml responses.yml	
         mockllm start --responses responses.yml &
 
         # Run workflow
