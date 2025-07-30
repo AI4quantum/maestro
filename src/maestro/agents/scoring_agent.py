@@ -73,6 +73,9 @@ class ScoringAgent(Agent):
                 if isinstance(hall_reason_raw, (list, tuple))
                 else hall_reason_raw or ""
             )
+        except Exception as e:
+            self.print(f"[ScoringAgent] Warning: could not calculate metrics: {e}")
+            return {"prompt": response_text, "scoring_metrics": None}
         finally:
             if original_disable == "false":
                 os.environ.pop("OPIK_TRACK_DISABLE", None)
