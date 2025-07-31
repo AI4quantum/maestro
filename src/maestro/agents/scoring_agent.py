@@ -48,8 +48,6 @@ class ScoringAgent(Agent):
         response_text = response
         ctx = context or [prompt]
 
-        # Temporarily disable Opik tracing so metric calls don't create traces
-        original_disable = os.environ.get("OPIK_TRACK_DISABLE", "false")
         os.environ["OPIK_TRACK_DISABLE"] = "true"
 
         try:
@@ -76,13 +74,7 @@ class ScoringAgent(Agent):
         except Exception as e:
             self.print(f"[ScoringAgent] Warning: could not calculate metrics: {e}")
             return {"prompt": response_text, "scoring_metrics": None}
-        finally:
-            if original_disable == "false":
-                os.environ.pop("OPIK_TRACK_DISABLE", None)
-            else:
-                os.environ["OPIK_TRACK_DISABLE"] = original_disable
 
-        # Log the metrics to the current trace instead of creating new traces
         try:
             opik_context.update_current_trace(
                 feedback_scores=[
