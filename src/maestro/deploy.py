@@ -171,7 +171,7 @@ class Deploy:
 
         cwd = os.getcwd()
         os.chdir(os.path.join(self.tmp_dir, "tmp"))
-        subprocess.run(create_build_args(self.cmd, self.flags))
+        subprocess.run(create_build_args(self.cmd, self.flags), check=True)
         os.chdir(cwd)
 
     def deploy_to_docker(self):
@@ -187,7 +187,7 @@ class Deploy:
              None
         """
         self.build_image(self.agent, self.workflow)
-        subprocess.run(create_docker_args(self.cmd, self.target, self.env))
+        subprocess.run(create_docker_args(self.cmd, self.target, self.env), check=True)
         shutil.rmtree(self.tmp_dir)
 
     def deploy_to_kubernetes(self):
@@ -207,19 +207,21 @@ class Deploy:
         update_yaml(os.path.join(self.tmp_dir, "tmp/deployment.yaml"), self.env)
         image_tag_command = os.getenv("IMAGE_TAG_CMD")
         if image_tag_command:
-            subprocess.run(image_tag_command.split())
+            subprocess.run(image_tag_command.split(), check=True)
         image_push_command = os.getenv("IMAGE_PUSH_CMD")
         if image_push_command:
-            subprocess.run(image_push_command.split())
+            subprocess.run(image_push_command.split(), check=True)
         subprocess.run(
             [
                 "kubectl",
                 "apply",
                 "-f",
                 os.path.join(self.tmp_dir, "tmp/deployment.yaml"),
-            ]
+            ],
+            check=True,
         )
         subprocess.run(
-            ["kubectl", "apply", "-f", os.path.join(self.tmp_dir, "tmp/service.yaml")]
+            ["kubectl", "apply", "-f", os.path.join(self.tmp_dir, "tmp/service.yaml")],
+            check=True,
         )
         shutil.rmtree(self.tmp_dir)
