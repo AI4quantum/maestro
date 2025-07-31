@@ -216,20 +216,20 @@ class Deploy:
         image_push_command = os.getenv("IMAGE_PUSH_CMD")
         if image_push_command:
             subprocess.run(image_push_command.split(), check=True)
-        try:
-            subprocess.run(
-                [
-                    "kubectl",
-                    "apply",
-                    "-f",
-                    os.path.join(self.tmp_dir, "tmp/deployment.yaml"),
-                ],
-                check=True,
-            )
-        except subprocess.CalledProcessError as e:
-            print(f"Subprocess failed with exit code {e.returncode}:")
-            print(f"Command: {e.cmd}")
-            print(f"Error: {e}")
+
+        print("$$$")
+        print(os.listdir(self.tmp_dir))
+        print("###")
+        print(os.listdir(os.path.join(self.tmp_dir, "tmp")))
+        subprocess.run(
+            [
+                "kubectl",
+                "apply",
+                "-f",
+                os.path.join(self.tmp_dir, "tmp/deployment.yaml"),
+            ],
+            check=True,
+        )
         subprocess.run(
             ["kubectl", "apply", "-f", os.path.join(self.tmp_dir, "tmp/service.yaml")],
             check=True,
