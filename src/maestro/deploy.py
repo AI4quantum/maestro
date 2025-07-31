@@ -229,8 +229,7 @@ class Deploy:
         except subprocess.CalledProcessError as e:
             print(f"Subprocess failed with exit code {e.returncode}:")
             print(f"Command: {e.cmd}")
-            print(f"Output: {e.output.decode()}")
-            print(f"Error: {e.stderr.decode()}")
+            print(f"Error: {e}")
         subprocess.run(
             ["kubectl", "apply", "-f", os.path.join(self.tmp_dir, "tmp/service.yaml")],
             check=True,
