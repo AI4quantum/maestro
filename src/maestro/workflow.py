@@ -163,36 +163,8 @@ class Workflow:
 
                 self.agents[agent_name] = agent_instance
 
-        # Check if there's a scoring agent in the workflow and initialize Opik only if needed
-        has_scoring_agent = False
-        for agent_def in self.agent_defs or []:
-            if isinstance(agent_def, dict):
-                if (
-                    agent_def.get("metadata", {}).get("labels", {}).get("custom_agent")
-                    == "scoring_agent"
-                ):
-                    has_scoring_agent = True
-                    break
-                if agent_def.get("spec", {}).get("framework") == "custom":
-                    has_scoring_agent = True
-                    break
-
-        if not has_scoring_agent and self.workflow:
-            template_agents = (
-                self.workflow.get("spec", {}).get("template", {}).get("agents", [])
-            )
-            for agent_name in template_agents:
-                if agent_name in self.agents:
-                    agent_instance = self.agents[agent_name]
-                    if (
-                        hasattr(agent_instance, "__class__")
-                        and agent_instance.__class__.__name__ == "ScoringAgent"
-                    ):
-                        has_scoring_agent = True
-                        break
-
-        if has_scoring_agent and self._opik is None:
-            self._opik = Opik()
+        if self._has_scoring_agent():
+            self._initialize_opik()
 
     def find_index(self, steps, name):
         for idx, step in enumerate(steps):
@@ -359,22 +331,8 @@ class Workflow:
         if self._opik is None:
             return
         try:
-            metadata = {
-                "workflow_id": self.workflow_id,
-                "workflow_name": self.workflow.get("metadata", {}).get(
-                    "name", "unknown"
-                ),
-                "steps_executed": list(step_results.keys()),
-                "total_steps": len(step_results),
-            }
-            if self.scoring_metrics:
-                metadata.update(self.scoring_metrics)
-            trace = self._opik.trace()
-            trace.end(
-                input={"input": initial_prompt},
-                output={"output": final_prompt},
-                metadata=metadata,
-            )
+            metadata = self._build_trace_metadata(step_results)
+            self._create_opik_trace(initial_prompt, final_prompt, metadata)
         except Exception as e:
             print(f"[Workflow] Warning: could not create trace: {e}")
 
@@ -460,3 +418,57 @@ class Workflow:
             if s.get("name") == step_name:
                 return s
         return None
+
+    def _has_scoring_agent(self) -> bool:
+        """Check if there's a scoring agent in the workflow."""
+        for agent_def in self.agent_defs or []:
+            if isinstance(agent_def, dict):
+                if (
+                    agent_def.get("metadata", {}).get("labels", {}).get("custom_agent")
+                    == "scoring_agent"
+                ):
+                    return True
+                if agent_def.get("spec", {}).get("framework") == "custom":
+                    return True
+
+        if self.workflow:
+            template_agents = (
+                self.workflow.get("spec", {}).get("template", {}).get("agents", [])
+            )
+            for agent_name in template_agents:
+                if agent_name in self.agents:
+                    agent_instance = self.agents[agent_name]
+                    if (
+                        hasattr(agent_instance, "__class__")
+                        and agent_instance.__class__.__name__ == "ScoringAgent"
+                    ):
+                        return True
+        return False
+
+    def _initialize_opik(self) -> None:
+        """Initialize Opik for tracing if not already initialized."""
+        if self._opik is None:
+            self._opik = Opik()
+
+    def _build_trace_metadata(self, step_results: dict) -> dict:
+        """Build metadata for the Opik trace."""
+        metadata = {
+            "workflow_id": self.workflow_id,
+            "workflow_name": self.workflow.get("metadata", {}).get("name", "unknown"),
+            "steps_executed": list(step_results.keys()),
+            "total_steps": len(step_results),
+        }
+        if self.scoring_metrics:
+            metadata.update(self.scoring_metrics)
+        return metadata
+
+    def _create_opik_trace(
+        self, initial_prompt: str, final_prompt: str, metadata: dict
+    ) -> None:
+        """Create an Opik trace with the given parameters."""
+        trace = self._opik.trace()
+        trace.end(
+            input={"input": initial_prompt},
+            output={"output": final_prompt},
+            metadata=metadata,
+        )
