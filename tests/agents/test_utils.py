@@ -5,7 +5,7 @@ import os
 from maestro.agents.utils import is_url, is_file, get_content
 
 valid = {
-    "url": "https://raw.githubusercontent.com/AI4quantum/maestro/refs/heads/main/README.md",
+    "url": "https://github.com/AI4quantum/maestro/blob/main/README.md",
     "path": os.path.join(os.path.dirname(__file__), "../../CODE_OF_CONDUCT.md"),
     "string": "Some content",
     "list": ["Some", "multiline", "content"],

@@ -29,6 +29,10 @@ def get_content(text):
     if isinstance(text, list):
         return text
     if is_url(text):
+        if "gist.github" in text:
+            text += "/raw"
+        elif "github" in text:
+            text += "?raw=true"
         with urlopen(text) as response:
             return response.read().decode("utf-8")
     if is_file(text):
