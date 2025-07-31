@@ -221,6 +221,9 @@ class Deploy:
         print(os.listdir(self.tmp_dir))
         print("###")
         print(os.listdir(os.path.join(self.tmp_dir, "tmp")))
+        with open(os.path.join(self.tmp_dir, "tmp/deployment.yaml"), "r") as file:
+            file_content = file.read()
+            print(file_content)
         subprocess.run(
             [
                 "kubectl",
