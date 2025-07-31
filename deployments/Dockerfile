@@ -43,7 +43,7 @@ RUN python3.11 -m ensurepip --upgrade
 RUN python3.11 -m pip install openai pyyaml python-dotenv requests flask --no-cache-dir --upgrade && \
     python3.11 -m pip uninstall -y pip
 
-COPY src ./src
+COPY maestro ./src
 COPY tmp/entrypoint_api.sh .
 COPY tmp/api.py .
 COPY tmp/maestro.html ./templates/index.html
