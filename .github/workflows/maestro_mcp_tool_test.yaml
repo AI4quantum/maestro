@@ -95,6 +95,7 @@ jobs:
         cd ..
 
         # Run workflow
+        export
         uv run maestro run tests/yamls/agents/openai_mcp_agent.yaml tests/yamls/workflows/openai_mcp_workflow.yaml
 
     - uses: chainguard-dev/actions/kind-diag@main
