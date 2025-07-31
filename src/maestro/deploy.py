@@ -216,7 +216,7 @@ class Deploy:
         image_push_command = os.getenv("IMAGE_PUSH_CMD")
         if image_push_command:
             subprocess.run(image_push_command.split(), check=True)
-        try: 
+        try:
             subprocess.run(
                 [
                     "kubectl",
