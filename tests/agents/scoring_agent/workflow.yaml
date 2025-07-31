@@ -12,7 +12,7 @@ spec:
     agents:
       - simple_test
       - score
-    prompt: What is the capital of France?
+    prompt: Is the most well known Paris the one in the United States?
     steps:
       - name: answer
         agent: simple_test
