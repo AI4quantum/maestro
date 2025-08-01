@@ -30,6 +30,28 @@ maestro create <agent_path>
 maestro validate <path>
 ```
 
+4. Serve workflows with streaming:
+```bash
+maestro serve <agents_file> <workflow_file>
+```
+
+## Streaming API
+
+Maestro provides real-time streaming capabilities for workflows.
+
+### Quick Example
+
+```bash
+# Start streaming server
+maestro serve agents.yaml workflow.yaml
+
+# Test streaming
+curl -X POST "http://localhost:8000/chat/stream" \
+  -H "Content-Type: application/json" \
+  -d '{"prompt": "Your prompt"}' \
+  --no-buffer
+```
+
 ## Development
 
 1. Clone the repository:
