@@ -3,6 +3,7 @@
 
 """Common utility functions for agents."""
 
+import os
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import urlopen
@@ -16,14 +17,17 @@ def is_url(text):
         return False
 
 
-def is_file(text):
-    try:
-        return Path(text).exists()
-    except OSError:
-        return False
+def get_filepath(text, yaml_file):
+    if os.path.isabs(text) and os.path.exists(text):
+        return text
+    base_path = os.path.dirname(yaml_file)
+    path = os.path.join(base_path, text)
+    if os.path.exists(path):
+        return path
+    return None
 
 
-def get_content(text):
+def get_content(text, yaml_file):
     if text is None:
         return None
     if isinstance(text, list):
@@ -35,6 +39,7 @@ def get_content(text):
             text += "?raw=true"
         with urlopen(text) as response:
             return response.read().decode("utf-8")
-    if is_file(text):
-        return Path(text).read_text()
+    path = get_filepath(text, yaml_file)
+    if path is not None:
+        return Path(path).read_text()
     return text

@@ -3,6 +3,7 @@
 
 """Common utility functions and classes for the CLI."""
 
+import os
 import sys
 import yaml
 
@@ -35,6 +36,8 @@ def parse_yaml(file_path):
     try:
         with open(file_path, "r") as file:
             yaml_data = list(yaml.safe_load_all(file))
+            for d in yaml_data:
+                d["source_file"] = os.path.abspath(file_path)
         return yaml_data
     except Exception:
         Console.error("Could not parse YAML file: {file_path}")
