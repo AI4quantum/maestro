@@ -1,0 +1,19 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: Openai agent test workflow
+  labels:
+    app: test1
+spec:
+  template:
+    metadata:
+      name: openai_test
+      labels:
+        app: my-agent
+    agents:
+        - my-agent
+    prompt: What are  the available tools you have?
+    steps:
+      - name: step1
+        agent: my-agent
+

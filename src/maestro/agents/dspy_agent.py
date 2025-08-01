@@ -1,7 +1,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import dspy
+from maestro.tool_utils import get_mcp_tools
 from .agent import Agent as BaseAgent  # Import BaseAgent first
+
+from contextlib import AsyncExitStack
 
 
 class DspyAgent(BaseAgent):
@@ -29,6 +32,7 @@ class DspyAgent(BaseAgent):
                 "url"
             )  # Assuming LLM provider URL is here
             self.agent_model = agent["spec"].get("model")  # Assuming model name is here
+            self.tool_names = agent["spec"].get("tools")
         except KeyError as e:
             self.print(
                 f"Failed to load agent {self.agent_name}: Missing configuration key - {e}"
@@ -60,8 +64,6 @@ class DspyAgent(BaseAgent):
         # os.environ["OPENAI_API_KEY"] = "{your openai key}"
         dspy.configure(lm=dspy.LM(self.agent_model, api_base=self.provider_url))
 
-        self.dspy_agent = dspy.ReAct(self.dspy_signature, tools=[])
-
     async def run(self, prompt: str) -> str:
         """
         Executes the Dspy agent with the given prompt. The agent's `kickoff` method is called with the input.
@@ -75,13 +77,25 @@ class DspyAgent(BaseAgent):
             Exception: If there is an error in retrieving or executing the agent's method.
         """
 
-        self.print(f"Running Dspy agent: {self.agent_name} with prompt: {prompt}\n")
-
+        mcp_stack = AsyncExitStack()
         try:
-            result = self.dspy_agent(user_request=prompt)
+            dspy_tools = []
+            if self.tool_names and len(self.tool_names):
+                for tool_name in self.tool_names:
+                    dspy_tools.extend(
+                        await get_mcp_tools(
+                            tool_name, dspy.Tool.from_mcp_tool, mcp_stack
+                        )
+                    )
+            self.print(f"Running Dspy agent: {self.agent_name} with prompt: {prompt}\n")
+            self.dspy_agent = dspy.ReAct(self.dspy_signature, dspy_tools)
+            try:
+                result = await self.dspy_agent.acall(user_request=prompt)
+            except Exception as e:
+                print(f"Agent error: {e}")
             self.print(f"Response from {self.agent_name}: {result.process_result}\n")
+            await mcp_stack.aclose()
             return result.process_result
-
         except Exception as e:
             self.print(f"Failed to execute dspy agent: {self.agent_name}: {e}\n")
             raise RuntimeError(f"Error executing Dspy agent {self.agent_name}") from e

@@ -1,0 +1,13 @@
+responses:
+  "what colour is the sky?": "The sky is blue during a clear day due to a phenomenon called Rayleigh scattering."
+  "who is the president?": "This is a mock response. In a production environment, this would be replaced with accurate, up-to-date information."
+  "tell me a joke": "Why don't programmers like nature? It has too many bugs!"
+  "what is the meaning of life?": "According to this mock response, the meaning of life is to write better mock servers."
+  "summarize the Vulnerability id:BIT-tomcat-2024-34750": '<function_call>{"name": "get_vulnerability", "arguments": {"id": "BIT-tomcat-2024-34750"}}</function_call>'
+  "What are  the available tools you have?": "I can use the 'fetch' function to retrieve data from a specified URL. This function allows me to specify parameters such as maximum length of response, if the response should be raw or if I need to define a start index for extracting content, and obviously, the URL itself I want to fetch data from."
+defaults:
+  unknown_response: "I don't know the answer to that. This is a mock response."
+
+settings:
+  lag_enabled: true
+  lag_factor: 10  # Higher values = faster responses (10 = fast, 1 = slow)

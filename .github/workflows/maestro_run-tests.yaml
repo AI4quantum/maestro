@@ -13,12 +13,27 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_KUBERNETES_TEST: 1
+      DEPLOY_DOCKER_TEST: 1
+      IMAGE_PUSH_CMD: 'kind load docker-image docker.io/library/maestro:latest'
+      # IMAGE_TAG_CMD: 'docker tag localhost/maestro:latest docker.io/library/maestro:latest'
+      IN_GITHUB_ACTION: 1
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+    - name: Install Kind
+      run: |
+        curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-$(uname)-amd64"
+        chmod +x ./kind
+        sudo mv kind /usr/local/bin
+        which kind
+    - name: Create Kind cluster
+      run: |
+        kind create cluster --config tests/integration/deploys/kind-config.yaml 
     - name: Install uv and activate the environment
       uses: astral-sh/setup-uv@v6
       with:

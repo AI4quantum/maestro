@@ -75,6 +75,33 @@ class Workflow:
                     return None
             raise err
 
+    async def run_streaming(self, prompt=""):
+        """Run workflow with step-by-step streaming."""
+        if prompt:
+            self.workflow["spec"]["template"]["prompt"] = prompt
+        self._create_or_restore_agents()
+
+        template = self.workflow["spec"]["template"]
+        try:
+            if template.get("event"):
+                async for step_result in self._condition_streaming():
+                    yield step_result
+                result = await self.process_event(step_result)
+                yield {"final_result": result}
+            else:
+                async for step_result in self._condition_streaming():
+                    yield step_result
+        except Exception as err:
+            exc_def = template.get("exception")
+            if exc_def:
+                agent_name = exc_def.get("agent")
+                handler = self.agents.get(agent_name)
+                if handler:
+                    await handler.run(err, step_index=-1)
+                    yield {"error": str(err)}
+            else:
+                yield {"error": str(err)}
+
     def _create_or_restore_agents(self):
         if self.agent_defs:
             for agent_def in self.agent_defs:
@@ -202,6 +229,84 @@ class Workflow:
                 current = steps[idx + 1]["name"]
 
         return {"final_prompt": prompt, **step_results}
+
+    async def _condition_streaming(self):
+        """Run workflow steps with streaming output."""
+        template = self.workflow["spec"]["template"]
+        initial_prompt = template["prompt"]
+        steps = template["steps"]
+        workflows = template.get("workflows")
+        step_defs = {step["name"]: step for step in steps}
+
+        for step in steps:
+            if step.get("agent"):
+                if isinstance(step["agent"], str):
+                    step_name = step["agent"]
+                    step["agent"] = self.agents.get(step_name)
+                    if step["agent"] is None:
+                        raise ValueError(f"Could not find agent named '{step_name}'")
+            if step.get("workflow"):
+                if isinstance(step["workflow"], str):
+                    found = False
+                    for workflow in workflows:
+                        if workflow["name"] == step["workflow"]:
+                            step["workflow"] = workflow["url"]
+                            found = True
+                    if not found:
+                        raise RuntimeError("Workflow doesn't exist")
+            if step.get("parallel"):
+                step["parallel"] = [self.agents.get(name) for name in step["parallel"]]
+            if step.get("loop"):
+                loop_def = step["loop"]
+                loop_def["agent"] = self.agents.get(loop_def.get("agent"))
+            self.steps[step["name"]] = Step(step)
+
+        step_results = {}
+        current = steps[0]["name"]
+        prompt = initial_prompt
+        step_index = 0
+
+        while True:
+            definition = step_defs[current]
+            if definition.get("inputs"):
+                args = []
+                for inp in definition["inputs"]:
+                    src = inp["from"]
+                    if src == "prompt":
+                        args.append(initial_prompt)
+                    elif "instructions:" in src:
+                        args.append(step_defs[src.split(":")[-1]]["agent"].agent_instr)
+                    elif src in step_results:
+                        args.append(step_results[src])
+                    else:
+                        args.append(src)
+                result = await self.steps[current].run(*args, step_index=step_index)
+            else:
+                result = await self.steps[current].run(prompt, step_index=step_index)
+
+            prompt = result.get("prompt")
+            step_results[current] = prompt
+            step_index += 1
+
+            yield {
+                "step_name": current,
+                "step_result": prompt,
+                "step_index": step_index - 1,
+                "agent_name": definition.get("agent", {}).agent_name
+                if definition.get("agent")
+                else None,
+            }
+
+            if "next" in result:
+                current = result["next"]
+            else:
+                last = steps[-1]["name"]
+                if current == last:
+                    break
+                idx = self.find_index(steps, current)
+                current = steps[idx + 1]["name"]
+
+        yield {"final_result": {"final_prompt": prompt, **step_results}}
 
     async def process_event(self, result):
         ev = self.workflow["spec"]["template"]["event"]

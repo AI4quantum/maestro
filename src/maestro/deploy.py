@@ -162,6 +162,11 @@ class Deploy:
         module_dir = os.path.dirname(os.path.abspath(__file__))
         self.tmp_dir = os.path.join(tempfile.gettempdir(), "maestro")
         shutil.copytree(
+            os.path.join(module_dir, ".."),
+            self.tmp_dir,
+            dirs_exist_ok=True,
+        )
+        shutil.copytree(
             os.path.join(module_dir, "../../deployments"),
             os.path.join(self.tmp_dir, "tmp"),
             dirs_exist_ok=True,

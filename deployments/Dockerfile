@@ -15,8 +15,8 @@ COPY --from=base / ${MICRO_IMAGE_DIR}
 
 # Install Python inside the BASE image
 RUN dnf install --installroot ${MICRO_IMAGE_DIR} --nodocs -y \
-    python3.11-3.11.9 \
-    python3.11-devel-3.11.9 \
+    python3.12 \
+    python3.12-devel \
     libstdc++ &&\
     dnf upgrade --installroot ${MICRO_IMAGE_DIR} --nodocs -y && \
     dnf clean all --installroot ${MICRO_IMAGE_DIR}
@@ -38,12 +38,12 @@ ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 # Install pip
-RUN python3.11 -m ensurepip --upgrade
+RUN python3.12 -m ensurepip --upgrade
 # Install dependencies and update then uninstall pip (not needed in final image)
-RUN python3.11 -m pip install openai pyyaml python-dotenv requests flask --no-cache-dir --upgrade && \
-    python3.11 -m pip uninstall -y pip
+RUN python3.12 -m pip install openai pyyaml python-dotenv requests flask --no-cache-dir --upgrade && \
+    python3.12 -m pip uninstall -y pip
 
-COPY src ./src
+COPY maestro ./src
 COPY tmp/entrypoint_api.sh .
 COPY tmp/api.py .
 COPY tmp/maestro.html ./templates/index.html

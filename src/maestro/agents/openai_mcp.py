@@ -4,11 +4,12 @@ import os
 import shlex
 from contextlib import AsyncExitStack
 from typing import List, Optional, Union, Tuple, Callable
+from maestro.tool_utils import find_mcp_service
 
-from agents.mcp import MCPServerSse, MCPServerStdio
+from agents.mcp import MCPServerSse, MCPServerStdio, MCPServerStreamableHttp
 
 # MCP Servers can be of either type
-MCPServerInstance = Union[MCPServerSse, MCPServerStdio]
+MCPServerInstance = Union[MCPServerSse, MCPServerStdio, MCPServerStreamableHttp]
 
 
 # Uses openai agent specific types - though concepts are similar across implementations
@@ -110,3 +111,32 @@ async def setup_mcp_servers(
         )
 
     return active_servers, stack
+
+
+async def get_mcp_servers(tools, stack):
+    mcp_servers = []
+    if tools:
+        for tool_name in tools:
+            name, service_url, transport, external_url = find_mcp_service(tool_name)
+            if name:
+                url = external_url
+                if os.getenv("KUBERNETES_SERVICE_HOST") and os.getenv(
+                    "KUBERNETES_SERVICE_PORT"
+                ):
+                    url = service_url
+                if os.getenv("KUBERNETES_POD") == "true":
+                    url = service_url
+                if os.path.exists(
+                    "/var/run/secrets/kubernetes.io/serviceaccount/token"
+                ):
+                    url = service_url
+                if transport == "sse" or transport == "stdio":
+                    server = MCPServerSse(name=tool_name, params={"url": url + "/sse"})
+                else:
+                    server = MCPServerStreamableHttp(
+                        name=tool_name, params={"url": url + "/mcp"}
+                    )
+                await server.connect()
+                mcp_servers.append(server)
+                await stack.enter_async_context(server)
+    return mcp_servers

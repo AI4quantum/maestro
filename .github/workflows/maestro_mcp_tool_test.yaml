@@ -1,0 +1,111 @@
+name: Maestro Create tool Test
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+    - '**'
+  pull_request:
+    branches: [ "main" ]
+    paths:
+    - '**'
+jobs:
+  test-in-kind:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install Kind
+      run: |
+        curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-$(uname)-amd64"
+        chmod +x ./kind
+        sudo mv kind /usr/local/bin
+        which kind
+    - name: Create Kind cluster
+      run: |
+        kind create cluster --config tests/integration/deploys/kind-config.yaml 
+    - name: Install ToolHive
+      run: |
+        helm upgrade -i toolhive-operator-crds oci://ghcr.io/stacklok/toolhive/toolhive-operator-crds
+        helm upgrade -i toolhive-operator oci://ghcr.io/stacklok/toolhive/toolhive-operator -n toolhive-system --create-namespace
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: "3.12"
+    - name: Install uv and activate the environment
+      uses: astral-sh/setup-uv@v6
+      with:
+        activate-environment: true
+    - name: Install dependencies
+      run: |
+        uv sync --all-extras
+    - name: Create tools
+      run: |
+        export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+        uv run maestro create tests/yamls/tools/mcp_tool.yaml 
+        sleep 15
+
+        svc=$(kubectl get svc -l app.kubernetes.io/instance=fetch)
+        if [ -z "$svc" ]; then
+            exit 1
+        else
+            echo "Service is created"
+        fi
+        pods=$(kubectl get pod -l app.kubernetes.io/instance=fetch)
+        # Check if there are any pods
+        if [ -z "$pods" ]; then
+          exit 1
+        else
+          echo "Pod is created"
+        fi
+
+    - name: Wait for pod to be ready
+      run: |
+        kubectl wait --for=condition=ready pod -l app.kubernetes.io/instance=fetch --timeout=60s
+
+    - name: Configure service and send request
+      run: |
+        # Convert service to NodePort
+        kubectl patch svc mcp-fetch-proxy  -p '{"spec": {"type": "NodePort"}}'
+        kubectl patch service mcp-fetch-proxy -p '{"spec":{"ports":[{"name":"http","nodePort":30051, "port":30051,"protocol":"TCP", "targetPort":30051}]}}'
+
+        # Send request
+        response=$(uv run python tests/utils/mcpclient.py)
+        echo $response
+
+        # Check pod status
+        POD_DETAILS=$(kubectl get pod -l app.kubernetes.io/instance=fetch -o json)
+        RESTART_COUNT=$(echo $POD_DETAILS | jq -r '.items[0].status.containerStatuses[0].restartCount')
+        if [ "$RESTART_COUNT" -eq 0 ]; then
+            echo "Pod has not been restarted."
+        else
+            exit 1
+        fi
+
+    - name: Run a workflow
+      env:
+        OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        OPENAI_BASE_URL: "http://localhost:8000/v1"
+      run: |
+        # Install and start mockllm
+        git clone https://github.com/stacklok/mockllm.git
+        cd mockllm
+        uv pip install .
+        cp ../tests/utils/responses.yml responses.yml	
+        mockllm start --responses responses.yml &
+        sleep 10
+        cd ..
+
+        # Run workflow
+        uv run maestro run tests/yamls/agents/openai_mcp_agent.yaml tests/yamls/workflows/openai_mcp_workflow.yaml
+
+    - uses: chainguard-dev/actions/kind-diag@main
+      # Only upload logs on failure.
+      if: ${{ failure() }}
+      with:
+        cluster-resources: nodes,namespaces,crds
+        namespace-resources: configmaps,pods,svc,pvc,ingress
+        artifact-name: logs-${{ github.run_id }}
+
+    - name: Cleanup
+      if: always()
+      run: |
+        kind delete cluster

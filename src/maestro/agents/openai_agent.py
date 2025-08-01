@@ -24,7 +24,11 @@ from agents import (
 from agents.extensions.models.litellm_model import LitellmModel
 
 from maestro.agents.agent import Agent as MaestroAgent
-from maestro.agents.openai_mcp import setup_mcp_servers, MCPServerInstance
+from maestro.agents.openai_mcp import (
+    setup_mcp_servers,
+    MCPServerInstance,
+    get_mcp_servers,
+)
 
 from dotenv import load_dotenv
 
@@ -58,6 +62,8 @@ class OpenAIAgent(MaestroAgent):
             "url", os.getenv("OPENAI_BASE_URL", OPENAI_DEFAULT_URL)
         )
         self.api_key: Optional[str] = os.getenv("OPENAI_API_KEY", "dummy_key")
+        self.tools: str = spec_dict.get("tools", [])
+
         self.uses_chat_completions: bool = self.base_url != OPENAI_DEFAULT_URL
         self.use_litellm: bool = (
             os.getenv("MAESTRO_OPENAI_USE_LITELLM", "false").lower() == "true"
@@ -249,6 +255,8 @@ class OpenAIAgent(MaestroAgent):
             active_mcp_servers, mcp_stack = await setup_mcp_servers(
                 print_func=self.print, agent_name=self.agent_name
             )
+            maestro_mcp_servers = await get_mcp_servers(self.tools, mcp_stack)
+            active_mcp_servers.extend(maestro_mcp_servers)
 
             async with mcp_stack:
                 model_to_use: Any  # Type hint for clarity
@@ -293,6 +301,8 @@ class OpenAIAgent(MaestroAgent):
                 self.print(
                     f"DEBUG [OpenAIAgent {self.agent_name}]: Agent run completed."
                 )
+                for maestro_mcp_server in maestro_mcp_servers:
+                    await maestro_mcp_server.cleanup()
 
         except Exception as e:
             error_msg = f"ERROR [OpenAIAgent {self.agent_name}]: Agent run failed: {e}"

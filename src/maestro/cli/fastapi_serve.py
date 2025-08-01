@@ -84,13 +84,10 @@ class FastAPIServer:
             try:
                 if not self.agents:
                     raise HTTPException(status_code=500, detail="No agents loaded")
-
-                # Select the agent to use
                 agent = None
                 if self.agent_name and self.agent_name in self.agents:
                     agent = self.agents[self.agent_name]
                 elif len(self.agents) == 1:
-                    # Use the first (and only) agent
                     agent = list(self.agents.values())[0]
                 else:
                     raise HTTPException(
@@ -168,9 +165,10 @@ class FastAPIServer:
     async def _stream_response(self, agent, prompt: str):
         """Stream response from agent."""
         try:
-            # For now, we'll get the full response and yield it
-            # In the future, we could implement true streaming if agents support it
-            response = await agent.run(prompt)
+            if hasattr(agent, "run_streaming"):
+                response = await agent.run_streaming(prompt)
+            else:
+                response = await agent.run(prompt)
             yield f"data: {json.dumps({'response': response, 'agent_name': agent.agent_name})}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
@@ -254,6 +252,36 @@ class FastAPIWorkflowServer:
         self._load_workflow()
         self.workflow_name = self.workflow.workflow["metadata"]["name"]
 
+    async def _stream_workflow_response(self, prompt: str):
+        """Stream workflow response per step."""
+        try:
+            async for step_data in self.workflow.run_streaming(prompt):
+                if "error" in step_data:
+                    yield f"data: {json.dumps({'error': step_data['error']})}\n\n"
+                elif "final_result" in step_data:
+                    try:
+                        str_response = json.dumps(step_data["final_result"])
+                    except Exception:
+                        str_response = str(step_data["final_result"])
+                    yield f"data: {json.dumps({'response': str_response, 'workflow_name': self.workflow_name, 'workflow_complete': True})}\n\n"
+                else:
+                    step_name = step_data.get("step_name", "unknown")
+                    step_result = step_data.get("step_result", "")
+                    agent_name = step_data.get("agent_name", "unknown")
+
+                    try:
+                        str_result = (
+                            json.dumps(step_result)
+                            if isinstance(step_result, dict)
+                            else str(step_result)
+                        )
+                    except Exception:
+                        str_result = str(step_result)
+
+                    yield f"data: {json.dumps({'step_name': step_name, 'step_result': str_result, 'agent_name': agent_name, 'step_complete': True})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
     def _setup_routes(self):
         """Set up FastAPI routes."""
 
@@ -287,6 +315,22 @@ class FastAPIWorkflowServer:
                 workflow_name=self.workflow_name,
                 timestamp=datetime.utcnow().isoformat() + "Z",
             )
+
+        @self.app.post("/chat/stream")
+        async def chat_stream(request: WorkflowChatRequest):
+            """Chat with the workflow using streaming."""
+            try:
+                if not self.workflow:
+                    raise HTTPException(status_code=500, detail="No workflow loaded")
+
+                return StreamingResponse(
+                    self._stream_workflow_response(request.prompt),
+                    media_type="text/plain",
+                )
+
+            except Exception as e:
+                Console.error(f"Error in chat stream endpoint: {str(e)}")
+                raise HTTPException(status_code=500, detail=str(e))
 
     def _load_workflow(self):
         """Load agents from the agents file."""

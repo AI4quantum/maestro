@@ -42,7 +42,7 @@ The syntax of the agent definition is defined in the [json schema](https://githu
   - **framework**: agent framework type.  Current supported agent frameworks are : "beeai", "crewai", "openai", "remotem", "custom" and "code"
   - **mode**: Remote or Local.  Some agents support agent remotely.  Remote is supported by "beeai" and "remote" 
   - **description**: Description of this agent
-  - **tools**: array of tool names. This is not implemented yet.
+  - **tools**: array of tool names or mcp server names. In the kubernetes cluster, the MCP servers deployed by `maestro create <tool.yaml>` or `ToolHive` listed here are enabled for this agent.  In the case of the MCP servers, all tools hosted by the server are enabled.
   - **instructions**: the instructions for the agent, can be a (multi-line) string, a url, or a file path. The file path is relative to where maestro is run
 
 ### Workflow
@@ -593,43 +593,6 @@ spec:
 
 🐝 Response from countdown: happy
 ```
-
-### Simple code agent
-
-If you just want an agent to run some python code without calling an LLM you can create a code agent
-
-#### agent.yaml
-```yaml
-apiVersion: maestro/v1alpha1
-kind: Agent
-metadata:
-  name: github-lister
-  labels:
-    app: simple-example
-spec:
-  framework: code
-  mode: local
-  description: list repos from GitHub
-  instructions: list my GitHub repos using the GitHub API
-  code: |
-    import os
-    import requests
-
-    token = os.getenv("GITHUB_TOKEN")
-    user = os.getenv("GITHUB_USER")
-    if not token or not user:
-        output["error"] = "GITHUB_TOKEN or GITHUB_USER not set"
-    else:
-        headers = {"Authorization": f"Bearer {token}"}
-        url = f"https://api.github.com/users/{user}/repos"
-        r = requests.get(url, headers=headers)
-        repos = [repo["name"] for repo in r.json()]
-        output["repos"] = repos
-```
-
-This agent runs the python code in `spec.code` passing the value of prompt in the `input` var and returns whatever that code puts in the `output` var.
-
-The value of `spec.code` can also be set to a url or file path containing the code block to be run. The file path is relative to where maestro is run.
 
 ## Demos
 

@@ -25,11 +25,14 @@ from beeai_framework.errors import FrameworkError
 from beeai_framework.memory import UnconstrainedMemory
 from beeai_framework.template import PromptTemplateInput
 from beeai_framework.tools import AnyTool
+from beeai_framework.tools.mcp import MCPTool
 from beeai_framework.tools.search.duckduckgo import DuckDuckGoSearchTool
 from beeai_framework.tools.weather import OpenMeteoTool
 from beeai_framework.utils import AbortSignal
 
 from maestro.agents.agent import Agent
+from maestro.tool_utils import get_mcp_tools
+from contextlib import AsyncExitStack
 
 dotenv.load_dotenv()
 
@@ -244,6 +247,7 @@ class BeeAILocalAgent(Agent):
             agent_name (str): The name of the agent.
         """
         super().__init__(agent)
+        self.mcp_stack = AsyncExitStack()
         self.agent = None
 
     async def _create_agent(self):
@@ -260,23 +264,20 @@ class BeeAILocalAgent(Agent):
         }
 
         tools: list[AnyTool] = []
+        embedded_tools = []
 
-        if any(
-            tool in ["weather", "openmeteo", "openmeteotool"]
-            for tool in [x.lower() for x in self.agent_tools]
-        ):
+        weather_tools = ["weather", "openmeteo", "openmeteotool"]
+        if any(tool in weather_tools for tool in [x.lower() for x in self.agent_tools]):
             tools.append(OpenMeteoTool())
+        embedded_tools.extend(weather_tools)
 
-        if any(
-            tool in ["web_search", "search", "duckduckgo", "duckduckgosearchtool"]
-            for tool in [x.lower() for x in self.agent_tools]
-        ):
+        search_tools = ["web_search", "search", "duckduckgo", "duckduckgosearchtool"]
+        if any(tool in search_tools for tool in [x.lower() for x in self.agent_tools]):
             tools.append(DuckDuckGoSearchTool())
+        embedded_tools.extend(search_tools)
 
-        if any(
-            tool in ["code_interpreter", "code", "pythontool"]
-            for tool in [x.lower() for x in self.agent_tools]
-        ):
+        code_tools = ["code_interpreter", "code", "pythontool"]
+        if any(tool in code_tools for tool in [x.lower() for x in self.agent_tools]):
             tools.append(
                 PythonTool(
                     os.getenv("CODE_INTERPRETER_URL", "http://localhost:50081"),
@@ -288,6 +289,7 @@ class BeeAILocalAgent(Agent):
                     ),
                 )
             )
+        embedded_tools.extend(code_tools)
 
         if self.agent_code:
             sandbox_tool = await SandboxTool.from_source_code(
@@ -296,6 +298,11 @@ class BeeAILocalAgent(Agent):
             )
             tools.append(sandbox_tool)
             self.print(sandbox_tool.name)
+
+        for tool in self.agent_tools:
+            if tool.lower() not in embedded_tools:
+                mcp_tools = await get_mcp_tools(tool.lower(), MCPTool, self.mcp_stack)
+                tools.extend(mcp_tools)
 
         self.agent = ToolCallingAgent(
             llm=llm,
@@ -342,6 +349,7 @@ class BeeAILocalAgent(Agent):
             signal=AbortSignal.timeout(2 * 60 * 1000),
         ).observe(self._observer)
         answer = response.result.text
+        await self.mcp_stack.aclose()
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
 
@@ -362,5 +370,6 @@ class BeeAILocalAgent(Agent):
             signal=AbortSignal.timeout(2 * 60 * 1000),
         ).observe(self._observer)
         answer = response.result.text
+        await self.mcp_stack.aclose()
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
