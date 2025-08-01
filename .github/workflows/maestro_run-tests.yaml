@@ -13,6 +13,9 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+    env:
+      DEPLOY_KUBERNETES_TEST: 1
+      DEPLOY_DOCKER_TEST: 1
     steps:
     - uses: actions/checkout@v4
     - name: Set up Python
