@@ -7,6 +7,7 @@ import os
 import time
 import pycron
 from dotenv import load_dotenv
+from opik import Opik
 
 from maestro.mermaid import Mermaid
 from maestro.step import Step
@@ -46,6 +47,8 @@ class Workflow:
         self.workflow = workflow or {}
         self.workflow_id = workflow_id
         self.logger = logger
+        self._opik = None
+        self.scoring_metrics = None
 
     def to_mermaid(self, kind="sequenceDiagram", orientation="TD") -> str:
         wf = self.workflow
@@ -59,6 +62,8 @@ class Workflow:
         self._create_or_restore_agents()
 
         template = self.workflow["spec"]["template"]
+        initial_prompt = template["prompt"]
+
         try:
             if template.get("event"):
                 result = await self._condition()
@@ -66,6 +71,8 @@ class Workflow:
             else:
                 return await self._condition()
         except Exception as err:
+            self._create_workflow_trace(initial_prompt, f"ERROR: {str(err)}", {})
+
             exc_def = template.get("exception")
             if exc_def:
                 agent_name = exc_def.get("agent")
@@ -156,6 +163,9 @@ class Workflow:
 
                 self.agents[agent_name] = agent_instance
 
+        if self._has_scoring_agent():
+            self._initialize_opik()
+
     def find_index(self, steps, name):
         for idx, step in enumerate(steps):
             if step.get("name") == name:
@@ -217,6 +227,9 @@ class Workflow:
 
             prompt = result.get("prompt")
             step_results[current] = prompt
+            if isinstance(result, dict) and "scoring_metrics" in result:
+                self.scoring_metrics = result["scoring_metrics"]
+
             step_index += 1
 
             if "next" in result:
@@ -227,6 +240,8 @@ class Workflow:
                     break
                 idx = self.find_index(steps, current)
                 current = steps[idx + 1]["name"]
+
+        self._create_workflow_trace(initial_prompt, prompt, step_results)
 
         return {"final_prompt": prompt, **step_results}
 
@@ -307,6 +322,19 @@ class Workflow:
                 current = steps[idx + 1]["name"]
 
         yield {"final_result": {"final_prompt": prompt, **step_results}}
+
+    def _create_workflow_trace(self, initial_prompt, final_prompt, step_results):
+        """
+        Create a single trace for the entire workflow run with scoring metrics as metadata.
+        Only creates traces if Opik is initialized (i.e., when there's a scoring agent).
+        """
+        if self._opik is None:
+            return
+        try:
+            metadata = self._build_trace_metadata(step_results)
+            self._create_opik_trace(initial_prompt, final_prompt, metadata)
+        except Exception as e:
+            print(f"[Workflow] Warning: could not create trace: {e}")
 
     async def process_event(self, result):
         ev = self.workflow["spec"]["template"]["event"]
@@ -390,3 +418,57 @@ class Workflow:
             if s.get("name") == step_name:
                 return s
         return None
+
+    def _has_scoring_agent(self) -> bool:
+        """Check if there's a scoring agent in the workflow."""
+        for agent_def in self.agent_defs or []:
+            if isinstance(agent_def, dict):
+                if (
+                    agent_def.get("metadata", {}).get("labels", {}).get("custom_agent")
+                    == "scoring_agent"
+                ):
+                    return True
+                if agent_def.get("spec", {}).get("framework") == "custom":
+                    return True
+
+        if self.workflow:
+            template_agents = (
+                self.workflow.get("spec", {}).get("template", {}).get("agents", [])
+            )
+            for agent_name in template_agents:
+                if agent_name in self.agents:
+                    agent_instance = self.agents[agent_name]
+                    if (
+                        hasattr(agent_instance, "__class__")
+                        and agent_instance.__class__.__name__ == "ScoringAgent"
+                    ):
+                        return True
+        return False
+
+    def _initialize_opik(self) -> None:
+        """Initialize Opik for tracing if not already initialized."""
+        if self._opik is None:
+            self._opik = Opik()
+
+    def _build_trace_metadata(self, step_results: dict) -> dict:
+        """Build metadata for the Opik trace."""
+        metadata = {
+            "workflow_id": self.workflow_id,
+            "workflow_name": self.workflow.get("metadata", {}).get("name", "unknown"),
+            "steps_executed": list(step_results.keys()),
+            "total_steps": len(step_results),
+        }
+        if self.scoring_metrics:
+            metadata.update(self.scoring_metrics)
+        return metadata
+
+    def _create_opik_trace(
+        self, initial_prompt: str, final_prompt: str, metadata: dict
+    ) -> None:
+        """Create an Opik trace with the given parameters."""
+        trace = self._opik.trace()
+        trace.end(
+            input={"input": initial_prompt},
+            output={"output": final_prompt},
+            metadata=metadata,
+        )

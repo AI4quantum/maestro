@@ -24,6 +24,8 @@ def test_metrics_agent_run_with_context(monkeypatch):
     class DummyScore:
         def __init__(self, value):
             self.value = value
+            self.reason = "Test reason"
+            self.metadata = {}
 
     def fake_rel(self, input, output, context):
         seen["relevance"] = context
@@ -54,10 +56,15 @@ def test_metrics_agent_run_with_context(monkeypatch):
     context = ["Paris is the capital of France."]
     out = asyncio.run(agent.run(prompt, response, context=context))
 
-    assert out == response
+    assert isinstance(out, dict)
+    assert out["prompt"] == response
+    assert "scoring_metrics" in out
 
     assert seen["relevance"] is context
     assert seen["hallucination"] is context
 
     assert len(printed) == 1
-    assert printed[0] == "Lyon\n[relevance: 0.50, hallucination: 0.20]"
+    assert (
+        printed[0]
+        == "Lyon\n[relevance: 0.50, hallucination: 0.20 (faithfulness: 0.80)]"
+    )
