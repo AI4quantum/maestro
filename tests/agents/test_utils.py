@@ -2,7 +2,7 @@
 # Copyright © 2025 IBM
 import os
 
-from maestro.agents.utils import is_url, is_file, get_content
+from maestro.agents.utils import is_url, get_filepath, get_content
 
 valid = {
     "url": "https://github.com/AI4quantum/maestro/blob/main/README.md",
@@ -23,17 +23,19 @@ def test_is_url():
     assert is_url(valid["string"]) is False
 
 
-def test_is_file():
-    assert is_file(valid["path"]) is True
-    assert is_file(invalid["path"]) is False
-    assert is_file(valid["string"]) is False
-    assert is_file(valid["url"]) is False
+def test_get_filepath():
+    assert get_filepath(valid["path"], "") is os.path.join(
+        os.path.dirname(__file__), "../../CODE_OF_CONDUCT.md"
+    )
+    assert get_filepath(invalid["path"], "") is None
+    assert get_filepath(valid["string"], "") is None
+    assert get_filepath(valid["url"], "") is None
 
 
 def test_get_content():
-    assert "# Maestro" in get_content(valid["url"])
-    assert "# Contributor Covenant Code of Conduct" in get_content(valid["path"])
-    assert get_content(valid["string"]) == valid["string"]
-    assert get_content(valid["list"]) == valid["list"]
-    assert get_content(invalid["url"]) == invalid["url"]
-    assert get_content(invalid["path"]) == invalid["path"]
+    assert "# Maestro" in get_content(valid["url"], "")
+    assert "# Contributor Covenant Code of Conduct" in get_content(valid["path"], "")
+    assert get_content(valid["string"], "") == valid["string"]
+    assert get_content(valid["list"], "") == valid["list"]
+    assert get_content(invalid["url"], "") == invalid["url"]
+    assert get_content(invalid["path"], "") == invalid["path"]
