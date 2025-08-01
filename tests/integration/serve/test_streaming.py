@@ -18,34 +18,40 @@ import json
 import time
 import requests
 import subprocess
-import sys
+import pytest
 
 
-class StreamingTester:
+class TestStreaming:
     """Self-contained streaming tester."""
 
-    def __init__(self):
-        self.base_url = "http://localhost:8000"
-        self.server_process = None
-        self.test_results = []
+    @classmethod
+    def setup_class(cls):
+        """Set up test class."""
+        cls.base_url = "http://127.0.0.1:8000"
+        cls.server_process = None
+        cls.test_results = []
 
-    def start_server(self):
+        if not cls.start_server():
+            pytest.fail("Failed to start server")
+
+    @classmethod
+    def start_server(cls):
         """Start the Maestro workflow server."""
         print("🚀 Starting Maestro workflow server...")
 
         agents_file = "tests/yamls/agents/simple_agent.yaml"
         workflow_file = "tests/yamls/workflows/simple_workflow.yaml"
 
-        cmd = [sys.executable, "-m", "maestro", "serve", agents_file, workflow_file]
+        cmd = ["maestro", "serve", agents_file, workflow_file, "--host", "127.0.0.1"]
 
-        self.server_process = subprocess.Popen(
+        cls.server_process = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
 
         print("⏳ Waiting for server to start...")
-        for attempt in range(30):  # Wait up to 30 seconds
+        for attempt in range(15):
             try:
-                response = requests.get(f"{self.base_url}/health", timeout=1)
+                response = requests.get(f"{cls.base_url}/health", timeout=1)
                 if response.status_code == 200:
                     print("✅ Server started successfully!")
                     return True
@@ -53,7 +59,19 @@ class StreamingTester:
                 pass
             time.sleep(1)
 
-        print("❌ Server failed to start within 30 seconds")
+        if cls.server_process.poll() is not None:
+            stdout, stderr = cls.server_process.communicate()
+            print("❌ Server process failed to start")
+            print(f"STDOUT: {stdout}")
+            print(f"STDERR: {stderr}")
+        else:
+            print("❌ Server failed to start within 15 seconds")
+            cls.server_process.terminate()
+            try:
+                cls.server_process.wait(timeout=5)
+            except subprocess.TimeoutExpired:
+                cls.server_process.kill()
+
         return False
 
     def test_streaming(self):
@@ -63,86 +81,69 @@ class StreamingTester:
         url = f"{self.base_url}/chat/stream"
         payload = {"prompt": "Write a short story about a cat"}
 
-        try:
-            response = requests.post(url, json=payload, stream=True, timeout=30)
-            if response.status_code != 200:
-                print(f"❌ Streaming request failed with status {response.status_code}")
-                return False
+        response = requests.post(url, json=payload, stream=True, timeout=30)
+        assert response.status_code == 200, (
+            f"Streaming request failed with status {response.status_code}"
+        )
 
-            step_responses = []
-            final_response = None
+        step_responses = []
+        final_response = None
 
-            print("📊 Collecting streaming responses...")
-            for line in response.iter_lines():
-                if line:
-                    line_str = line.decode("utf-8")
-                    if line_str.startswith("data: "):
-                        data_str = line_str[6:]
-                        try:
-                            data = json.loads(data_str)
+        print("📊 Collecting streaming responses...")
+        for line in response.iter_lines():
+            if line:
+                line_str = line.decode("utf-8")
+                if line_str.startswith("data: "):
+                    data_str = line_str[6:]
+                    try:
+                        data = json.loads(data_str)
 
-                            if "step_name" in data:
-                                step_responses.append(
-                                    {
-                                        "step_name": data["step_name"],
-                                        "step_result": data["step_result"],
-                                        "agent_name": data["agent_name"],
-                                        "step_complete": data["step_complete"],
-                                    }
-                                )
-                                print(
-                                    f"   ✅ Step: {data['step_name']} (Agent: {data['agent_name']})"
-                                )
-                            elif "workflow_complete" in data:
-                                final_response = data
-                                print("   🎉 Workflow completed!")
+                        if "step_name" in data:
+                            step_responses.append(
+                                {
+                                    "step_name": data["step_name"],
+                                    "step_result": data["step_result"],
+                                    "agent_name": data["agent_name"],
+                                    "step_complete": data["step_complete"],
+                                }
+                            )
+                            print(
+                                f"   ✅ Step: {data['step_name']} (Agent: {data['agent_name']})"
+                            )
+                        elif "workflow_complete" in data:
+                            final_response = data
+                            print("   🎉 Workflow completed!")
 
-                        except json.JSONDecodeError:
-                            continue
+                    except json.JSONDecodeError:
+                        continue
 
-            print("\n📈 Test Results:")
-            print(f"   - Steps received: {len(step_responses)}")
-            print(f"   - Final response: {'✅' if final_response else '❌'}")
+        print("\n📈 Test Results:")
+        print(f"   - Steps received: {len(step_responses)}")
+        print(f"   - Final response: {'✅' if final_response else '❌'}")
 
-            if len(step_responses) < 1:
-                print("❌ No step responses received")
-                return False
+        assert len(step_responses) >= 1, "No step responses received"
 
-            for step in step_responses:
-                if not all(
-                    key in step
-                    for key in [
-                        "step_name",
-                        "step_result",
-                        "agent_name",
-                        "step_complete",
-                    ]
-                ):
-                    print(f"❌ Invalid step structure: {step}")
-                    return False
-                if not step["step_complete"]:
-                    print(f"❌ Step not marked as complete: {step}")
-                    return False
+        for step in step_responses:
+            assert all(
+                key in step
+                for key in [
+                    "step_name",
+                    "step_result",
+                    "agent_name",
+                    "step_complete",
+                ]
+            ), f"Invalid step structure: {step}"
+            assert step["step_complete"], f"Step not marked as complete: {step}"
 
-            if not final_response:
-                print("❌ No final workflow response received")
-                return False
-            if "workflow_complete" not in final_response:
-                print("❌ Final response missing workflow_complete flag")
-                return False
-            if not final_response["workflow_complete"]:
-                print("❌ Final response not marked as complete")
-                return False
+        assert final_response is not None, "No final workflow response received"
+        assert "workflow_complete" in final_response, (
+            "Final response missing workflow_complete flag"
+        )
+        assert final_response["workflow_complete"], (
+            "Final response not marked as complete"
+        )
 
-            print("✅ All streaming tests passed!")
-            return True
-
-        except requests.exceptions.Timeout:
-            print("❌ Streaming request timed out")
-            return False
-        except Exception as e:
-            print(f"❌ Streaming test failed: {e}")
-            return False
+        print("✅ All streaming tests passed!")
 
     def test_step_order(self):
         """Test that steps stream in the correct order."""
@@ -151,101 +152,41 @@ class StreamingTester:
         url = f"{self.base_url}/chat/stream"
         payload = {"prompt": "Test prompt"}
 
-        try:
-            response = requests.post(url, json=payload, stream=True, timeout=30)
-            if response.status_code != 200:
-                print(f"❌ Step order test failed with status {response.status_code}")
-                return False
+        response = requests.post(url, json=payload, stream=True, timeout=30)
+        assert response.status_code == 200, (
+            f"Step order test failed with status {response.status_code}"
+        )
 
-            step_order = []
+        step_order = []
 
-            for line in response.iter_lines():
-                if line:
-                    line_str = line.decode("utf-8")
-                    if line_str.startswith("data: "):
-                        data_str = line_str[6:]
-                        try:
-                            data = json.loads(data_str)
+        for line in response.iter_lines():
+            if line:
+                line_str = line.decode("utf-8")
+                if line_str.startswith("data: "):
+                    data_str = line_str[6:]
+                    try:
+                        data = json.loads(data_str)
+                        if "step_name" in data:
+                            step_order.append(data["step_name"])
+                    except json.JSONDecodeError:
+                        continue
 
-                            if "step_name" in data:
-                                step_order.append(data["step_name"])
+        expected_order = ["step1", "step2", "step3"]
+        assert step_order == expected_order, (
+            f"Steps streamed in wrong order. Expected {expected_order}, got {step_order}"
+        )
+        print(f"✅ Steps streamed in correct order: {step_order}")
 
-                        except json.JSONDecodeError:
-                            continue
-
-            expected_order = ["step1", "step2", "step3"]
-            if step_order == expected_order:
-                print(f"✅ Steps streamed in correct order: {step_order}")
-                return True
-            else:
-                print(
-                    f"❌ Steps streamed in wrong order. Expected {expected_order}, got {step_order}"
-                )
-                return False
-
-        except Exception as e:
-            print(f"❌ Step order test failed: {e}")
-            return False
-
-    def cleanup(self):
-        """Clean up the server process."""
-        if self.server_process:
+    @classmethod
+    def teardown_class(cls):
+        """Clean up after all tests."""
+        if cls.server_process:
             print("\n🧹 Cleaning up server...")
-            self.server_process.terminate()
+            cls.server_process.terminate()
             try:
-                self.server_process.wait(timeout=5)
+                cls.server_process.wait(timeout=5)
                 print("✅ Server stopped successfully")
             except subprocess.TimeoutExpired:
                 print("⚠️  Server didn't stop gracefully, forcing...")
-                self.server_process.kill()
-                self.server_process.wait()
-
-    def run_all_tests(self):
-        """Run all streaming tests."""
-        print("🧪 Maestro Streaming Test Suite")
-        print("=" * 40)
-
-        try:
-            if not self.start_server():
-                return False
-
-            tests = [
-                ("Streaming Functionality", self.test_streaming),
-                ("Step Order", self.test_step_order),
-            ]
-
-            all_passed = True
-            for test_name, test_func in tests:
-                print(f"\n{'=' * 20} {test_name} {'=' * 20}")
-                if not test_func():
-                    all_passed = False
-
-            print(f"\n{'=' * 50}")
-            if all_passed:
-                print("🎉 ALL TESTS PASSED!")
-                print("✅ Streaming functionality is working correctly")
-            else:
-                print("❌ SOME TESTS FAILED!")
-                print("Please check the output above for details")
-
-            return all_passed
-
-        finally:
-            self.cleanup()
-
-
-def main():
-    """Main test runner."""
-    tester = StreamingTester()
-    success = tester.run_all_tests()
-
-    if success:
-        print("\n Working as expected!")
-        sys.exit(0)
-    else:
-        print("\n🔧 Please fix the issues above")
-        sys.exit(1)
-
-
-if __name__ == "__main__":
-    main()
+                cls.server_process.kill()
+                cls.server_process.wait()
