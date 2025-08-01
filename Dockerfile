@@ -1,3 +1,6 @@
+#
+# Use tools/buildimg.sh to build this image 
+#
 FROM python:3.12-slim
 WORKDIR /usr/src/app
 
@@ -21,4 +24,3 @@ RUN chown -R 1000:100 /usr/src/app &&\
 
 EXPOSE 5000
 USER 1000:100
-
