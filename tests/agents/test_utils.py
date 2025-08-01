@@ -24,7 +24,7 @@ def test_is_url():
 
 
 def test_get_filepath():
-    assert get_filepath(valid["path"], "") is os.path.join(
+    assert get_filepath(valid["path"], "") == os.path.join(
         os.path.dirname(__file__), "../../CODE_OF_CONDUCT.md"
     )
     assert get_filepath(invalid["path"], "") is None
