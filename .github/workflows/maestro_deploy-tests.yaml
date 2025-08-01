@@ -12,6 +12,9 @@ jobs:
     env:
       DEPLOY_KUBERNETES_TEST: 1
       DEPLOY_DOCKER_TEST: 1
+      IMAGE_PUSH_CMD: 'kind load docker-image docker.io/library/maestro:latest'
+      IMAGE_TAG_CMD: 'docker tag localhost/maestro:latest docker.io/library/maestro:latest'
+      IN_GITHUB_ACTION: 0
     steps:
     - uses: actions/checkout@v4
     - name: Install Kind
