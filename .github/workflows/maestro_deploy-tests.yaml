@@ -15,6 +15,7 @@ jobs:
       IMAGE_PUSH_CMD: 'kind load docker-image docker.io/library/maestro:latest'
       IMAGE_TAG_CMD: 'docker tag localhost/maestro:latest docker.io/library/maestro:latest'
       IN_GITHUB_ACTION: 0
+      CONTAINER_CMD: pdman
     steps:
     - uses: actions/checkout@v4
     - name: Install Kind
