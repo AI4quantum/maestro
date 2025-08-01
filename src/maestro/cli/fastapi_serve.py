@@ -84,13 +84,10 @@ class FastAPIServer:
             try:
                 if not self.agents:
                     raise HTTPException(status_code=500, detail="No agents loaded")
-
-                # Select the agent to use
                 agent = None
                 if self.agent_name and self.agent_name in self.agents:
                     agent = self.agents[self.agent_name]
                 elif len(self.agents) == 1:
-                    # Use the first (and only) agent
                     agent = list(self.agents.values())[0]
                 else:
                     raise HTTPException(
@@ -258,21 +255,16 @@ class FastAPIWorkflowServer:
     async def _stream_workflow_response(self, prompt: str):
         """Stream workflow response per step."""
         try:
-            print(f"DEBUG: Starting workflow streaming for prompt: {prompt}")
-            # Stream each step as it completes
             async for step_data in self.workflow.run_streaming(prompt):
-                print(f"DEBUG: Received step_data: {step_data}")
                 if "error" in step_data:
                     yield f"data: {json.dumps({'error': step_data['error']})}\n\n"
                 elif "final_result" in step_data:
-                    # Final workflow result
                     try:
                         str_response = json.dumps(step_data["final_result"])
                     except Exception:
                         str_response = str(step_data["final_result"])
                     yield f"data: {json.dumps({'response': str_response, 'workflow_name': self.workflow_name, 'workflow_complete': True})}\n\n"
                 else:
-                    # Individual step result
                     step_name = step_data.get("step_name", "unknown")
                     step_result = step_data.get("step_result", "")
                     agent_name = step_data.get("agent_name", "unknown")
@@ -288,7 +280,6 @@ class FastAPIWorkflowServer:
 
                     yield f"data: {json.dumps({'step_name': step_name, 'step_result': str_result, 'agent_name': agent_name, 'step_complete': True})}\n\n"
         except Exception as e:
-            print(f"DEBUG: Error in streaming: {e}")
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 
     def _setup_routes(self):
