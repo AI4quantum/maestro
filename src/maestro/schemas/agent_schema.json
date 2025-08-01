@@ -76,10 +76,6 @@
             "description": "The (optional) url to send a request to the agent"
         }
       }
-    },
-    "source_file": {
-      "type": "string",
-      "description": "absolute path of the agent yaml file"
     }
   }
 }
