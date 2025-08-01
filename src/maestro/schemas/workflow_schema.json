@@ -230,6 +230,10 @@
           }
         }
       }
+    },
+    "source_file": {
+      "type": "string",
+      "description": "absolute path of the workflow yaml file"
     }
   }
 }
