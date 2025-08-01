@@ -31,13 +31,15 @@ class Agent:
 
         self.agent_desc = agent["spec"].get("description")
         self.agent_instr = get_content(
-            agent["spec"].get("instructions"), agent["source_file"]
+            agent["spec"].get("instructions"), agent.get("source_file", "")
         )
 
         self.agent_input = agent["spec"].get("input")
         self.agent_output = agent["spec"].get("output")
 
-        self.agent_code = get_content(agent["spec"].get("code"), agent["source_file"])
+        self.agent_code = get_content(
+            agent["spec"].get("code"), agent.get("source_file", "")
+        )
 
         self.instructions = (
             f"{self.agent_instr} Input is expected in format: {self.agent_input}"
