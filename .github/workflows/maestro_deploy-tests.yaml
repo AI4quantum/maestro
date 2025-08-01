@@ -10,7 +10,8 @@ jobs:
   deploy-tests:
     runs-on: ubuntu-latest
     env:
-      IN_GITHUB_ACTION: 1
+      DEPLOY_KUBERNETES_TEST: 1
+      DEPLOY_DOCKER_TEST: 1
     steps:
     - uses: actions/checkout@v4
     - name: Install Kind
