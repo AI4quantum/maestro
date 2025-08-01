@@ -13,4 +13,4 @@ uv build
 
 # build container images
 $CONTAINER_CMD build -t ghcr.io/$GITHUB_ORG/maestro:$VERSION -f Dockerfile --build-arg MAESTRO_VERSION=$VERSION --build-arg GITHUB_ORG=$GITHUB_ORG .
-$CONTAINER_CMD build -t ghcr.io/$GITHUB_ORG/maestro-cli:$VERSION -f Dockerfile-cli --debug --build-arg MAESTRO_VERSION=$VERSION --build-arg GITHUB_ORG=$GITHUB_ORG .
+$CONTAINER_CMD build -t ghcr.io/$GITHUB_ORG/maestro-cli:$VERSION -f Dockerfile-cli --build-arg MAESTRO_VERSION=$VERSION --build-arg GITHUB_ORG=$GITHUB_ORG .
