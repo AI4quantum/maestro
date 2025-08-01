@@ -22,6 +22,15 @@ jobs:
       uses: actions/setup-python@v5
       with:
         python-version: "3.12"
+    - name: Install Kind
+      run: |
+        curl -Lo ./kind "https://github.com/kubernetes-sigs/kind/releases/download/v0.20.0/kind-$(uname)-amd64"
+        chmod +x ./kind
+        sudo mv kind /usr/local/bin
+        which kind
+    - name: Create Kind cluster
+      run: |
+        kind create cluster --config tests/integration/deploys/kind-config.yaml 
     - name: Install uv and activate the environment
       uses: astral-sh/setup-uv@v6
       with:
