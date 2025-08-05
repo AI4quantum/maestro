@@ -8,6 +8,7 @@ from kubernetes import client, config
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from mcp.client.sse import sse_client
+from contextlib import AsyncExitStack
 
 plural = "mcpservers"
 singular = "mcpserver"
@@ -54,7 +55,7 @@ def find_mcp_service(name):
 
 async def get_http_tools(url, converter, stack):
     transport = await stack.enter_async_context(streamablehttp_client(url + "/mcp"))
-    stdio, write = transport
+    stdio, write, _ = transport
     session = await stack.enter_async_context(ClientSession(stdio, write))
     await session.initialize()
     tools = await session.list_tools()
@@ -117,7 +118,6 @@ async def get_mcp_tools(service_name, converter, stack):
     else:
         print(f"Service: {service_name} not found")
 
-
 def get_mcp_tool_url(service_name):
     service, service_url, transport, external = find_mcp_service(service_name)
 
@@ -152,7 +152,8 @@ def get_mcp_tool_url(service_name):
 if __name__ == "__main__":
     import sys
 
+    mcp_stack = AsyncExitStack()
     converter = None
     if len(sys.argv) == 3:
         converter = sys.argv[2]
-    asyncio.run(get_mcp_tools(sys.argv[1], converter))
+    asyncio.run(get_mcp_tools(sys.argv[1], converter, mcp_stack))

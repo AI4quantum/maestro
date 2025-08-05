@@ -1,0 +1,34 @@
+apiVersion: maestro/v1alpha1
+kind: MCPTool
+metadata:
+  name: maestrok
+  namespace: default
+spec:
+  image: ghcr.io/akihikokuroda/maestro-knowledge:latest
+  transport: streamable-http
+  targetPort: 8030
+  permissionProfile:
+    type: builtin
+    name: network
+  resources:
+    limits:
+      cpu: '100m'
+      memory: '128Mi'
+    requests:
+      cpu: '50m'
+      memory: '64Mi'
+  podTemplateSpec:
+    spec:
+      volumes:
+        - name: cache
+          emptyDir: {}
+      containers:
+        - name: mcp
+          volumeMounts:
+            - mountPath: /app/cache
+              name: cache
+          securityContext:
+            allowPrivilegeEscalation: true
+            readOnlyRootFilesystem: false
+            runAsNonRoot: true
+
