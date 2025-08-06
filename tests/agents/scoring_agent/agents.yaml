@@ -5,11 +5,11 @@ metadata:
   labels:
     app: testapp
 spec:
-  model: deepseek-r1:latest
+  model: qwen3:latest
   description: Simple test agent
   instructions: Answer the question truthfully
-  framework: beeai
-  mode: remote
+  framework: openai
+  mode: local
 ---
 apiVersion: maestro/v1alpha1
 kind: Agent

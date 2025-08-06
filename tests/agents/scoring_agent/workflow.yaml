@@ -12,7 +12,7 @@ spec:
     agents:
       - simple_test
       - score
-    prompt: Is the most well known Paris the one in the United States?
+    prompt: Is the most well known "Paris" the city in the United States?
     steps:
       - name: answer
         agent: simple_test

@@ -6,8 +6,8 @@ metadata:
     app: test-example
 spec:
   model: qwen3:latest
-  framework: beeai
-  mode: remote
+  framework: openai
+  mode: local
   description: this is a test
   instructions: Concisely answer the question to the best of your ability, and if you are unsure, say "I don't know". 
 
@@ -20,8 +20,8 @@ metadata:
     app: test-example
 spec:
   model: qwen3:latest
-  framework: beeai
-  mode: remote
+  framework: openai
+  mode: local
   description: this is a test
   instructions: You are a gibberish generator. You will be given a prompt and you will generate a gibberish response that is not related to the prompt at all.
 
