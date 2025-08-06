@@ -64,7 +64,4 @@ def test_metrics_agent_run_with_context(monkeypatch):
     assert seen["hallucination"] is context
 
     assert len(printed) == 1
-    assert (
-        printed[0]
-        == "Lyon\n[relevance: 0.50, hallucination: 0.20 (faithfulness: 0.80)]"
-    )
+    assert printed[0] == "Lyon\n[relevance: 0.50, hallucination: 0.20]"
