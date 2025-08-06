@@ -49,6 +49,7 @@ class Workflow:
         self.logger = logger
         self._opik = None
         self.scoring_metrics = None
+        self.workflow_models = {}
 
     def to_mermaid(self, kind="sequenceDiagram", orientation="TD") -> str:
         wf = self.workflow
@@ -110,33 +111,35 @@ class Workflow:
                 yield {"error": str(err)}
 
     def _create_or_restore_agents(self):
+        """Create or restore agents for the workflow."""
         if self.agent_defs:
             for agent_def in self.agent_defs:
-                if isinstance(agent_def, str):
-                    instance, restored = restore_agent(agent_def)
-                    if restored:
-                        self.agents[agent_def] = instance
-                        continue
-                    else:
-                        agent_def = instance
+                name = agent_def["metadata"]["name"]
+                instance, restored = restore_agent(name)
+                if restored:
+                    agent_instance = instance
+                else:
+                    agent_def["spec"]["framework"] = agent_def["spec"].get(
+                        "framework", AgentFramework.BEEAI
+                    )
+                    cls = get_agent_class(
+                        agent_def["spec"]["framework"], agent_def["spec"].get("mode")
+                    )
+                    agent_instance = cls(agent_def)
 
-                agent_def["spec"]["framework"] = agent_def["spec"].get(
-                    "framework", AgentFramework.BEEAI
-                )
-                cls = get_agent_class(
-                    agent_def["spec"]["framework"], agent_def["spec"].get("mode")
-                )
-                agent_instance = cls(agent_def)
-
-                agent_name = agent_def["metadata"]["name"]
-                agent_model = agent_def["spec"].get("model", f"code:{agent_name}")
+                agent_name = name
+                agent_model = agent_def["spec"].get("model", f"code:{name}")
                 agent_instance.agent_name = agent_name
                 agent_instance.agent_model = agent_model
                 bound_method = agent_instance.run.__get__(agent_instance)
                 agent_instance.run = log_agent_run(
                     self.workflow_id, agent_name, agent_model
                 )(bound_method)
+
                 self.agents[agent_name] = agent_instance
+                if not self._is_scoring_agent(agent_def):
+                    self.workflow_models[agent_name] = agent_model
+
         else:
             for name in self.workflow["spec"]["template"]["agents"]:
                 instance, restored = restore_agent(name)
@@ -445,6 +448,23 @@ class Workflow:
                         return True
         return False
 
+    def _is_scoring_agent(self, agent_def: dict) -> bool:
+        """Check if an agent definition is a scoring agent."""
+        if isinstance(agent_def, dict):
+            # Check for explicit scoring agent label
+            if (
+                agent_def.get("metadata", {}).get("labels", {}).get("custom_agent")
+                == "scoring_agent"
+            ):
+                return True
+            # Check if it's a custom framework agent that might be a scoring agent
+            if agent_def.get("spec", {}).get("framework") == "custom":
+                # Additional check to see if it's actually a scoring agent
+                agent_name = agent_def.get("metadata", {}).get("name", "").lower()
+                if "score" in agent_name or "evaluate" in agent_name:
+                    return True
+        return False
+
     def _initialize_opik(self) -> None:
         """Initialize Opik for tracing if not already initialized."""
         if self._opik is None:
@@ -458,8 +478,19 @@ class Workflow:
             "steps_executed": list(step_results.keys()),
             "total_steps": len(step_results),
         }
+
+        if self.workflow_models:
+            metadata["workflow_models"] = self.workflow_models
         if self.scoring_metrics:
-            metadata.update(self.scoring_metrics)
+            scoring_metadata = self.scoring_metrics.copy()
+            if "model" in scoring_metadata:
+                scoring_metadata["scoring_model"] = scoring_metadata.pop("model")
+            if "provider" in scoring_metadata:
+                scoring_metadata["framework_provider"] = scoring_metadata.pop(
+                    "provider"
+                )
+            scoring_metadata.pop("agent", None)
+            metadata.update(scoring_metadata)
         return metadata
 
     def _create_opik_trace(
