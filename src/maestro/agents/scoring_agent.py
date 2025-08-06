@@ -77,7 +77,6 @@ class ScoringAgent(Agent):
             return {
                 "relevance": rel_value,
                 "hallucination": hall_value,
-                "faithfulness": 1.0 - hall_value,
                 "relevance_reason": rel_reason,
                 "hallucination_reason": hall_reason,
             }
@@ -117,7 +116,7 @@ class ScoringAgent(Agent):
 
     def _print_metrics(self, response_text: str, scoring_metrics: dict) -> None:
         """Print the scoring metrics to stdout."""
-        metrics_line = f"relevance: {scoring_metrics['relevance']:.2f}, hallucination: {scoring_metrics['hallucination']:.2f} (faithfulness: {scoring_metrics['faithfulness']:.2f})"
+        metrics_line = f"relevance: {scoring_metrics['relevance']:.2f}, hallucination: {scoring_metrics['hallucination']:.2f}"
         self.print(f"{response_text}\n[{metrics_line}]")
 
     def _format_response(self, response_text: str, scoring_metrics: dict) -> dict:
