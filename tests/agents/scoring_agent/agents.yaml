@@ -5,7 +5,7 @@ metadata:
   labels:
     app: testapp
 spec:
-  model: qwen3:latest
+  model: gpt-oss:latest
   description: Simple test agent
   instructions: Answer the question truthfully
   framework: openai
