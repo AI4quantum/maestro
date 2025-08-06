@@ -451,15 +451,12 @@ class Workflow:
     def _is_scoring_agent(self, agent_def: dict) -> bool:
         """Check if an agent definition is a scoring agent."""
         if isinstance(agent_def, dict):
-            # Check for explicit scoring agent label
             if (
                 agent_def.get("metadata", {}).get("labels", {}).get("custom_agent")
                 == "scoring_agent"
             ):
                 return True
-            # Check if it's a custom framework agent that might be a scoring agent
             if agent_def.get("spec", {}).get("framework") == "custom":
-                # Additional check to see if it's actually a scoring agent
                 agent_name = agent_def.get("metadata", {}).get("name", "").lower()
                 if "score" in agent_name or "evaluate" in agent_name:
                     return True
