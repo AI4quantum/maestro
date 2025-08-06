@@ -1,7 +1,7 @@
 apiVersion: maestro/v1alpha1
 kind: MCPTool
 metadata:
-  name: maestrok
+  name: maestro-k
   namespace: default
 spec:
   image: ghcr.io/akihikokuroda/maestro-knowledge:latest
