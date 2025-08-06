@@ -136,6 +136,8 @@ def restore_agent(agent_name: str):
     Restore agent from storage.
     """
     agents = _load_agent_db()
+    if agent_name not in agents:
+        return agent_name, False
     agent_data = agents[agent_name]
     try:
         if "maestro/v1alpha1" in agent_data:

@@ -111,24 +111,25 @@ class Workflow:
                 yield {"error": str(err)}
 
     def _create_or_restore_agents(self):
-        """Create or restore agents for the workflow."""
         if self.agent_defs:
             for agent_def in self.agent_defs:
-                name = agent_def["metadata"]["name"]
-                instance, restored = restore_agent(name)
-                if restored:
-                    agent_instance = instance
-                else:
-                    agent_def["spec"]["framework"] = agent_def["spec"].get(
-                        "framework", AgentFramework.BEEAI
-                    )
-                    cls = get_agent_class(
-                        agent_def["spec"]["framework"], agent_def["spec"].get("mode")
-                    )
-                    agent_instance = cls(agent_def)
+                if isinstance(agent_def, str):
+                    instance, restored = restore_agent(agent_def)
+                    if restored:
+                        self.agents[agent_def] = instance
+                        continue
+                    else:
+                        agent_def = instance
+                agent_def["spec"]["framework"] = agent_def["spec"].get(
+                    "framework", AgentFramework.BEEAI
+                )
+                cls = get_agent_class(
+                    agent_def["spec"]["framework"], agent_def["spec"].get("mode")
+                )
+                agent_instance = cls(agent_def)
 
-                agent_name = name
-                agent_model = agent_def["spec"].get("model", f"code:{name}")
+                agent_name = agent_def["metadata"]["name"]
+                agent_model = agent_def["spec"].get("model", f"code:{agent_name}")
                 agent_instance.agent_name = agent_name
                 agent_instance.agent_model = agent_model
                 bound_method = agent_instance.run.__get__(agent_instance)
