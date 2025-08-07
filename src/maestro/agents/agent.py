@@ -5,7 +5,7 @@ from abc import abstractmethod
 import os
 import pickle
 import json
-from typing import Dict, Final
+from typing import Dict, Final, Any
 
 from maestro.agents.utils import get_content
 
@@ -85,6 +85,25 @@ class Agent:
         Args:
             prompt (str): The prompt to run the agent with.
         """
+
+    def get_token_usage(self) -> Dict[str, Any]:
+        """
+        Get token usage statistics. Override in subclasses that support token tracking.
+        Returns:
+            Dict with token usage information or descriptive message for custom agents.
+        """
+        if self.agent_framework == "custom":
+            if hasattr(self, "agent_name") and "score" in self.agent_name.lower():
+                return {
+                    "agent_type": "scoring_agent",
+                    "description": "Uses Opik evaluation metrics (relevance, hallucination)",
+                }
+            else:
+                return {
+                    "agent_type": "custom_agent",
+                    "description": "Custom agent - no traditional token usage",
+                }
+        return {}
 
 
 def _load_agent_db():

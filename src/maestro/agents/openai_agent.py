@@ -1,4 +1,6 @@
+#!/usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
+# Copyright © 2025 IBM
 
 import os
 import json
@@ -6,6 +8,7 @@ import traceback
 from typing import Final, List, Optional, Any, Dict
 
 import logfire
+import tiktoken
 
 # raw responses for streaming
 from openai.types.responses import ResponseTextDeltaEvent
@@ -83,6 +86,10 @@ class OpenAIAgent(MaestroAgent):
         self.max_tokens: Optional[int] = self._initialize_max_tokens()
         self.extra_headers: Optional[Dict[str, str]] = self._initialize_extra_headers()
         self._configure_agents_library()
+
+        self.prompt_tokens = 0
+        self.response_tokens = 0
+        self.total_tokens = 0
 
     def _configure_agents_library(self) -> None:
         set_default_openai_client(client=self.client, use_for_tracing=True)
@@ -217,6 +224,88 @@ class OpenAIAgent(MaestroAgent):
                 )
         return None
 
+    def _count_tokens(self, text: str) -> int:
+        """Count tokens in text using tiktoken."""
+        try:
+            encoding = tiktoken.get_encoding("cl100k_base")
+            return len(encoding.encode(text))
+        except Exception as e:
+            self.print(
+                f"WARN [OpenAIAgent {self.agent_name}]: Could not count tokens with tiktoken: {e}"
+            )
+            words = len(text.split())
+            return int(words * 0.75)
+
+    def _track_tokens(self, prompt: str, response: str) -> Dict[str, int]:
+        """Track token usage for prompt and response."""
+        prompt_tokens = self._count_tokens(prompt)
+        response_tokens = self._count_tokens(response)
+        total_tokens = prompt_tokens + response_tokens
+
+        self.prompt_tokens = prompt_tokens
+        self.response_tokens = response_tokens
+        self.total_tokens = total_tokens
+
+        self.print(
+            f"INFO [OpenAIAgent {self.agent_name}]: Tokens - Prompt: {prompt_tokens}, Response: {response_tokens}, Total: {total_tokens}"
+        )
+
+        return {
+            "prompt_tokens": prompt_tokens,
+            "response_tokens": response_tokens,
+            "total_tokens": total_tokens,
+        }
+
+    def get_token_usage(self) -> Dict[str, int]:
+        """Get current token usage statistics."""
+        return {
+            "prompt_tokens": self.prompt_tokens,
+            "response_tokens": self.response_tokens,
+            "total_tokens": self.total_tokens,
+        }
+
+    def reset_token_usage(self) -> None:
+        """Reset token usage counters."""
+        self.prompt_tokens = 0
+        self.response_tokens = 0
+        self.total_tokens = 0
+
+    async def _get_actual_token_usage(
+        self, prompt: str, response: str
+    ) -> Dict[str, int]:
+        """Get actual token usage by making a direct API call."""
+        try:
+            if self.base_url == OPENAI_DEFAULT_URL or "openai" in self.base_url.lower():
+                # Make a simple chat completion call to get token usage
+                messages = [
+                    {"role": "user", "content": prompt},
+                    {"role": "assistant", "content": response},
+                ]
+                completion = await self.client.chat.completions.create(
+                    model=self.model_name,
+                    messages=messages,
+                    max_tokens=1,
+                    temperature=0,
+                )
+
+                if hasattr(completion, "usage") and completion.usage:
+                    return {
+                        "prompt_tokens": completion.usage.prompt_tokens,
+                        "response_tokens": completion.usage.completion_tokens,
+                        "total_tokens": completion.usage.total_tokens,
+                    }
+
+        except Exception as e:
+            self.print(
+                f"DEBUG [OpenAIAgent {self.agent_name}]: Could not get actual token usage from API: {e}"
+            )
+
+        return {
+            "prompt_tokens": self._count_tokens(prompt),
+            "response_tokens": self._count_tokens(response),
+            "total_tokens": self._count_tokens(prompt) + self._count_tokens(response),
+        }
+
     def _process_agent_result(self, result: Optional[Any]) -> str:
         if result is None:
             self.print(
@@ -224,6 +313,7 @@ class OpenAIAgent(MaestroAgent):
             )
             return "Error: Agent run failed to produce a result."
 
+        self._extract_token_usage_from_result(result)
         final_output = getattr(result, "final_output", None)
         if final_output is not None:
             final_output_str = str(final_output)
@@ -241,6 +331,64 @@ class OpenAIAgent(MaestroAgent):
             fallback_str = f"Agent run finished without explicit final output. Last message: {last_message_content}"
             self.print(f"DEBUG [OpenAIAgent {self.agent_name}]: {fallback_str}")
             return fallback_str
+
+    def _extract_token_usage_from_result(self, result: Any) -> None:
+        """Try to extract token usage from the result object."""
+        try:
+            if hasattr(result, "usage"):
+                usage = result.usage
+                if hasattr(usage, "prompt_tokens"):
+                    self.prompt_tokens = usage.prompt_tokens
+                if hasattr(usage, "completion_tokens"):
+                    self.response_tokens = usage.completion_tokens
+                if hasattr(usage, "total_tokens"):
+                    self.total_tokens = usage.total_tokens
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Extracted token usage from result - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
+                )
+                return
+
+            if hasattr(result, "messages"):
+                for message in result.messages:
+                    if hasattr(message, "usage"):
+                        usage = message.usage
+                        if hasattr(usage, "prompt_tokens"):
+                            self.prompt_tokens = usage.prompt_tokens
+                        if hasattr(usage, "completion_tokens"):
+                            self.response_tokens = usage.completion_tokens
+                        if hasattr(usage, "total_tokens"):
+                            self.total_tokens = usage.total_tokens
+                        self.print(
+                            f"INFO [OpenAIAgent {self.agent_name}]: Extracted token usage from message - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
+                        )
+                        return
+
+            for attr in ["prompt_tokens", "completion_tokens", "total_tokens", "usage"]:
+                if hasattr(result, attr):
+                    value = getattr(result, attr)
+                    if attr == "prompt_tokens":
+                        self.prompt_tokens = value
+                    elif attr == "completion_tokens":
+                        self.response_tokens = value
+                    elif attr == "total_tokens":
+                        self.total_tokens = value
+                    elif attr == "usage" and hasattr(value, "total_tokens"):
+                        self.total_tokens = value.total_tokens
+                        if hasattr(value, "prompt_tokens"):
+                            self.prompt_tokens = value.prompt_tokens
+                        if hasattr(value, "completion_tokens"):
+                            self.response_tokens = value.completion_tokens
+
+            if self.total_tokens > 0:
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Found token usage in result - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
+                )
+
+        except Exception as e:
+            self.print(
+                f"DEBUG [OpenAIAgent {self.agent_name}]: Could not extract token usage from result: {e}"
+            )
+            pass
 
     # TODO: Cleanup streaming vs non-streaming
     # Maestro doesn't yet have support to specify streaming vs non-streaming, so these
@@ -312,6 +460,17 @@ class OpenAIAgent(MaestroAgent):
 
         # Process result and print final output once
         final_str = self._process_agent_result(result)
+
+        if self.total_tokens == 0:
+            actual_usage = await self._get_actual_token_usage(prompt, final_str)
+            self.prompt_tokens = actual_usage["prompt_tokens"]
+            self.response_tokens = actual_usage["response_tokens"]
+            self.total_tokens = actual_usage["total_tokens"]
+
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: Actual API tokens - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
+            )
+
         self.print(f"Response from {self.agent_name}: {final_str}")
 
         return final_str
@@ -441,6 +600,16 @@ class OpenAIAgent(MaestroAgent):
 
         # Create the final output from all the bits we've received
         final_output_str = "".join(final_output_chunks)
+
+        if self.total_tokens == 0:
+            actual_usage = await self._get_actual_token_usage(prompt, final_output_str)
+            self.prompt_tokens = actual_usage["prompt_tokens"]
+            self.response_tokens = actual_usage["response_tokens"]
+            self.total_tokens = actual_usage["total_tokens"]
+
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: Actual API tokens - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
+            )
 
         self.print(
             f"Final Response from {self.agent_name} (streaming collected): {final_output_str}"

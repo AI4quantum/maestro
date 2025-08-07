@@ -19,10 +19,14 @@ def log_agent_run(workflow_id, agent_name, agent_model):
 
             end_time = datetime.now(UTC)
             perf_end = time.perf_counter()
+            execution_time = perf_end - perf_start
 
             input_text = ""
             if len(args) > 0:
                 input_text = args[0]
+            token_usage = None
+            if hasattr(run_func.__self__, "get_token_usage"):
+                token_usage = run_func.__self__.get_token_usage()
 
             logger.log_agent_response(
                 workflow_id=workflow_id,
@@ -34,8 +38,13 @@ def log_agent_run(workflow_id, agent_name, agent_model):
                 tool_used=None,
                 start_time=start_time,
                 end_time=end_time,
-                duration_ms=int((perf_end - perf_start) * 1000),
+                duration_ms=int(execution_time * 1000),
+                token_usage=token_usage,
             )
+            if hasattr(run_func.__self__, "_workflow_instance"):
+                run_func.__self__._workflow_instance._track_agent_execution_time(
+                    agent_name, execution_time
+                )
 
             return result
 

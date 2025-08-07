@@ -6,6 +6,7 @@
 import os
 import time
 import pycron
+from typing import Dict, Any
 from dotenv import load_dotenv
 from opik import Opik
 
@@ -50,6 +51,15 @@ class Workflow:
         self._opik = None
         self.scoring_metrics = None
         self.workflow_models = {}
+        self.workflow_start_time = None
+        self.workflow_end_time = None
+        self.agent_execution_times = {}
+        self._timing_started = False
+
+    def __del__(self):
+        """Ensure timing is ended when workflow is destroyed."""
+        if hasattr(self, "_timing_started") and self._timing_started:
+            self._end_workflow_timing()
 
     def to_mermaid(self, kind="sequenceDiagram", orientation="TD") -> str:
         wf = self.workflow
@@ -64,14 +74,19 @@ class Workflow:
 
         template = self.workflow["spec"]["template"]
         initial_prompt = template["prompt"]
+        self._start_workflow_timing()
 
         try:
             if template.get("event"):
                 result = await self._condition()
+                self._end_workflow_timing()
                 return await self.process_event(result)
             else:
-                return await self._condition()
+                result = await self._condition()
+                self._end_workflow_timing()
+                return result
         except Exception as err:
+            self._end_workflow_timing()
             self._create_workflow_trace(initial_prompt, f"ERROR: {str(err)}", {})
 
             exc_def = template.get("exception")
@@ -90,16 +105,21 @@ class Workflow:
         self._create_or_restore_agents()
 
         template = self.workflow["spec"]["template"]
+        self._start_workflow_timing()
+
         try:
             if template.get("event"):
                 async for step_result in self._condition_streaming():
                     yield step_result
                 result = await self.process_event(step_result)
+                self._end_workflow_timing()
                 yield {"final_result": result}
             else:
                 async for step_result in self._condition_streaming():
                     yield step_result
+                self._end_workflow_timing()
         except Exception as err:
+            self._end_workflow_timing()
             exc_def = template.get("exception")
             if exc_def:
                 agent_name = exc_def.get("agent")
@@ -132,6 +152,7 @@ class Workflow:
                 agent_model = agent_def["spec"].get("model", f"code:{agent_name}")
                 agent_instance.agent_name = agent_name
                 agent_instance.agent_model = agent_model
+                agent_instance._workflow_instance = self
                 bound_method = agent_instance.run.__get__(agent_instance)
                 agent_instance.run = log_agent_run(
                     self.workflow_id, agent_name, agent_model
@@ -160,6 +181,7 @@ class Workflow:
                 agent_model = f"code:{name}"
                 agent_instance.agent_name = agent_name
                 agent_instance.agent_model = agent_model
+                agent_instance._workflow_instance = self
                 bound_method = agent_instance.run.__get__(agent_instance)
                 agent_instance.run = log_agent_run(
                     self.workflow_id, agent_name, agent_model
@@ -468,6 +490,75 @@ class Workflow:
         if self._opik is None:
             self._opik = Opik()
 
+    def _start_workflow_timing(self) -> None:
+        """Start timing the workflow execution."""
+        self.workflow_start_time = time.time()
+        self._timing_started = True
+
+    def _end_workflow_timing(self) -> None:
+        """End timing the workflow execution."""
+        if self._timing_started and self.workflow_end_time is None:
+            self.workflow_end_time = time.time()
+            self._timing_started = False
+
+    def force_end_timing(self) -> None:
+        """Force end timing if it's still running."""
+        if self._timing_started:
+            self._end_workflow_timing()
+
+    def _get_workflow_execution_time(self) -> float:
+        """Get the total workflow execution time in seconds."""
+        if self.workflow_start_time and self.workflow_end_time:
+            return self.workflow_end_time - self.workflow_start_time
+        return 0.0
+
+    def _track_agent_execution_time(
+        self, agent_name: str, execution_time: float
+    ) -> None:
+        """Track execution time for a specific agent."""
+        self.agent_execution_times[agent_name] = execution_time
+
+    def get_execution_metrics(self) -> Dict[str, Any]:
+        """Get execution time metrics for the workflow and all agents."""
+        if self._timing_started:
+            self.force_end_timing()
+
+        return {
+            "workflow_execution_time_seconds": self._get_workflow_execution_time(),
+            "agent_execution_times": self.agent_execution_times.copy(),
+            "total_agent_time_seconds": sum(self.agent_execution_times.values()),
+            "workflow_start_time": self.workflow_start_time,
+            "workflow_end_time": self.workflow_end_time,
+            "timing_status": "completed" if self.workflow_end_time else "running",
+        }
+
+    def get_token_usage_summary(self) -> Dict[str, Any]:
+        """Get token usage summary for all agents."""
+        total_token_usage = {
+            "total_prompt_tokens": 0,
+            "total_response_tokens": 0,
+            "total_tokens": 0,
+            "agent_token_usage": {},
+        }
+
+        for agent_name, agent in self.agents.items():
+            if hasattr(agent, "get_token_usage"):
+                token_usage = agent.get_token_usage()
+                total_token_usage["agent_token_usage"][agent_name] = token_usage
+
+                if "prompt_tokens" in token_usage:
+                    total_token_usage["total_prompt_tokens"] += token_usage.get(
+                        "prompt_tokens", 0
+                    )
+                    total_token_usage["total_response_tokens"] += token_usage.get(
+                        "response_tokens", 0
+                    )
+                    total_token_usage["total_tokens"] += token_usage.get(
+                        "total_tokens", 0
+                    )
+
+        return total_token_usage
+
     def _build_trace_metadata(self, step_results: dict) -> dict:
         """Build metadata for the Opik trace."""
         metadata = {
@@ -476,6 +567,50 @@ class Workflow:
             "steps_executed": list(step_results.keys()),
             "total_steps": len(step_results),
         }
+
+        execution_metrics = self.get_execution_metrics()
+        metadata.update(execution_metrics)
+
+        total_token_usage = {
+            "total_prompt_tokens": 0,
+            "total_response_tokens": 0,
+            "total_tokens": 0,
+            "agent_token_usage": {},
+        }
+
+        for agent_name, agent in self.agents.items():
+            if hasattr(agent, "get_token_usage"):
+                token_usage = agent.get_token_usage()
+                total_token_usage["agent_token_usage"][agent_name] = token_usage
+
+                # Only add to totals if it's actual token usage (not descriptive message)
+                if "prompt_tokens" in token_usage:
+                    total_token_usage["total_prompt_tokens"] += token_usage.get(
+                        "prompt_tokens", 0
+                    )
+                    total_token_usage["total_response_tokens"] += token_usage.get(
+                        "response_tokens", 0
+                    )
+                    total_token_usage["total_tokens"] += token_usage.get(
+                        "total_tokens", 0
+                    )
+
+        metadata.update(total_token_usage)
+
+        if execution_metrics["workflow_execution_time_seconds"] > 0:
+            metadata["tokens_per_second"] = (
+                total_token_usage["total_tokens"]
+                / execution_metrics["workflow_execution_time_seconds"]
+            )
+            metadata["cost_efficiency"] = {
+                "tokens_per_second": metadata["tokens_per_second"],
+                "seconds_per_token": execution_metrics[
+                    "workflow_execution_time_seconds"
+                ]
+                / total_token_usage["total_tokens"]
+                if total_token_usage["total_tokens"] > 0
+                else 0,
+            }
 
         if self.workflow_models:
             metadata["workflow_models"] = self.workflow_models

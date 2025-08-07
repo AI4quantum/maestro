@@ -37,6 +37,7 @@ class FileLogger:
         start_time=None,
         end_time=None,
         duration_ms=None,
+        token_usage=None,
     ):
         log_path = self.log_dir / f"maestro_run_{workflow_id}.jsonl"
         data = {
@@ -52,6 +53,7 @@ class FileLogger:
             "start_time": start_time.isoformat() if start_time else None,
             "end_time": end_time.isoformat() if end_time else None,
             "duration_ms": duration_ms,
+            "token_usage": token_usage,
         }
         self._write_json_line(log_path, data)
 
