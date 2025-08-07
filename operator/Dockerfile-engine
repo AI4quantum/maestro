@@ -46,7 +46,7 @@ RUN apt-get update && \
 
 # Install dependencies
 RUN pip3 install --no-cache-dir --upgrade \
-    openai \
+    openai==1.98.0 \
     pyyaml \
     python-dotenv \
     requests \
