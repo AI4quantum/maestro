@@ -32,6 +32,7 @@ from maestro.agents.openai_mcp import (
     MCPServerInstance,
     get_mcp_servers,
 )
+from maestro.agents.utils import TokenUsageExtractor
 
 from dotenv import load_dotenv
 
@@ -288,12 +289,11 @@ class OpenAIAgent(MaestroAgent):
                     temperature=0,
                 )
 
-                if hasattr(completion, "usage") and completion.usage:
-                    return {
-                        "prompt_tokens": completion.usage.prompt_tokens,
-                        "response_tokens": completion.usage.completion_tokens,
-                        "total_tokens": completion.usage.total_tokens,
-                    }
+                token_usage = TokenUsageExtractor.extract_from_result(
+                    completion, f"OpenAIAgent {self.agent_name}", self.print
+                )
+                if token_usage["total_tokens"] > 0:
+                    return token_usage
 
         except Exception as e:
             self.print(
@@ -334,61 +334,13 @@ class OpenAIAgent(MaestroAgent):
 
     def _extract_token_usage_from_result(self, result: Any) -> None:
         """Try to extract token usage from the result object."""
-        try:
-            if hasattr(result, "usage"):
-                usage = result.usage
-                if hasattr(usage, "prompt_tokens"):
-                    self.prompt_tokens = usage.prompt_tokens
-                if hasattr(usage, "completion_tokens"):
-                    self.response_tokens = usage.completion_tokens
-                if hasattr(usage, "total_tokens"):
-                    self.total_tokens = usage.total_tokens
-                self.print(
-                    f"INFO [OpenAIAgent {self.agent_name}]: Extracted token usage from result - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
-                )
-                return
+        token_usage = TokenUsageExtractor.extract_from_result(
+            result, f"OpenAIAgent {self.agent_name}", self.print
+        )
 
-            if hasattr(result, "messages"):
-                for message in result.messages:
-                    if hasattr(message, "usage"):
-                        usage = message.usage
-                        if hasattr(usage, "prompt_tokens"):
-                            self.prompt_tokens = usage.prompt_tokens
-                        if hasattr(usage, "completion_tokens"):
-                            self.response_tokens = usage.completion_tokens
-                        if hasattr(usage, "total_tokens"):
-                            self.total_tokens = usage.total_tokens
-                        self.print(
-                            f"INFO [OpenAIAgent {self.agent_name}]: Extracted token usage from message - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
-                        )
-                        return
-
-            for attr in ["prompt_tokens", "completion_tokens", "total_tokens", "usage"]:
-                if hasattr(result, attr):
-                    value = getattr(result, attr)
-                    if attr == "prompt_tokens":
-                        self.prompt_tokens = value
-                    elif attr == "completion_tokens":
-                        self.response_tokens = value
-                    elif attr == "total_tokens":
-                        self.total_tokens = value
-                    elif attr == "usage" and hasattr(value, "total_tokens"):
-                        self.total_tokens = value.total_tokens
-                        if hasattr(value, "prompt_tokens"):
-                            self.prompt_tokens = value.prompt_tokens
-                        if hasattr(value, "completion_tokens"):
-                            self.response_tokens = value.completion_tokens
-
-            if self.total_tokens > 0:
-                self.print(
-                    f"INFO [OpenAIAgent {self.agent_name}]: Found token usage in result - Prompt: {self.prompt_tokens}, Response: {self.response_tokens}, Total: {self.total_tokens}"
-                )
-
-        except Exception as e:
-            self.print(
-                f"DEBUG [OpenAIAgent {self.agent_name}]: Could not extract token usage from result: {e}"
-            )
-            pass
+        self.prompt_tokens = token_usage["prompt_tokens"]
+        self.response_tokens = token_usage["response_tokens"]
+        self.total_tokens = token_usage["total_tokens"]
 
     # TODO: Cleanup streaming vs non-streaming
     # Maestro doesn't yet have support to specify streaming vs non-streaming, so these
