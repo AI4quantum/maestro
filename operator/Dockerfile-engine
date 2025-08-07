@@ -68,7 +68,8 @@ RUN pip3 install --no-cache-dir --upgrade \
     litellm \
     dspy \
     ddgs \
-    kubernetes
+    kubernetes \
+    tiktoken
 
 COPY ./src ./src
 COPY ./operator/entrypoint_api.sh .
