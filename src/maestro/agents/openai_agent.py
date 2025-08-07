@@ -8,7 +8,6 @@ import traceback
 from typing import Final, List, Optional, Any, Dict
 
 import logfire
-import tiktoken
 
 # raw responses for streaming
 from openai.types.responses import ResponseTextDeltaEvent
@@ -32,7 +31,7 @@ from maestro.agents.openai_mcp import (
     MCPServerInstance,
     get_mcp_servers,
 )
-from maestro.agents.utils import TokenUsageExtractor
+from maestro.agents.utils import TokenUsageExtractor, count_tokens, track_token_usage
 
 from dotenv import load_dotenv
 
@@ -227,35 +226,19 @@ class OpenAIAgent(MaestroAgent):
 
     def _count_tokens(self, text: str) -> int:
         """Count tokens in text using tiktoken."""
-        try:
-            encoding = tiktoken.get_encoding("cl100k_base")
-            return len(encoding.encode(text))
-        except Exception as e:
-            self.print(
-                f"WARN [OpenAIAgent {self.agent_name}]: Could not count tokens with tiktoken: {e}"
-            )
-            words = len(text.split())
-            return int(words * 0.75)
+        return count_tokens(text, f"OpenAIAgent {self.agent_name}", self.print)
 
     def _track_tokens(self, prompt: str, response: str) -> Dict[str, int]:
         """Track token usage for prompt and response."""
-        prompt_tokens = self._count_tokens(prompt)
-        response_tokens = self._count_tokens(response)
-        total_tokens = prompt_tokens + response_tokens
-
-        self.prompt_tokens = prompt_tokens
-        self.response_tokens = response_tokens
-        self.total_tokens = total_tokens
-
-        self.print(
-            f"INFO [OpenAIAgent {self.agent_name}]: Tokens - Prompt: {prompt_tokens}, Response: {response_tokens}, Total: {total_tokens}"
+        token_usage = track_token_usage(
+            prompt, response, f"OpenAIAgent {self.agent_name}", self.print
         )
 
-        return {
-            "prompt_tokens": prompt_tokens,
-            "response_tokens": response_tokens,
-            "total_tokens": total_tokens,
-        }
+        self.prompt_tokens = token_usage["prompt_tokens"]
+        self.response_tokens = token_usage["response_tokens"]
+        self.total_tokens = token_usage["total_tokens"]
+
+        return token_usage
 
     def get_token_usage(self) -> Dict[str, int]:
         """Get current token usage statistics."""
@@ -300,11 +283,9 @@ class OpenAIAgent(MaestroAgent):
                 f"DEBUG [OpenAIAgent {self.agent_name}]: Could not get actual token usage from API: {e}"
             )
 
-        return {
-            "prompt_tokens": self._count_tokens(prompt),
-            "response_tokens": self._count_tokens(response),
-            "total_tokens": self._count_tokens(prompt) + self._count_tokens(response),
-        }
+        return track_token_usage(
+            prompt, response, f"OpenAIAgent {self.agent_name}", self.print
+        )
 
     def _process_agent_result(self, result: Optional[Any]) -> str:
         if result is None:

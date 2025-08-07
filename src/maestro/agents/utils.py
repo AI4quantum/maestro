@@ -9,6 +9,11 @@ from urllib.parse import urlparse
 from urllib.request import urlopen
 from typing import Any, Dict
 
+try:
+    import tiktoken
+except ImportError:
+    tiktoken = None
+
 
 def is_url(text):
     try:
@@ -44,6 +49,69 @@ def get_content(text, yaml_file):
     if path is not None:
         return Path(path).read_text()
     return text
+
+
+def count_tokens(text: str, agent_name: str = "Unknown", print_func=None) -> int:
+    """
+    Count tokens in text using tiktoken with fallback to word-based estimation.
+
+    Args:
+        text: The text to count tokens in
+        agent_name: Name of the agent for logging purposes
+        print_func: Optional print function for logging
+
+    Returns:
+        Number of tokens in the text
+    """
+    try:
+        if tiktoken is None:
+            if print_func:
+                print_func(
+                    f"WARN [{agent_name}]: tiktoken not available, using word-based estimation"
+                )
+            words = len(text.split())
+            return int(words * 0.75)
+
+        encoding = tiktoken.get_encoding("cl100k_base")
+        return len(encoding.encode(text))
+    except Exception as e:
+        if print_func:
+            print_func(
+                f"WARN [{agent_name}]: Could not count tokens with tiktoken: {e}"
+            )
+        words = len(text.split())
+        return int(words * 0.75)
+
+
+def track_token_usage(
+    prompt: str, response: str, agent_name: str = "Unknown", print_func=None
+) -> Dict[str, int]:
+    """
+    Track token usage for prompt and response.
+
+    Args:
+        prompt: The prompt text
+        response: The response text
+        agent_name: Name of the agent for logging purposes
+        print_func: Optional print function for logging
+
+    Returns:
+        Dictionary containing prompt_tokens, response_tokens, and total_tokens
+    """
+    prompt_tokens = count_tokens(prompt, agent_name, print_func)
+    response_tokens = count_tokens(response, agent_name, print_func)
+    total_tokens = prompt_tokens + response_tokens
+
+    if print_func:
+        print_func(
+            f"INFO [{agent_name}]: Tokens - Prompt: {prompt_tokens}, Response: {response_tokens}, Total: {total_tokens}"
+        )
+
+    return {
+        "prompt_tokens": prompt_tokens,
+        "response_tokens": response_tokens,
+        "total_tokens": total_tokens,
+    }
 
 
 class TokenUsageExtractor:
