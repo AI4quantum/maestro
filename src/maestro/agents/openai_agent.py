@@ -31,7 +31,7 @@ from maestro.agents.openai_mcp import (
     MCPServerInstance,
     get_mcp_servers,
 )
-from maestro.agents.utils import TokenUsageExtractor, count_tokens, track_token_usage
+from maestro.agents.utils import TokenUsageExtractor
 
 from dotenv import load_dotenv
 
@@ -86,10 +86,6 @@ class OpenAIAgent(MaestroAgent):
         self.max_tokens: Optional[int] = self._initialize_max_tokens()
         self.extra_headers: Optional[Dict[str, str]] = self._initialize_extra_headers()
         self._configure_agents_library()
-
-        self.prompt_tokens = 0
-        self.response_tokens = 0
-        self.total_tokens = 0
 
     def _configure_agents_library(self) -> None:
         set_default_openai_client(client=self.client, use_for_tracing=True)
@@ -224,36 +220,6 @@ class OpenAIAgent(MaestroAgent):
                 )
         return None
 
-    def _count_tokens(self, text: str) -> int:
-        """Count tokens in text using tiktoken."""
-        return count_tokens(text, f"OpenAIAgent {self.agent_name}", self.print)
-
-    def _track_tokens(self, prompt: str, response: str) -> Dict[str, int]:
-        """Track token usage for prompt and response."""
-        token_usage = track_token_usage(
-            prompt, response, f"OpenAIAgent {self.agent_name}", self.print
-        )
-
-        self.prompt_tokens = token_usage["prompt_tokens"]
-        self.response_tokens = token_usage["response_tokens"]
-        self.total_tokens = token_usage["total_tokens"]
-
-        return token_usage
-
-    def get_token_usage(self) -> Dict[str, int]:
-        """Get current token usage statistics."""
-        return {
-            "prompt_tokens": self.prompt_tokens,
-            "response_tokens": self.response_tokens,
-            "total_tokens": self.total_tokens,
-        }
-
-    def reset_token_usage(self) -> None:
-        """Reset token usage counters."""
-        self.prompt_tokens = 0
-        self.response_tokens = 0
-        self.total_tokens = 0
-
     async def _get_actual_token_usage(
         self, prompt: str, response: str
     ) -> Dict[str, int]:
@@ -283,9 +249,7 @@ class OpenAIAgent(MaestroAgent):
                 f"DEBUG [OpenAIAgent {self.agent_name}]: Could not get actual token usage from API: {e}"
             )
 
-        return track_token_usage(
-            prompt, response, f"OpenAIAgent {self.agent_name}", self.print
-        )
+        return self.track_tokens(prompt, response)
 
     def _process_agent_result(self, result: Optional[Any]) -> str:
         if result is None:
@@ -315,13 +279,7 @@ class OpenAIAgent(MaestroAgent):
 
     def _extract_token_usage_from_result(self, result: Any) -> None:
         """Try to extract token usage from the result object."""
-        token_usage = TokenUsageExtractor.extract_from_result(
-            result, f"OpenAIAgent {self.agent_name}", self.print
-        )
-
-        self.prompt_tokens = token_usage["prompt_tokens"]
-        self.response_tokens = token_usage["response_tokens"]
-        self.total_tokens = token_usage["total_tokens"]
+        self.extract_and_set_token_usage_from_result(result)
 
     # TODO: Cleanup streaming vs non-streaming
     # Maestro doesn't yet have support to specify streaming vs non-streaming, so these

@@ -7,6 +7,12 @@ import pickle
 import json
 from typing import Dict, Final, Any
 
+from maestro.agents.utils import (
+    TokenUsageExtractor,
+    count_tokens as utils_count_tokens,
+    track_token_usage as utils_track_token_usage,
+)
+
 from maestro.agents.utils import get_content
 
 
@@ -52,6 +58,11 @@ class Agent:
             else self.instructions
         )
 
+        # Base token counters for LLM-style agents. Custom/scoring agents override get_token_usage.
+        self.prompt_tokens: int = 0
+        self.response_tokens: int = 0
+        self.total_tokens: int = 0
+
     EMOJIS: Final[Dict[str, str]] = {
         "beeai": "🐝",
         "crewai": "👥",
@@ -88,9 +99,9 @@ class Agent:
 
     def get_token_usage(self) -> Dict[str, Any]:
         """
-        Get token usage statistics. Override in subclasses that support token tracking.
-        Returns:
-            Dict with token usage information or descriptive message for custom agents.
+        Get token usage statistics for the agent.
+        - For custom agents (including scoring agents), return a descriptive structure.
+        - For LLM-style agents, return the current counters.
         """
         if self.agent_framework == "custom":
             if hasattr(self, "agent_name") and "score" in self.agent_name.lower():
@@ -98,12 +109,47 @@ class Agent:
                     "agent_type": "scoring_agent",
                     "description": "Uses Opik evaluation metrics (relevance, hallucination)",
                 }
-            else:
-                return {
-                    "agent_type": "custom_agent",
-                    "description": "Custom agent - no traditional token usage",
-                }
-        return {}
+            return {
+                "agent_type": "custom_agent",
+                "description": "Custom agent - no traditional token usage",
+            }
+
+        return {
+            "prompt_tokens": self.prompt_tokens,
+            "response_tokens": self.response_tokens,
+            "total_tokens": self.total_tokens,
+        }
+
+    def reset_token_usage(self) -> None:
+        """Reset token usage counters to zero."""
+        self.prompt_tokens = 0
+        self.response_tokens = 0
+        self.total_tokens = 0
+
+    def count_tokens(self, text: str) -> int:
+        """Count tokens for text using shared utility with sensible logging."""
+        agent_label = f"{self.__class__.__name__} {self.agent_name}"
+        return utils_count_tokens(text, agent_label, self.print)
+
+    def track_tokens(self, prompt: str, response: str) -> Dict[str, int]:
+        """Compute and store token usage for a prompt/response pair."""
+        agent_label = f"{self.__class__.__name__} {self.agent_name}"
+        token_usage = utils_track_token_usage(prompt, response, agent_label, self.print)
+        self.prompt_tokens = token_usage["prompt_tokens"]
+        self.response_tokens = token_usage["response_tokens"]
+        self.total_tokens = token_usage["total_tokens"]
+        return token_usage
+
+    def extract_and_set_token_usage_from_result(self, result: Any) -> Dict[str, int]:
+        """Extract token usage from a provider-specific result object and store it."""
+        agent_label = f"{self.__class__.__name__} {self.agent_name}"
+        token_usage = TokenUsageExtractor.extract_from_result(
+            result, agent_label, self.print
+        )
+        self.prompt_tokens = token_usage["prompt_tokens"]
+        self.response_tokens = token_usage["response_tokens"]
+        self.total_tokens = token_usage["total_tokens"]
+        return token_usage
 
 
 def _load_agent_db():
