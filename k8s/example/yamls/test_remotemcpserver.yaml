@@ -1,0 +1,11 @@
+apiVersion: maestro.ai4quantum.com/v1alpha1
+kind: RemoteMCPServer
+metadata:
+  name: test-remotemcpserver
+  namespace: default
+spec:
+  url: https://api.githubcopilot.com/mcp
+  transport: streamable-http
+  name: remotemcpserver
+  description: remote MCP server
+

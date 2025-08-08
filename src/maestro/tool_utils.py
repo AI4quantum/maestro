@@ -18,6 +18,12 @@ group = "toolhive.stacklok.dev"
 version = "v1alpha1"
 kind = "MCPServer"
 
+remoteGroup = "maestro.ai4quantum.com"
+remoteVersion = "v1alpha1"
+remoteKind = "RemoteMCPServer"
+remotePlural = "remotemcpservers"
+remoteSingular = "remotemcpserver"
+
 
 def find_mcp_service(name):
     """
@@ -50,11 +56,37 @@ def find_mcp_service(name):
                 transport,
                 external,
             )
+
+    # remote MCP server
+    remote_crd = apis.get_namespaced_custom_object(
+        group=remoteGroup,
+        version=remoteVersion,
+        name=name,
+        namespace=namespace,
+        plural=remotePlural,
+    )
+    if remote_crd:
+        transport = remote_crd["spec"]["transport"]
+        url = remote_crd["spec"]["url"]
+        name = remote_crd["spec"]["name"]
+        if url.endswith("/mcp"):
+            url = url[: -len("/mcp")]
+        elif url.endswith("/sse"):
+            url = url[: -len("/sse")]
+        return (name, url, transport, url)
+
     return None, None, None, None
 
 
 async def get_http_tools(url, converter, stack):
-    transport = await stack.enter_async_context(streamablehttp_client(url + "/mcp"))
+    token = os.getenv("MCP_ACCESS_TOKEN")
+    if token:
+        headers = {"Authorization": f"Bearer {token}"}
+        transport = await stack.enter_async_context(
+            streamablehttp_client(url + "/mcp", headers=headers)
+        )
+    else:
+        transport = await stack.enter_async_context(streamablehttp_client(url + "/mcp"))
     stdio, write, _ = transport
     session = await stack.enter_async_context(ClientSession(stdio, write))
     await session.initialize()

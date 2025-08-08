@@ -1,0 +1,52 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: remotemcpservers.maestro.ai4quantum.com
+spec:
+  group: maestro.ai4quantum.com
+  names:
+    kind: RemoteMCPServer
+    singular: remotemcpserver
+    plural: remotemcpservers
+    shortNames:
+      - rmcps
+  scope: Namespaced
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            apiVersion:
+              type: string
+              description: '`apiVersion` of the resource (e.g. maestro.ai4quantum.com/v1alpha1)'
+            kind:
+              type: string
+              description: '`kind` of the resource (always RemoteMCPServer)'
+            metadata:
+              type: object
+            spec:
+              type: object
+              description: Desired state of the RemoteMCPServer
+              properties:
+                url:
+                  type: string
+                  description: The server URL
+                transport:
+                  type: string
+                  description: The protocol type used (e.g., "sse", "streamable-http", "stdio")
+                configmapName:
+                  type: string
+                  description: Name of the ConfigMap containing configuration data
+                secretName:
+                  type: string
+                  description: Name of the Secret containing sensitive data
+                name:
+                  type: string
+                  description: Friendly name of the server
+                description:
+                  type: string
+                  description: Human‑readable description
