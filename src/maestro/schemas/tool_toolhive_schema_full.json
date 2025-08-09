@@ -110,6 +110,18 @@
                             "description": "Image is the container image for the MCP server",
                             "type": "string"
                         },
+                        "url": {
+                            "description": "URL of the remote MCP server",
+                            "type": "string"
+                        },
+                        "name": {
+                            "description": "MCP server name for the remote MCP server",
+                            "type": "string"
+                        },
+                        "description": {
+                            "description": "MCP server description for the remote MCP server",
+                            "type": "string"
+                        },
                         "oidcConfig": {
                             "description": "OIDCConfig defines OIDC authentication configuration for the MCP server",
                             "properties": {
