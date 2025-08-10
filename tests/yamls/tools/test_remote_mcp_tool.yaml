@@ -8,5 +8,5 @@ spec:
   transport: streamable-http
   name: remotemcpserver
   description: remote MCP server
-
+  secretName: githubtoken
 

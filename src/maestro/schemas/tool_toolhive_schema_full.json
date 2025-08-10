@@ -122,6 +122,14 @@
                             "description": "MCP server description for the remote MCP server",
                             "type": "string"
                         },
+                        "secretName": {
+                            "description": "MCP server secret name for the remote MCP server",
+                            "type": "string"
+                        },
+                        "configmapName": {
+                            "description": "MCP server configmap name for the remote MCP server",
+                            "type": "string"
+                        },
                         "oidcConfig": {
                             "description": "OIDCConfig defines OIDC authentication configuration for the MCP server",
                             "properties": {
