@@ -35,6 +35,7 @@ def create_mcptool(body):
     # Create an instance of the API class for the custom resource definition
     api_instance = client.CustomObjectsApi()
     url = body["spec"].get("url")
+    apiVersion = ""
     if url:
         # Create the RemoteMCPServer CRD instance
         apiVersion = f"{remoteGroup}/{remoteVersion}"
