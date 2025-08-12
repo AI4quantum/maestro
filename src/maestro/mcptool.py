@@ -45,7 +45,7 @@ def create_mcptool(body):
         apiVersion = f"{group}/{version}"
         kind = "MCPServer"
     # Create the CRD instance
-    body["apiVersion"] = apiversion
+    body["apiVersion"] = apiVersion
     body["kind"] = kind
     namespace = body["metadata"].get("namespace")
     if not namespace:
