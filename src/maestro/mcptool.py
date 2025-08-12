@@ -6,13 +6,13 @@
 from kubernetes import client, config
 
 # Define the plural and singular names for the custom resource
-plural = "mcpservers"
-singular = "mcpserver"
+toolhivePlural = "mcpservers"
+toolhiveSingular = "mcpserver"
 
 # Define the group, version, and kind for the custom resource
-group = "toolhive.stacklok.dev"
-version = "v1alpha1"
-kind = "MCPServer"
+toolhiveGroup = "toolhive.stacklok.dev"
+toolhiveVersion = "v1alpha1"
+toolhiveKind = "MCPServer"
 
 # Define the plural and singular names for the custom resource
 remotePlural = "remotemcpservers"
@@ -48,11 +48,11 @@ def create_mcptool(body):
         plural = remotePlural
     else:
         # Create the MCPServer CRD instance
-        apiVersion = f"{group}/{version}"
+        apiVersion = f"{toolhiveGroup}/{toolhiveVersion}"
         kind = "MCPServer"
-        group = group
-        version = version
-        plural = plural
+        group = toolhiveGroup
+        version = toolhiveVersion
+        plural = toolhivePlural
     # Create the CRD instance
     body["apiVersion"] = apiVersion
     body["kind"] = kind
