@@ -36,25 +36,20 @@ def create_mcptool(body):
     api_instance = client.CustomObjectsApi()
     url = body["spec"].get("url")
     if url:
-        body["apiVersion"] = f"{remoteGroup}/{remoteVersion}"
-        body["kind"] = "RemoteMCPServer"
-        namespace = body["metadata"].get("namespace")
-        if not namespace:
-            namespace = "default"
-        api_response = api_instance.create_namespaced_custom_object(
-            remoteGroup, remoteVersion, namespace, remotePlural, body
-        )
-        print(
-            f"Remote MCP tool: {api_response['metadata']['name']} successfully created"
-        )
+        # Create the RemoteMCPServer CRD instance
+        apiVersion = f"{remoteGroup}/{remoteVersion}"
+        kind = "RemoteMCPServer"
     else:
-        # Create the CRD instance
-        body["apiVersion"] = f"{group}/{version}"
-        body["kind"] = "MCPServer"
-        namespace = body["metadata"].get("namespace")
-        if not namespace:
-            namespace = "default"
-        api_response = api_instance.create_namespaced_custom_object(
-            group, version, namespace, plural, body
-        )
-        print(f"MCP tool: {api_response['metadata']['name']} successfully created")
+        # Create the MCPServer CRD instance
+        apiVersion = f"{group}/{version}"
+        kind = "MCPServer"
+    # Create the CRD instance
+    body["apiVersion"] = apiversion
+    body["kind"] = kind
+    namespace = body["metadata"].get("namespace")
+    if not namespace:
+        namespace = "default"
+    api_response = api_instance.create_namespaced_custom_object(
+        group, version, namespace, plural, body
+    )
+    print(f"MCP tool: {api_response['metadata']['name']} successfully created")

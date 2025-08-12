@@ -117,7 +117,9 @@ async def get_mcp_servers(tools, stack):
     mcp_servers = []
     if tools:
         for tool_name in tools:
-            name, service_url, transport, external_url = find_mcp_service(tool_name)
+            name, service_url, transport, external_url, access_token = find_mcp_service(
+                tool_name
+            )
             if name:
                 url = external_url
                 if os.getenv("KUBERNETES_SERVICE_HOST") and os.getenv(
@@ -130,11 +132,24 @@ async def get_mcp_servers(tools, stack):
                     "/var/run/secrets/kubernetes.io/serviceaccount/token"
                 ):
                     url = service_url
+
+                if url.endswith("/"):
+                    url = url[:-1]
+                if url.endswith("/mcp"):
+                    url = url[: -len("/mcp")]
+                elif url.endswith("/sse"):
+                    url = url[: -len("/sse")]
+
+                headers = None
+                if access_token:
+                    headers = {"Authorization": f"Bearer {access_token}"}
                 if transport == "sse" or transport == "stdio":
-                    server = MCPServerSse(name=tool_name, params={"url": url + "/sse"})
+                    server = MCPServerSse(
+                        name=tool_name, params={"url": url + "/sse", "headers": headers}
+                    )
                 else:
                     server = MCPServerStreamableHttp(
-                        name=tool_name, params={"url": url + "/mcp"}
+                        name=tool_name, params={"url": url + "/mcp", "headers": headers}
                     )
                 await server.connect()
                 mcp_servers.append(server)

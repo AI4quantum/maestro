@@ -340,8 +340,6 @@ class OpenAIAgent(MaestroAgent):
                 self.print(
                     f"DEBUG [OpenAIAgent {self.agent_name}]: Agent run completed."
                 )
-                for maestro_mcp_server in maestro_mcp_servers:
-                    await maestro_mcp_server.cleanup()
 
         except Exception as e:
             error_msg = f"ERROR [OpenAIAgent {self.agent_name}]: Agent run failed: {e}"
