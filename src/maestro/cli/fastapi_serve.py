@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 
-from maestro.workflow import create_agents, Workflow
+from maestro.workflow import create_agents, Workflow, get_agent_class
 from maestro.agents.agent import restore_agent
 from maestro.cli.common import parse_yaml, Console
 
@@ -145,7 +145,17 @@ class FastAPIServer:
 
                     # Handle case where restore_agent returns a tuple
                     if isinstance(restored, tuple):
-                        agent = restored[0]  # Extract the agent object from the tuple
+                        agent_def = restored[
+                            0
+                        ]  # Extract the agent object from the tuple
+                        agent_def["spec"]["framework"] = agent_def["spec"].get(
+                            "framework", "beeai"
+                        )
+                        cls = get_agent_class(
+                            agent_def["spec"]["framework"],
+                            agent_def["spec"].get("mode"),
+                        )
+                        agent = cls(agent_def)
                     else:
                         agent = restored
 
