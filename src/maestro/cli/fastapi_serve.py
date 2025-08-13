@@ -141,13 +141,11 @@ class FastAPIServer:
             for agent_def in agents_yaml:
                 agent_name = agent_def["metadata"]["name"]
                 if not self.agent_name or agent_name == self.agent_name:
-                    restored = restore_agent(agent_name)
-
-                    # Handle case where restore_agent returns a tuple
-                    if isinstance(restored, tuple):
-                        agent_def = restored[
-                            0
-                        ]  # Extract the agent object from the tuple
+                    instance, restored = restore_agent(agent_name)
+                    if restored:
+                        agent = instance
+                    else:
+                        agent_def = instance
                         agent_def["spec"]["framework"] = agent_def["spec"].get(
                             "framework", "beeai"
                         )
@@ -156,8 +154,6 @@ class FastAPIServer:
                             agent_def["spec"].get("mode"),
                         )
                         agent = cls(agent_def)
-                    else:
-                        agent = restored
 
                     self.agents[agent_name] = agent
 
