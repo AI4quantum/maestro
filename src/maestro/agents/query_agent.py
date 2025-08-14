@@ -26,7 +26,7 @@ class QueryAgent(Agent):
                     "db_name": self.db_name,
                     "query": prompt,
                     "limit": self.limit,
-                    "collection_name": self.db_name,
+                    "collection_name": self.collection_name,
                 }
             }
             tool_result = await client.call_tool("search", params)
