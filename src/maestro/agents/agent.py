@@ -5,6 +5,7 @@ from abc import abstractmethod
 import os
 import pickle
 import json
+from datetime import datetime
 from typing import Dict, Final, Any
 
 from maestro.agents.utils import (
@@ -79,7 +80,9 @@ class Agent:
         return self.EMOJIS.get(self.agent_framework, "⚙️")
 
     def print(self, message) -> str:
-        print(f"{self.emoji()} {message}")
+        now = datetime.now()
+        formatted_time = now.strftime("%m-%d-%Y %H:%M:%S")
+        print(f"{self.emoji()} {formatted_time}: {message}")
 
     @abstractmethod
     async def run(self, prompt: str) -> str:
