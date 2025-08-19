@@ -2,8 +2,6 @@
 from enum import StrEnum
 from typing import Callable, Union
 
-from maestro.agents.query_agent import QueryAgent
-
 from .beeai_agent import BeeAIAgent, BeeAILocalAgent
 from .crewai_agent import CrewAIAgent
 from .dspy_agent import DspyAgent
@@ -25,7 +23,6 @@ class AgentFramework(StrEnum):
     REMOTE = "remote"
     CUSTOM = "custom"
     CODE = "code"
-    QUERY = "query"
 
     # Not yet supported
     # LANGFLOW = 'langflow'
@@ -48,7 +45,6 @@ class AgentFactory:
             RemoteAgent,
             CodeAgent,
             MockAgent,
-            QueryAgent,
         ],
     ]:
         """Create an instance of the specified agent framework.
@@ -66,7 +62,6 @@ class AgentFactory:
             AgentFramework.OPENAI: OpenAIAgent,
             AgentFramework.CODE: CodeAgent,
             AgentFramework.MOCK: MockAgent,
-            AgentFramework.QUERY: QueryAgent,
         }
 
         remote_factories = {
@@ -99,7 +94,6 @@ class AgentFactory:
             RemoteAgent,
             CodeAgent,
             MockAgent,
-            QueryAgent,
         ],
     ]:
         """Get a factory function for the specified agent type."""

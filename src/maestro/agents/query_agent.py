@@ -9,9 +9,11 @@ from maestro.agents.agent import Agent
 class QueryAgent(Agent):
     def __init__(self, agent_def: dict) -> None:
         super().__init__(agent_def)
-        self.db_name = agent_def["spec"]["database"]
-        self.collection_name = agent_def["spec"].get("collection", "MaestroDocs")
-        self.limit = agent_def["spec"].get("results_limit", 10)
+        self.db_name = agent_def["metadata"]["query_input"]["db_name"]
+        self.collection_name = agent_def["metadata"]["query_input"].get(
+            "collection_name", "MaestroDocs"
+        )
+        self.limit = agent_def["metadata"]["query_input"].get("limit", 10)
         self.output_template = Template(self.agent_output or "{{output}}")
 
     async def run(self, prompt: str) -> str:
@@ -39,7 +41,7 @@ class QueryAgent(Agent):
                 [doc["text"] for doc in json.loads(tool_result.content[0].text)]
             )
 
-            answer = self.output_template.render(output=output, prompt=prompt)
+            answer = self.output_template.render(result=output, prompt=prompt)
 
             self.print(f"Response from {self.agent_name}: {answer}\n")
 

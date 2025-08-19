@@ -4,6 +4,7 @@
 from typing import Any
 
 from maestro.agents.agent import Agent
+from maestro.agents.query_agent import QueryAgent
 from maestro.agents.slack_agent import SlackAgent
 from maestro.agents.scoring_agent import ScoringAgent
 from maestro.agents.prompt_agent import PromptAgent
@@ -20,6 +21,7 @@ custom_agent = {
     "slack_agent": SlackAgent,
     "scoring_agent": ScoringAgent,
     "prompt_agent": PromptAgent,
+    "query_agent": QueryAgent,
 }
 
 

@@ -70,7 +70,6 @@ class Agent:
         "openai": "🔓",
         "mock": "🤖",
         "remote": "💸",
-        "query": "📚",
         # Not yet supported
         # 'langflow': '⛓',
     }
