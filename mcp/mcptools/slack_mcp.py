@@ -1,8 +1,10 @@
 from fastmcp import FastMCP
-import os, sys
+import os
 import asyncio
+from slack_sdk import  WebClient
 
 mcp = FastMCP("slack")
+
 
 @mcp.tool()
 async def post_slack_message(message: str, channel: str) -> str:
@@ -18,14 +20,16 @@ async def post_slack_message(message: str, channel: str) -> str:
         return
     client = WebClient(token=slack_token)
     try:
-        result = client.chat_postMessage(channel=channel_id, text=message)
-        print(f"Message posted to channel {channel_id}: {result['ts']}")
+        result = client.chat_postMessage(channel=channel, text=message)
+        print(f"Message posted to channel {channel}: {result['ts']}")
     except SlackApiError as e:
         print(f"Error posting message: {e}")
+
 
 def main():
     port = int(os.getenv("MCP_SLACK_PORT", 30055))
     asyncio.run(mcp.run(transport="http", host="0.0.0.0", port=port))
-        
+
+
 if __name__ == "__main__":
     main()
