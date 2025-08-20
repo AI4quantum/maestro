@@ -1,7 +1,7 @@
 from fastmcp import FastMCP
 import os
 import asyncio
-from slack_sdk import  WebClient
+from slack_sdk import WebClient
 
 mcp = FastMCP("slack")
 
@@ -22,7 +22,7 @@ async def post_slack_message(message: str, channel: str) -> str:
     try:
         result = client.chat_postMessage(channel=channel, text=message)
         print(f"Message posted to channel {channel}: {result['ts']}")
-    except SlackApiError as e:
+    except Exception as e:
         print(f"Error posting message: {e}")
 
 
