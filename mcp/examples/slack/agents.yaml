@@ -1,0 +1,14 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: slack
+  labels:
+    app: slack
+spec:
+  model: llama3.1:latest
+  description: post slack message
+  instructions: You are a helpful agent. You have a slack tool.
+  framework: beeai
+  mode: local
+  tools:
+  - slack

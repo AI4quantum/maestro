@@ -1,0 +1,10 @@
+apiVersion: maestro/v1alpha1
+kind: MCPTool
+metadata:
+  name: slack
+  namespace: default
+spec:
+  url: http://127.0.0.1:30055/mcp
+  transport: streamable-http
+  name: slack
+  description: slack
