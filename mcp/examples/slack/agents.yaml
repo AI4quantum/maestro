@@ -8,7 +8,7 @@ spec:
   model: llama3.1:latest
   description: post slack message
   instructions: You are a helpful agent. You have a slack tool.
-  framework: beeai
+  framework: openai
   mode: local
   tools:
   - slack

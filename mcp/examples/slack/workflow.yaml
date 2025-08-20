@@ -12,7 +12,7 @@ spec:
         app: slck
     agents:
     - slack
-    prompt: Post "Hey this is MCP!!" message to slacl channel "CTBJXJBJN"
+    prompt: Post "I am Maestro agent!!  I can help you to do things done" message to slacl channel "CTBJXJBJN"
     steps:
     - name: slack
       agent: slack
