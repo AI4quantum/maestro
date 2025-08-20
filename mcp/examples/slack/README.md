@@ -16,6 +16,8 @@ async def post_slack_message(message: str, channel: str) -> str:
 
 * SLACK_BOT_TOKEN: This is slack access token (required)  
 * MCP_SLACK_PORT: MCP server port (optional, default 30055)
+* OPENAI_API_KEY: for OpenAI framework
+* OPENAI_BASE_URL: for OpenAI framework
 
 ## Run example
 

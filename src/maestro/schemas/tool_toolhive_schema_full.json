@@ -7106,9 +7106,6 @@
                             "type": "array"
                         }
                     },
-                    "required": [
-                        "image"
-                    ],
                     "type": "object"
                 }
             }
