@@ -14,7 +14,7 @@ class QueryAgent(Agent):
             "collection_name", "MaestroDocs"
         )
         self.limit = agent_def["metadata"]["query_input"].get("limit", 10)
-        self.output_template = Template(self.agent_output or "{{output}}")
+        self.output_template = Template(self.agent_output or "{{result}}")
 
     async def run(self, prompt: str) -> str:
         self.print(f"Running {self.agent_name} with prompt...")

@@ -1,0 +1,23 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: test-query-agent
+  labels:
+    app: query-example
+    custom_agent: query_agent
+  query_input:
+    db_name: testDB
+    collection_name: MaestroDoc
+    limit: 10
+spec:
+  framework: custom
+  url: http://localhost:8030/mcp
+  description: query agent
+  output: |
+    {{result}}
+
+    ---
+
+    Given the context above, your knowledge, answer the question as best as possible. Be concise.
+
+    Question: {{prompt}}
