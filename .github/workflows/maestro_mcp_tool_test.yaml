@@ -1,4 +1,4 @@
-name: Maestro Create tool Test
+name: Maestro MCP Tool Test
 on:
   push:
     branches: [ "main" ]
@@ -24,8 +24,8 @@ jobs:
         kind create cluster --config tests/integration/deploys/kind-config.yaml 
     - name: Install ToolHive
       run: |
-        helm upgrade -i toolhive-operator-crds oci://ghcr.io/stacklok/toolhive/toolhive-operator-crds
-        helm upgrade -i toolhive-operator oci://ghcr.io/stacklok/toolhive/toolhive-operator -n toolhive-system --create-namespace
+        helm upgrade -i toolhive-operator-crds oci://ghcr.io/stacklok/toolhive/toolhive-operator-crds --version 0.0.13
+        helm upgrade -i toolhive-operator oci://ghcr.io/stacklok/toolhive/toolhive-operator -n toolhive-system --create-namespace --version 0.2.1
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
