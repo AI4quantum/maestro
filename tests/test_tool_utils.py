@@ -10,7 +10,7 @@ from unittest import TestCase
 from maestro.tool_utils import find_mcp_service
 
 class Test_tool_utils(TestCase):
-    mcp_server_list = "mcp_server_list.json"
+    mcp_server_list = "test_mcp_server_list.json"
     def setUp(self):
         os.environ["MCP_SERVER_LIST"] = self.mcp_server_list
         with open(self.mcp_server_list, "w") as f:
