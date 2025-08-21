@@ -32,6 +32,7 @@ dependencies = [
     "dspy>=2.6.27",
     "kubernetes>=33.1.0",
     "ddgs>=9.4.0",
+    "crewai>=0.134.0",
 ]
 
 [dependency-groups]
