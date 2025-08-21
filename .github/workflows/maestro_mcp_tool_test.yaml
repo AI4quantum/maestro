@@ -1,4 +1,4 @@
-name: Maestro MCP tool Test
+name: Maestro MCP Tool Test
 on:
   push:
     branches: [ "main" ]
