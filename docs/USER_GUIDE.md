@@ -42,7 +42,8 @@ The syntax of the agent definition is defined in the [json schema](https://githu
   - **framework**: agent framework type.  Current supported agent frameworks are : "beeai", "crewai", "openai", "remotem", "custom" and "code"
   - **mode**: Remote or Local.  Some agents support agent remotely.  Remote is supported by "beeai" and "remote" 
   - **description**: Description of this agent
-  - **tools**: array of tool names or mcp server names. In the kubernetes cluster, the MCP servers deployed by `maestro create <tool.yaml>` or `ToolHive` listed here are enabled for this agent.  In the case of the MCP servers, all tools hosted by the server are enabled.
+  - **tools**: array of tool names or mcp server names. In the kubernetes cluster, the MCP servers deployed by `maestro create <tool.yaml>` or `ToolHive` listed here are enabled for this agent.  In the case of the MCP servers, all tools hosted by the server are enabled.  For local deployment, the MCP server can be registered in the file specified by "MCP_SERVER_LIST" environment variable.  The file contents should be a list of MCP servers and each server should have "name", "url", "transport" and "access_token".
+  
   - **instructions**: the instructions for the agent, can be a (multi-line) string, a url, or a file path. The file path is relative to where maestro is run
 
 ### Workflow

@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 import os
+import json
 import base64
 import asyncio
 from kubernetes import client, config
@@ -60,32 +61,67 @@ def find_mcp_service(name):
             )
 
     # remote MCP server
-    remote_crd = apis.get_namespaced_custom_object(
-        group=remoteGroup,
-        version=remoteVersion,
-        name=name,
-        namespace=namespace,
-        plural=remotePlural,
-    )
-    if remote_crd:
-        transport = remote_crd["spec"]["transport"]
-        url = remote_crd["spec"]["url"]
-        name = remote_crd["spec"]["name"]
-        if url.endswith("/"):
-            url = url[:-1]
-        if url.endswith("/mcp"):
-            url = url[: -len("/mcp")]
-        elif url.endswith("/sse"):
-            url = url[: -len("/sse")]
-        accessToken = None
-        secretName = remote_crd["spec"].get("secretName")
-        if secretName:
-            secret = v1.read_namespaced_secret(name=secretName, namespace="default")
-            if secret:
-                accessToken = base64.b64decode(secret.data["MCP_ACCESS_TOKEN"]).decode(
-                    "utf-8"
-                )
-        return (name, url, transport, url, accessToken)
+    try:
+        remote_crd = apis.get_namespaced_custom_object(
+            group=remoteGroup,
+            version=remoteVersion,
+            name=name,
+            namespace=namespace,
+            plural=remotePlural,
+        )
+        if remote_crd:
+            transport = remote_crd["spec"]["transport"]
+            url = remote_crd["spec"]["url"]
+            name = remote_crd["spec"]["name"]
+            if url.endswith("/"):
+                url = url[:-1]
+            if url.endswith("/mcp"):
+                url = url[: -len("/mcp")]
+            elif url.endswith("/sse"):
+                url = url[: -len("/sse")]
+            accessToken = None
+            secretName = remote_crd["spec"].get("secretName")
+            if secretName:
+                secret = v1.read_namespaced_secret(name=secretName, namespace="default")
+                if secret:
+                    accessToken = base64.b64decode(secret.data["MCP_ACCESS_TOKEN"]).decode(
+                        "utf-8"
+                    )
+            return (name, url, transport, url, accessToken)
+    except Exception as e:
+        None
+
+    # local MCP server list
+    # Example Json file
+    #[
+    #    {
+    #        "name": "server1",
+    #        "url": "http://server1.example.com",
+    #        "transport": "streamable-http",
+    #        "access_token": "abc123"
+    #    },
+    #    {
+    #        "name": "server2",
+    #        "url": "http://server2.example.com",
+    #        "transport": "sse",
+    #        "access_token": "def456"
+    #    },
+    #    {
+    #        "name": "server3",
+    #        "url": "http://server3.example.com",
+    #        "transport": "stdio",
+    #        "access_token": null
+    #    }
+    #]
+
+    json_file = os.getenv("MCP_SERVER_LIST")
+    if json_file:
+        with open(json_file, "r") as f:
+            server_list = json.load(f)
+
+        for server in server_list:
+            if server.get("name") == name:
+                return server.get("name"), server.get("url"), server.get("transport"), server.get("url"), server.get("access_token")
 
     return None, None, None, None, None
 
