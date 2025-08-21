@@ -4,13 +4,14 @@
 # Copyright © 2025 IBM
 
 import os
-import yaml
 import unittest
 from unittest import TestCase
 from maestro.tool_utils import find_mcp_service
 
+
 class Test_tool_utils(TestCase):
     mcp_server_list = "test_mcp_server_list.json"
+
     def setUp(self):
         os.environ["MCP_SERVER_LIST"] = self.mcp_server_list
         with open(self.mcp_server_list, "w") as f:
@@ -41,14 +42,15 @@ class Test_tool_utils(TestCase):
         assert url == "http://localhost:8000"
         assert transport == "streamable-http"
         assert external == "http://localhost:8000"
-        assert token == None
-        
+        assert not token
+
         name, url, transport, external, token = find_mcp_service("none")
-        assert name == None
-        assert url == None
-        assert transport == None
-        assert external == None
-        assert token == None
-        
+        assert not name
+        assert not url
+        assert not transport
+        assert not external
+        assert not token
+
+
 if __name__ == "__main__":
     unittest.main()

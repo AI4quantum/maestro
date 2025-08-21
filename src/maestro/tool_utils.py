@@ -84,16 +84,16 @@ def find_mcp_service(name):
             if secretName:
                 secret = v1.read_namespaced_secret(name=secretName, namespace="default")
                 if secret:
-                    accessToken = base64.b64decode(secret.data["MCP_ACCESS_TOKEN"]).decode(
-                        "utf-8"
-                    )
+                    accessToken = base64.b64decode(
+                        secret.data["MCP_ACCESS_TOKEN"]
+                    ).decode("utf-8")
             return (name, url, transport, url, accessToken)
-    except Exception as e:
+    except Exception:
         None
 
     # local MCP server list
     # Example Json file
-    #[
+    # [
     #    {
     #        "name": "server1",
     #        "url": "http://server1.example.com",
@@ -112,7 +112,7 @@ def find_mcp_service(name):
     #        "transport": "stdio",
     #        "access_token": null
     #    }
-    #]
+    # ]
 
     json_file = os.getenv("MCP_SERVER_LIST")
     if json_file:
@@ -121,7 +121,13 @@ def find_mcp_service(name):
 
         for server in server_list:
             if server.get("name") == name:
-                return server.get("name"), server.get("url"), server.get("transport"), server.get("url"), server.get("access_token")
+                return (
+                    server.get("name"),
+                    server.get("url"),
+                    server.get("transport"),
+                    server.get("url"),
+                    server.get("access_token"),
+                )
 
     return None, None, None, None, None
 
