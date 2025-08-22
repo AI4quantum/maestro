@@ -84,10 +84,10 @@ def find_mcp_service(name):
                 name = remote_crd["spec"]["name"]
                 if url.endswith("/"):
                     url = url[:-1]
-                    if url.endswith("/mcp"):
-                        url = url[: -len("/mcp")]
-                    elif url.endswith("/sse"):
-                        url = url[: -len("/sse")]
+                if url.endswith("/mcp"):
+                    url = url[: -len("/mcp")]
+                elif url.endswith("/sse"):
+                    url = url[: -len("/sse")]
                 accessToken = None
                 secretName = remote_crd["spec"].get("secretName")
                 if secretName:
