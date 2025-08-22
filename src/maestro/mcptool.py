@@ -37,7 +37,10 @@ def create_mcptools(tool_defs):
     json_data = []
     for tool_def in tool_defs:
         if kube:
-            create_mcptool(tool_def)
+            try:
+                create_mcptool(tool_def)
+            except Exception:
+                kube = False
         create_json(tool_def, json_data)
     if len(json_data):
         print(json_data)
