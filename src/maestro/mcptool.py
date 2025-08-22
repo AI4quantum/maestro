@@ -28,10 +28,16 @@ remoteKind = "RemoteMCPServer"
 
 def create_mcptools(tool_defs):
     # Load kubeconfig
-    config.load_kube_config()
+    kube = True
+    try:
+        config.load_kube_config()
+    except Exception:
+        kube = False
+
     json_data = []
     for tool_def in tool_defs:
-        create_mcptool(tool_def)
+        if kube:
+            create_mcptool(tool_def)
         create_json(tool_def, json_data)
     if len(json_data):
         print(json_data)
