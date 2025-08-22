@@ -51,12 +51,19 @@ def find_mcp_service(name):
             for service in services.items:
                 # Fetch the MCPServer CRD instance
                 crd = apis.get_namespaced_custom_object(
-                    group=group, version=version, name=name, namespace=namespace, plural=plural
+                    group=group,
+                    version=version,
+                    name=name,
+                    namespace=namespace,
+                    plural=plural,
                 )
                 if crd:
                     transport = crd["spec"]["transport"]
                     external = None
-                    if service.spec.type == "NodePort" and service.spec.ports[0].node_port:
+                    if (
+                        service.spec.type == "NodePort"
+                        and service.spec.ports[0].node_port
+                    ):
                         external = f"http://127.0.0.1:{service.spec.ports[0].node_port}"
                     return (
                         service.metadata.name,
@@ -91,14 +98,16 @@ def find_mcp_service(name):
                 accessToken = None
                 secretName = remote_crd["spec"].get("secretName")
                 if secretName:
-                    secret = v1.read_namespaced_secret(name=secretName, namespace="default")
+                    secret = v1.read_namespaced_secret(
+                        name=secretName, namespace="default"
+                    )
                     if secret:
                         accessToken = base64.b64decode(
                             secret.data["MCP_ACCESS_TOKEN"]
                         ).decode("utf-8")
                 return (name, url, transport, url, accessToken)
-    except Exception:
-        None
+        except Exception:
+            None
 
     # local MCP server list
     # Example Json file
