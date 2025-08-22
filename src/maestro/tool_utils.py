@@ -33,61 +33,70 @@ def find_mcp_service(name):
     """
 
     # Load kubeconfig file
-    config.load_kube_config()
+    kube = True
+    try:
+        config.load_kube_config()
+    except Exception:
+        kube = False
     v1 = client.CoreV1Api()
     apis = client.CustomObjectsApi()
     namespace = "default"
 
-    # Fetch services with the specified labels
-    services = v1.list_service_for_all_namespaces(
-        label_selector=f"app.kubernetes.io/instance={name},app.kubernetes.io/name=mcpserver"
-    )
-    for service in services.items:
-        # Fetch the MCPServer CRD instance
-        crd = apis.get_namespaced_custom_object(
-            group=group, version=version, name=name, namespace=namespace, plural=plural
-        )
-        if crd:
-            transport = crd["spec"]["transport"]
-            external = None
-            if service.spec.type == "NodePort" and service.spec.ports[0].node_port:
-                external = f"http://127.0.0.1:{service.spec.ports[0].node_port}"
-            return (
-                service.metadata.name,
-                f"http://{service.metadata.name}:{service.spec.ports[0].port}",
-                transport,
-                external,
-                None,
+    if kube:
+        try:
+            # Fetch services with the specified labels
+            services = v1.list_service_for_all_namespaces(
+                label_selector=f"app.kubernetes.io/instance={name},app.kubernetes.io/name=mcpserver"
             )
+            for service in services.items:
+                # Fetch the MCPServer CRD instance
+                crd = apis.get_namespaced_custom_object(
+                    group=group, version=version, name=name, namespace=namespace, plural=plural
+                )
+                if crd:
+                    transport = crd["spec"]["transport"]
+                    external = None
+                    if service.spec.type == "NodePort" and service.spec.ports[0].node_port:
+                        external = f"http://127.0.0.1:{service.spec.ports[0].node_port}"
+                    return (
+                        service.metadata.name,
+                        f"http://{service.metadata.name}:{service.spec.ports[0].port}",
+                        transport,
+                        external,
+                        None,
+                    )
+        except Exception:
+            None
 
     # remote MCP server
-    try:
-        remote_crd = apis.get_namespaced_custom_object(
-            group=remoteGroup,
-            version=remoteVersion,
-            name=name,
-            namespace=namespace,
-            plural=remotePlural,
-        )
-        if remote_crd:
-            transport = remote_crd["spec"]["transport"]
-            url = remote_crd["spec"]["url"]
-            name = remote_crd["spec"]["name"]
-            if url.endswith("/"):
-                url = url[:-1]
-            if url.endswith("/mcp"):
-                url = url[: -len("/mcp")]
-            elif url.endswith("/sse"):
-                url = url[: -len("/sse")]
-            accessToken = None
-            secretName = remote_crd["spec"].get("secretName")
-            if secretName:
-                secret = v1.read_namespaced_secret(name=secretName, namespace="default")
-                if secret:
-                    accessToken = base64.b64decode(
-                        secret.data["MCP_ACCESS_TOKEN"]
-                    ).decode("utf-8")
-            return (name, url, transport, url, accessToken)
+    if kube:
+        try:
+            remote_crd = apis.get_namespaced_custom_object(
+                group=remoteGroup,
+                version=remoteVersion,
+                name=name,
+                namespace=namespace,
+                plural=remotePlural,
+            )
+            if remote_crd:
+                transport = remote_crd["spec"]["transport"]
+                url = remote_crd["spec"]["url"]
+                name = remote_crd["spec"]["name"]
+                if url.endswith("/"):
+                    url = url[:-1]
+                    if url.endswith("/mcp"):
+                        url = url[: -len("/mcp")]
+                    elif url.endswith("/sse"):
+                        url = url[: -len("/sse")]
+                accessToken = None
+                secretName = remote_crd["spec"].get("secretName")
+                if secretName:
+                    secret = v1.read_namespaced_secret(name=secretName, namespace="default")
+                    if secret:
+                        accessToken = base64.b64decode(
+                            secret.data["MCP_ACCESS_TOKEN"]
+                        ).decode("utf-8")
+                return (name, url, transport, url, accessToken)
     except Exception:
         None
 
