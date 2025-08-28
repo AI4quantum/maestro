@@ -506,13 +506,15 @@ class OpenAIAgent(MaestroAgent):
 
         return final_output_str
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the agent with the given prompt, potentially overriding to streaming
         based on MAESTRO_OPENAI_STREAMING environment variable.
 
         Args:
             prompt (str): The prompt to run the agent with.
+            context: Optional context from previous steps (for compatibility with context routing)
+            step_index: Optional step index (for compatibility with context routing)
         """
         streaming_override = os.getenv("MAESTRO_OPENAI_STREAMING", "auto").lower()
 
@@ -529,13 +531,15 @@ class OpenAIAgent(MaestroAgent):
         else:  # auto or unset
             return await self._run_internal(prompt)
 
-    async def run_streaming(self, prompt: str) -> str:
+    async def run_streaming(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the agent in streaming mode, potentially overriding to non-streaming
         based on MAESTRO_OPENAI_STREAMING environment variable.
 
         Args:
             prompt (str): The prompt to run the agent with.
+            context: Optional context from previous steps (for compatibility with context routing)
+            step_index: Optional step index (for compatibility with context routing)
         """
         streaming_override = os.getenv("MAESTRO_OPENAI_STREAMING", "auto").lower()
 

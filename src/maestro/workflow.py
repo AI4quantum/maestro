@@ -130,6 +130,10 @@ class Workflow:
             else:
                 yield {"error": str(err)}
 
+    def get_context_state(self) -> dict:
+        """Get the current context state for debugging purposes."""
+        return getattr(self, "_context", {})
+
     def _create_or_restore_agents(self):
         if self.agent_defs:
             for agent_def in self.agent_defs:
@@ -229,13 +233,68 @@ class Workflow:
             self.steps[step["name"]] = Step(step)
 
         step_results = {}
+        context = {}
         current = steps[0]["name"]
         prompt = initial_prompt
         step_index = 0
 
         while True:
             definition = step_defs[current]
-            if definition.get("inputs"):
+
+            # Handle selective context routing with 'from' field
+            if definition.get("from"):
+                # Build context from specified previous steps or agents
+                from_sources = definition["from"]
+                if isinstance(from_sources, str):
+                    from_sources = [from_sources]
+
+                # Collect outputs from specified sources
+                context_inputs = []
+                for source in from_sources:
+                    if source == "prompt":
+                        context_inputs.append(initial_prompt)
+                    elif source in step_results:
+                        # Source is a step name
+                        context_inputs.append(step_results[source])
+                    else:
+                        # Source might be an agent name - find the step that uses this agent
+                        agent_step_name = None
+                        for step_name, step_def in step_defs.items():
+                            if (
+                                step_def.get("agent")
+                                and hasattr(step_def["agent"], "agent_name")
+                                and step_def["agent"].agent_name == source
+                            ):
+                                agent_step_name = step_name
+                                break
+                            elif step_def.get("agent") == source:
+                                # Direct agent reference
+                                agent_step_name = step_name
+                                break
+
+                        if agent_step_name and agent_step_name in step_results:
+                            context_inputs.append(step_results[agent_step_name])
+                        else:
+                            # If source not found, use empty string to maintain compatibility
+                            context_inputs.append("")
+
+                # Join multiple inputs with newlines if multiple sources
+                if len(context_inputs) == 1:
+                    prompt = context_inputs[0]
+                else:
+                    prompt = "\n\n".join([str(inp) for inp in context_inputs if inp])
+
+                print(f"\n🔍 [CONTEXT ROUTING] Step '{current}' using 'from' field:")
+                print(f"   Sources: {from_sources}")
+                print(
+                    f"   Final prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}"
+                )
+
+                result = await self.steps[current].run(
+                    prompt, context=context, step_index=step_index
+                )
+            elif definition.get("inputs"):
+                # Existing inputs logic for backward compatibility
                 args = []
                 for inp in definition["inputs"]:
                     src = inp["from"]
@@ -247,12 +306,29 @@ class Workflow:
                         args.append(step_results[src])
                     else:
                         args.append(src)
-                result = await self.steps[current].run(*args, step_index=step_index)
+                print(f"\n🔍 [INPUTS ROUTING] Step '{current}' using inputs system:")
+                print(
+                    f"   Args: {[str(arg)[:100] + '...' if len(str(arg)) > 100 else str(arg) for arg in args]}"
+                )
+
+                result = await self.steps[current].run(
+                    *args, context=context, step_index=step_index
+                )
             else:
-                result = await self.steps[current].run(prompt, step_index=step_index)
+                # Default behavior: use output from previous step
+                print(
+                    f"\n🔍 [DEFAULT ROUTING] Step '{current}' using previous step output:"
+                )
+                print(f"   Prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}")
+
+                result = await self.steps[current].run(
+                    prompt, context=context, step_index=step_index
+                )
 
             prompt = result.get("prompt")
             step_results[current] = prompt
+            context[current] = prompt
+            self._context = context
             if isinstance(result, dict) and "scoring_metrics" in result:
                 self.scoring_metrics = result["scoring_metrics"]
 
@@ -309,21 +385,41 @@ class Workflow:
 
         while True:
             definition = step_defs[current]
-            if definition.get("inputs"):
+            if definition.get("from"):
+                from_sources = definition["from"]
+                if isinstance(from_sources, str):
+                    from_sources = [from_sources]
+                context_inputs = []
+                for source in from_sources:
+                    if source == "prompt":
+                        context_inputs.append(prompt)
+                    elif source in step_results:
+                        context_inputs.append(step_results[source])
+                    else:
+                        context_inputs.append("")
+
+                if len(context_inputs) == 1:
+                    step_prompt = context_inputs[0]
+                else:
+                    step_prompt = "\n\n".join(
+                        [str(inp) for inp in context_inputs if inp]
+                    )
+            elif definition.get("inputs"):
                 args = []
                 for inp in definition["inputs"]:
                     src = inp["from"]
                     if src == "prompt":
-                        args.append(initial_prompt)
-                    elif "instructions:" in src:
-                        args.append(step_defs[src.split(":")[-1]]["agent"].agent_instr)
+                        args.append(prompt)
                     elif src in step_results:
                         args.append(step_results[src])
                     else:
                         args.append(src)
                 result = await self.steps[current].run(*args, step_index=step_index)
             else:
-                result = await self.steps[current].run(prompt, step_index=step_index)
+                step_prompt = prompt
+                result = await self.steps[current].run(
+                    step_prompt, step_index=step_index
+                )
 
             prompt = result.get("prompt")
             step_results[current] = prompt
@@ -411,7 +507,57 @@ class Workflow:
 
         while True:
             definition = step_defs[current]
-            if definition.get("inputs"):
+
+            # Handle selective context routing with 'from' field
+            if definition.get("from"):
+                # Build context from specified previous steps or agents
+                from_sources = definition["from"]
+                if isinstance(from_sources, str):
+                    from_sources = [from_sources]
+
+                # Collect outputs from specified sources
+                context_inputs = []
+                for source in from_sources:
+                    if source == "prompt":
+                        context_inputs.append(prompt)
+                    elif source in step_results:
+                        # Source is a step name
+                        context_inputs.append(step_results[source])
+                    else:
+                        # Source might be an agent name - find the step that uses this agent
+                        agent_step_name = None
+                        for step_name, step_def in step_defs.items():
+                            if (
+                                step_def.get("agent")
+                                and hasattr(step_def["agent"], "agent_name")
+                                and step_def["agent"].agent_name == source
+                            ):
+                                agent_step_name = step_name
+                                break
+                            elif step_def.get("agent") == source:
+                                # Direct agent reference
+                                agent_step_name = step_name
+                                break
+
+                        if agent_step_name and agent_step_name in step_results:
+                            context_inputs.append(step_results[agent_step_name])
+                        else:
+                            # If source not found, use empty string to maintain compatibility
+                            context_inputs.append("")
+
+                # Join multiple inputs with newlines if multiple sources
+                if len(context_inputs) == 1:
+                    step_prompt = context_inputs[0]
+                else:
+                    step_prompt = "\n\n".join(
+                        [str(inp) for inp in context_inputs if inp]
+                    )
+
+                result = await self.steps[current].run(
+                    step_prompt, step_index=step_index
+                )
+            elif definition.get("inputs"):
+                # Existing inputs logic for backward compatibility
                 args = []
                 for inp in definition["inputs"]:
                     src = inp["from"]
@@ -423,6 +569,7 @@ class Workflow:
                         args.append(src)
                 result = await self.steps[current].run(*args, step_index=step_index)
             else:
+                # Default behavior: use output from previous step
                 result = await self.steps[current].run(prompt, step_index=step_index)
 
             prompt = result.get("prompt")
