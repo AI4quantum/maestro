@@ -1,6 +1,9 @@
 #! /usr/bin/env python3
 # SPDX-License-Identifier: Apache-2.0
 
+import subprocess
+import sys
+
 from dotenv import load_dotenv
 
 from maestro.agents.agent import Agent
@@ -18,6 +21,19 @@ class CodeAgent(Agent):
         Initializes the agent with agent definitions.
         """
         super().__init__(agent)
+        
+        """
+        Also install optional dependencies
+        """
+        if(self.agent_dependencies is not None and self.agent_dependencies != ""):
+            self.print(f"Installing dependencies...\n")
+            try:
+                subprocess.check_call(["uv",  "pip", "install", "-r", self.agent_dependencies])
+            except Exception as e:
+                self.print(f"Exception executing code: {e}\n")
+                raise e
+        else:
+            self.print(f"No dependencies found to install...\n")
 
     async def run(self, *args, context=None) -> str:
         """

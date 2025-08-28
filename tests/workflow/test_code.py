@@ -45,6 +45,33 @@ class TestCode(TestCase):
         else:
             assert "Hi!" in response["final_prompt"]
 
+class TestCodeDependencies(TestCase):
+    def setUp(self):
+        self.agents_yaml = parse_yaml(
+            os.path.join(os.path.dirname(__file__), "../yamls/agents/code_agent_dependencies.yaml")
+        )
+        self.workflow_yaml = parse_yaml(
+            os.path.join(
+                os.path.dirname(__file__), "../yamls/workflows/code_dependencies_workflow.yaml"
+            )
+        )
+        try:
+            self.workflow = Workflow(self.agents_yaml, self.workflow_yaml[0])
+        except Exception as excep:
+            raise RuntimeError("Unable to create agents") from excep
+
+    def tearDown(self):
+        self.workflow = None
+
+    def test_code(self):
+        response = asyncio.run(self.workflow.run())
+        if os.getenv("DRY_RUN") and os.getenv("DRY_RUN") != "":
+            assert "Hello code!  How are you?" in response["final_prompt"]
+        else:
+            # TODO should probably assert on a dummy install that isn't in pyproject.toml to validate?
+            assert (
+                "dependencies should have been installed if requirements.txt exists" in response["final_prompt"]
+            )
 
 class TestExeptionCode(TestCase):
     def setUp(self):

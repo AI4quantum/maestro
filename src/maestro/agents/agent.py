@@ -48,6 +48,8 @@ class Agent:
             agent["spec"].get("code"), agent.get("source_file", "")
         )
 
+        self.agent_dependencies = agent["metadata"]["dependencies"]
+
         self.instructions = (
             f"{self.agent_instr} Input is expected in format: {self.agent_input}"
             if self.agent_input
