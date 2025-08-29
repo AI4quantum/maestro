@@ -36,7 +36,7 @@ class Agent:
 
         self.agent_tools = agent["spec"].get("tools", [])
 
-        self.agent_desc = agent["spec"].get("description")
+        self.agent_desc = agent["spec"].get("description") or ""
         self.agent_instr = get_content(
             agent["spec"].get("instructions"), agent.get("source_file", "")
         )

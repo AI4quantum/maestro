@@ -228,6 +228,7 @@ async def get_mcp_tools(service_name, converter, stack):
         return tools
     else:
         print(f"Service: {service_name} not found")
+        return []
 
 
 def get_mcp_tool_url(service_name):
