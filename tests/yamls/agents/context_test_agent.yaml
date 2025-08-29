@@ -1,0 +1,40 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: Recipe Agent
+  labels:
+    app: mas-example
+spec:
+  model: gpt-oss:latest
+  framework: openai
+  mode: local
+  description: Get the current weather
+  instructions: Given the list of ingredients, return a recipe that can be made with the ingredients.
+---
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: Recipe Time Agent
+  labels:
+    app: mas-example
+spec:
+  model: gpt-oss:latest
+  framework: openai
+  mode: local
+  description: How long will it take to make the recipe?
+  instructions: |
+    Given a recipe, estimate the time it will take to make the recipe.
+
+---
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: Recipe Cost Agent
+  labels:
+    app: mas-example
+spec:
+  model: gpt-oss:latest
+  framework: openai
+  mode: local
+  description: How much will it cost to make the recipe?
+  instructions: Given the list of ingredients, approximate the cost it will take to make the recipe. 

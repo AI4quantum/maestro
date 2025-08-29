@@ -1,0 +1,27 @@
+apiVersion: maestro/v1alpha1
+kind: Workflow
+metadata:
+  name: context-routing-demo
+  labels:
+    app: context-routing
+    use-case: demo
+spec:
+  template:
+    metadata:
+      name: context routing demonstration
+      labels:
+        app: context routing
+    agents:
+      - Recipe Agent
+      - Recipe Time Agent
+      - Recipe Cost Agent
+    prompt: "chicken, rice, tomato, onion, garlic, salt, pepper"
+    steps:
+      - name: get_recipe
+        agent: Recipe Agent 
+      - name: get_recipe_time
+        agent: Recipe Time Agent
+      - name: get_recipe_cost
+        agent: Recipe Cost Agent
+        from: Recipe Agent
+      
