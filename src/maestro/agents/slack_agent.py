@@ -48,7 +48,7 @@ class SlackAgent(Agent):
         super().__init__(agent)
         self.channel = os.getenv("SLACK_TEAM_ID", default="")
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the BeeAI agent with the given prompt.
         Args:

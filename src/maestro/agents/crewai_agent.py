@@ -125,7 +125,7 @@ class CrewAIAgent(BeeAgent):
             self.print(f"Failed to load agent {self.agent_name}: {e}")
             raise e  # Re-raise other unexpected errors
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Executes the CrewAI agent with the given prompt. The agent's `kickoff` method is called with the input.
 

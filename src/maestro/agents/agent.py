@@ -85,19 +85,23 @@ class Agent:
         print(f"{self.emoji()} {formatted_time}: {message}")
 
     @abstractmethod
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the agent with the given prompt.
         Args:
             prompt (str): The prompt to run the agent with.
+            context (dict, optional): Context dictionary containing outputs from previous steps.
+            step_index (int, optional): Index of the current step in the workflow.
         """
 
     @abstractmethod
-    async def run_streaming(self, prompt: str) -> str:
+    async def run_streaming(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the agent in streaming mode with the given prompt.
         Args:
             prompt (str): The prompt to run the agent with.
+            context (dict, optional): Context dictionary containing outputs from previous steps.
+            step_index (int, optional): Index of the current step in the workflow.
         """
 
     def get_token_usage(self) -> Dict[str, Any]:

@@ -19,7 +19,7 @@ class CodeAgent(Agent):
         """
         super().__init__(agent)
 
-    async def run(self, *args, context=None) -> str:
+    async def run(self, *args, context=None, step_index=None) -> str:
         """
         Execute the given code in the agent definition with the given prompt.
         Args:
@@ -37,7 +37,7 @@ class CodeAgent(Agent):
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return str(local["output"])
 
-    async def run_streaming(self, *args, context=None) -> str:
+    async def run_streaming(self, *args, context=None, step_index=None) -> str:
         """
         Runs the BeeAI agent with the given prompt.
         Args:

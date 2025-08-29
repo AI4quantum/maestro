@@ -44,7 +44,7 @@ class MockAgent(Agent):
         )
         self.agent_id = self.agent_name
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the bee agent with the given prompt.
         Args:

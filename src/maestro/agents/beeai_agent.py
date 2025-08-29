@@ -84,11 +84,13 @@ class BeeAIAgent(Agent):
         response = requests.request("POST", url, headers=headers, data=payload).json()
         self.agent_id = response["id"]
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the BeeAI agent with the given prompt.
         Args:
             prompt (str): The prompt to run the agent with.
+            context (dict, optional): Context dictionary containing outputs from previous steps.
+            step_index (int, optional): Index of the current step in the workflow.
         """
         self.print(f"Running {self.agent_name}...\n")
         client = OpenAI(
@@ -332,11 +334,13 @@ class BeeAILocalAgent(Agent):
         """Observer"""
         emitter.on("*", self._process_agent_events, EmitterOptions(match_nested=False))
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the BeeAI agent with the given prompt.
         Args:
             prompt (str): The prompt to run the agent with.
+            context (dict, optional): Context dictionary containing outputs from previous steps.
+            step_index (int, optional): Index of the current step in the workflow.
         """
         await self._create_agent() if not self.agent else None
 
@@ -353,11 +357,13 @@ class BeeAILocalAgent(Agent):
         self.print(f"Response from {self.agent_name}: {answer}\n")
         return answer
 
-    async def run_streaming(self, prompt: str) -> str:
+    async def run_streaming(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the agent in streaming mode with the given prompt.
         Args:
             prompt (str): The prompt to run the agent with.
+            context (dict, optional): Context dictionary containing outputs from previous steps.
+            step_index (int, optional): Index of the current step in the workflow.
         """
         await self._create_agent() if not self.agent else None
 

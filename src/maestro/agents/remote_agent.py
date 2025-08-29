@@ -29,7 +29,7 @@ class RemoteAgent(Agent):
         self.request_template = agent["spec"]["request_template"]
         self.response_template = agent["spec"]["response_template"]
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Runs the agent with the given prompt.
         Args:

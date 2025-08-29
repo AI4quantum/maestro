@@ -20,7 +20,7 @@ class OpenAIAgentMock:
     def __init__(self):
         pass
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         return "OK:" + prompt
 
 

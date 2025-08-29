@@ -475,7 +475,9 @@ class Workflow:
                             raise RuntimeError(
                                 f"Agent '{agent_name}' not found for event"
                             )
-                        new_prompt = await agent.run(result["final_prompt"])
+                        new_prompt = await agent.run(
+                            result["final_prompt"], context=None, step_index=None
+                        )
                         result[agent_name] = new_prompt
                         result["final_prompt"] = new_prompt
                     if step_names:

@@ -64,7 +64,7 @@ class DspyAgent(BaseAgent):
         # os.environ["OPENAI_API_KEY"] = "{your openai key}"
         dspy.configure(lm=dspy.LM(self.agent_model, api_base=self.provider_url))
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         """
         Executes the Dspy agent with the given prompt. The agent's `kickoff` method is called with the input.
 

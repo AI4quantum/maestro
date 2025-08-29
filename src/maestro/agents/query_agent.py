@@ -16,7 +16,7 @@ class QueryAgent(Agent):
         self.limit = agent_def["metadata"]["query_input"].get("limit", 10)
         self.output_template = Template(self.agent_output or "{{result}}")
 
-    async def run(self, prompt: str) -> str:
+    async def run(self, prompt: str, context=None, step_index=None) -> str:
         self.print(f"Running {self.agent_name} with prompt...")
 
         async with Client(
