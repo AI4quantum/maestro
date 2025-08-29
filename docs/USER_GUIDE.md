@@ -117,6 +117,21 @@ The step has properties that define the work of the step.  Everything is optiona
     - source: `instructions:step name` - the instructions for the agent in the step
     - source: step name - the result of the step execution
     - source: other string - this string
+- **from**: specify where to get input from (alternative to inputs)
+  - Simply add a `from` field to specify which previous step or agent output to use
+  - The `from` field tells the step where to get its input from instead of using the default sequential flow
+  - Example from `tests/yamls/workflows/context_test_workflow.yaml`:
+    ```yaml
+    steps:
+      - name: get_recipe
+        agent: Recipe Agent 
+      - name: get_recipe_time
+        agent: Recipe Time Agent
+      - name: get_recipe_cost
+        agent: Recipe Cost Agent
+        from: Recipe Agent  # Use output from Recipe Agent step
+    ```
+  - In this example, the `get_recipe_cost` step gets its input from the `Recipe Agent` step instead of the default previous step (`get_recipe_time`)
 - **context**: array of string or object passed to agent as context
 - **input**: definition of user prompt and user input processing
   - Input takes user input in the command window.
