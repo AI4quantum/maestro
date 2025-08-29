@@ -319,7 +319,10 @@ class Workflow:
                 print(
                     f"\n🔍 [DEFAULT ROUTING] Step '{current}' using previous step output:"
                 )
-                print(f"   Prompt: {prompt[:200]}{'...' if len(prompt) > 200 else ''}")
+                prompt_str = str(prompt)
+                print(
+                    f"   Prompt: {prompt_str[:200]}{'...' if len(prompt_str) > 200 else ''}"
+                )
 
                 result = await self.steps[current].run(
                     prompt, context=context, step_index=step_index
