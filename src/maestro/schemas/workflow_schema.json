@@ -128,7 +128,7 @@
                   },
                   "inputs": {
                     "type": "array",
-                    "description": "Optional list of sources to feed into run()",
+                    "description": "Optional list of sources to feed into run() [soon to be DEPRECATED: Use 'from' instead]",
                     "items": {
                       "type": "object",
                       "properties": {
@@ -139,6 +139,23 @@
                       },
                       "required": ["from"]
                     }
+                  },
+                  "from": {
+                    "type": ["string", "array"],
+                    "description": "Specify where to get input from (alternative to inputs). Can be a single source or array of sources.",
+                    "oneOf": [
+                      {
+                        "type": "string",
+                        "description": "Single source for input"
+                      },
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "description": "Source name (prompt, step name, or literal string)"
+                        }
+                      }
+                    ]
                   },
                   "context": {
                     "type": "array",
