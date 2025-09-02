@@ -15,7 +15,7 @@ def post_message_to_slack(channel_id, message):
     """
     This agent is deprecated.  The posting slack message is suppored by slack MCP tool now.
     To use slack mcp tool.  Refer to mcp/examples/slack
-    
+
     Posts a message to a specified Slack channel.
 
     Args:
