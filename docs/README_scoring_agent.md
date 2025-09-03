@@ -55,9 +55,7 @@ steps:
     agent: simple_test
     - name: scoring
     agent: score
-    inputs:
-        - from: prompt        # → run's first arg = original prompt
-        - from: answer        # → run's second arg = answer's reply
+    from: [prompt, answer]        # → run's first arg = original prompt, second arg = answer's reply
     outputs:
         - answer               # → re-emit the raw response downstream (so that it theres an agent after, we still have the output of the previous non-score agent) 
 ```

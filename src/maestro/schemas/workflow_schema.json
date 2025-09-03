@@ -126,23 +126,9 @@
                     "type": "string",
                     "description": "the workflow for this step"
                   },
-                  "inputs": {
-                    "type": "array",
-                    "description": "Optional list of sources to feed into run() [soon to be DEPRECATED: Use 'from' instead]",
-                    "items": {
-                      "type": "object",
-                      "properties": {
-                        "from": {
-                          "type": "string",
-                          "description": "variable name whose value becomes this argument"
-                        }
-                      },
-                      "required": ["from"]
-                    }
-                  },
                   "from": {
                     "type": ["string", "array"],
-                    "description": "Specify where to get input from (alternative to inputs). Can be a single source or array of sources.",
+                    "description": "Specify where to get input from. Can be a single source or array of sources.",
                     "oneOf": [
                       {
                         "type": "string",

@@ -20,8 +20,7 @@ spec:
       - name: step1
         agent: test1
       - name: step2                   
-        inputs:
-        - from: instructions:step1    # For step2, pass in the instructions: field from the agent used in step1.
+        from: instructions:step1    # For step2, pass in the instructions: field from the agent used in step1.
         agent: test2
       - name: step3
         agent: test3

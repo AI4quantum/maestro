@@ -16,9 +16,7 @@ spec:
         agent: test2
       - name: scoring
         agent: evaluate
-        inputs:
-          - from: prompt        # → run’s first arg = original prompt
-          - from: dummy2        # → run’s second arg = dummy’s reply
+        from: [prompt, dummy2]        # → run's first arg = original prompt, second arg = dummy's reply
         context:
           - "Washington, D.C. is the capital of the United States."  # → context for evaluation
         outputs:
