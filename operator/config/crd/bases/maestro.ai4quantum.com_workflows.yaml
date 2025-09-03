@@ -106,13 +106,12 @@ spec:
                             template:
                               type: string
                           type: object
-                        inputs:
-                          items:
-                            properties:
-                              from:
+                        from:
+                          oneOf:
+                            - type: string
+                            - items:
                                 type: string
-                            type: object
-                          type: array
+                              type: array
                         loop:
                           properties:
                             agent:

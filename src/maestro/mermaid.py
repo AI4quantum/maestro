@@ -53,7 +53,7 @@ class Mermaid:
             a = step.get("agent")
             if not a:
                 continue
-            if any(k in step for k in ("inputs", "context", "outputs")):
+            if any(k in step for k in ("context", "outputs")):
                 continue
             if a not in seen:
                 seen.append(a)
@@ -69,7 +69,7 @@ class Mermaid:
         agentL = None
         for i, step in enumerate(steps):
             # skip scoring/context-only steps
-            if any(k in step for k in ("inputs", "context", "outputs")):
+            if any(k in step for k in ("context", "outputs")):
                 continue
             # update agentL only when this step names a real agent
             if step.get("agent"):
@@ -78,7 +78,7 @@ class Mermaid:
             # find next real agent for the arrow
             agentR = None
             for nxt in steps[i + 1 :]:
-                if any(k in nxt for k in ("inputs", "context", "outputs")):
+                if any(k in nxt for k in ("context", "outputs")):
                     continue
                 if nxt.get("agent"):
                     agentR = self.__fix_agent_name(nxt["agent"])
@@ -183,7 +183,7 @@ class Mermaid:
         while i < len(steps):
             step = steps[i]
             # skip scoring/context-only steps
-            if any(k in step for k in ("inputs", "context", "outputs")):
+            if any(k in step for k in ("context", "outputs")):
                 i += 1
                 continue
 
@@ -191,7 +191,7 @@ class Mermaid:
             # find next real step
             aR = None
             for nxt in steps[i + 1 :]:
-                if any(k in nxt for k in ("inputs", "context", "outputs")):
+                if any(k in nxt for k in ("context", "outputs")):
                     continue
                 aR = nxt.get("agent")
                 break

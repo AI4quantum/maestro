@@ -57,9 +57,7 @@ type WorkflowRunList struct {
 
 // Workflow
 
-type From struct {
-	From string `json:"from,omitempty" yaml:"from,omitempty"`
-}
+
 type Input struct {
 	Prompt   string `json:"prompt,omitempty" yaml:"prompt,omitempty"`
 	Template string `json:"template,omitempty" yaml:"template,omitempty"`
@@ -83,7 +81,7 @@ type Condition struct {
 type Step struct {
 	Name      string      `json:"name,omitempty" yaml:"name,omitempty"`
 	Agent     string      `json:"agent,omitempty" yaml:"agent,omitempty"`
-	Inputs    []From      `json:"inputs,omitempty" yaml:"inputs,omitempty"`
+	From      string      `json:"from,omitempty" yaml:"from,omitempty"`
 	Context   []string    `json:"context,omitempty" yaml:"context,omitempty"`
 	Input     Input       `json:"input,omitempty" yaml:"input,omitempty"`
 	Loop      Loop        `json:"loop,omitempty" yaml:"loop,omitempty"`

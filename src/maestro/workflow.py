@@ -293,27 +293,6 @@ class Workflow:
                 result = await self.steps[current].run(
                     prompt, context=context, step_index=step_index
                 )
-            elif definition.get("inputs"):
-                # Existing inputs logic for backward compatibility
-                args = []
-                for inp in definition["inputs"]:
-                    src = inp["from"]
-                    if src == "prompt":
-                        args.append(initial_prompt)
-                    elif "instructions:" in src:
-                        args.append(step_defs[src.split(":")[-1]]["agent"].agent_instr)
-                    elif src in step_results:
-                        args.append(step_results[src])
-                    else:
-                        args.append(src)
-                print(f"\n🔍 [INPUTS ROUTING] Step '{current}' using inputs system:")
-                print(
-                    f"   Args: {[str(arg)[:100] + '...' if len(str(arg)) > 100 else str(arg) for arg in args]}"
-                )
-
-                result = await self.steps[current].run(
-                    *args, context=context, step_index=step_index
-                )
             else:
                 # Default behavior: use output from previous step
                 print(
@@ -407,17 +386,6 @@ class Workflow:
                     step_prompt = "\n\n".join(
                         [str(inp) for inp in context_inputs if inp]
                     )
-            elif definition.get("inputs"):
-                args = []
-                for inp in definition["inputs"]:
-                    src = inp["from"]
-                    if src == "prompt":
-                        args.append(prompt)
-                    elif src in step_results:
-                        args.append(step_results[src])
-                    else:
-                        args.append(src)
-                result = await self.steps[current].run(*args, step_index=step_index)
             else:
                 step_prompt = prompt
                 result = await self.steps[current].run(
@@ -561,18 +529,6 @@ class Workflow:
                 result = await self.steps[current].run(
                     step_prompt, step_index=step_index
                 )
-            elif definition.get("inputs"):
-                # Existing inputs logic for backward compatibility
-                args = []
-                for inp in definition["inputs"]:
-                    src = inp["from"]
-                    if src == "prompt":
-                        args.append(prompt)
-                    elif src in step_results:
-                        args.append(step_results[src])
-                    else:
-                        args.append(src)
-                result = await self.steps[current].run(*args, step_index=step_index)
             else:
                 # Default behavior: use output from previous step
                 result = await self.steps[current].run(prompt, step_index=step_index)

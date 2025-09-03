@@ -42,7 +42,7 @@ class Step:
     async def run(self, *args, context=None, step_index=None):
         """
         Runs the step, passing along any number of positional arguments
-        (from the workflow's `inputs:`), plus an optional `context=`.
+        (from the workflow's `from:` field), plus an optional `context=`.
 
         Returns always a dict with at least {"prompt": ...} so downstream logic stays the same.
         """
