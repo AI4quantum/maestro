@@ -99,6 +99,8 @@ spec:
                           items:
                             type: string
                           type: array
+                        from:
+                          type: string
                         input:
                           properties:
                             prompt:
@@ -106,12 +108,6 @@ spec:
                             template:
                               type: string
                           type: object
-                        from:
-                          oneOf:
-                            - type: string
-                            - items:
-                                type: string
-                              type: array
                         loop:
                           properties:
                             agent:
