@@ -228,12 +228,12 @@ The Maestro Command Line Interface (CLI) allows users to manage workflows that i
 - `maestro create` AGENTS_FILE [options]: create agent  
 - `maestro create` TOOLS_FILE [options]: create tool (MCP server for the tool.  This requires a kubernetes cluster)  
 - `maestro deploy` AGENTS_FILE WORKFLOW_FILE [options] [ENV...] deploy and run the workflow in docker, kubernetes or Streamit
-  - target option: `--streamlit`: deployed in streamlit, `--deocker`: (deprecated) deployed in docker, `--k8s`: (deprecated) deployed in kubernetes cluster. (For kubernetes deployment, refer to [maestro operator](https://github.com/AI4quantum/maestro/blob/main/operator/README.md), Container image is available in [ghcr](ghcr.io/ai4quantum/maestro:latest))
+  - target option: `--streamlit`: deployed in streamlit, `--docker`: (deprecated) deployed in docker, `--k8s`: (deprecated) deployed in kubernetes cluster. (For kubernetes deployment, refer to [maestro operator](https://github.com/AI4quantum/maestro/blob/main/operator/README.md), Container image is available in [ghcr](ghcr.io/ai4quantum/maestro:latest))
   - environment option: `env` takes a string that has list of key=value separated by comma.
   - auto_prompt option: '--auto-prompt` automatically starts workflow when the workflow is deployed 
 - `maestro mermaid` WORKFLOW_FILE [options]: generate the mermaid output for the workflow
 - `maestro run` WORKFLOW_FILE [options]: run the workflow with existing agents in command window
-- target option: `--deocker`: deployed in docker, `--k8s`: deployed in kubernetes cluster, `--streamlit`: deployed in streamlit
+- target option: `--docker`: deployed in docker, `--k8s`: deployed in kubernetes cluster, `--streamlit`: deployed in streamlit
   - environment option: `env` takes a string that has list of key=value separated by comma.
   - auto_prompt option: '--auto-prompt` automatically starts workflow when the workflow is deployed 
 - `maestro mermaid` WORKFLOW_FILE [options]: generate the mermaid output for the workflow
