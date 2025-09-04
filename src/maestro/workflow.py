@@ -275,8 +275,7 @@ class Workflow:
                         if agent_step_name and agent_step_name in step_results:
                             context_inputs.append(step_results[agent_step_name])
                         else:
-                            # If source not found, use empty string to maintain compatibility
-                            context_inputs.append("")
+                            context_inputs.append(source)
 
                 # Join multiple inputs with newlines if multiple sources
                 if len(context_inputs) == 1:
@@ -378,7 +377,7 @@ class Workflow:
                     elif source in step_results:
                         context_inputs.append(step_results[source])
                     else:
-                        context_inputs.append("")
+                        context_inputs.append(source)
 
                 if len(context_inputs) == 1:
                     step_prompt = context_inputs[0]
@@ -515,8 +514,7 @@ class Workflow:
                         if agent_step_name and agent_step_name in step_results:
                             context_inputs.append(step_results[agent_step_name])
                         else:
-                            # If source not found, use empty string to maintain compatibility
-                            context_inputs.append("")
+                            context_inputs.append(source)
 
                 # Join multiple inputs with newlines if multiple sources
                 if len(context_inputs) == 1:
