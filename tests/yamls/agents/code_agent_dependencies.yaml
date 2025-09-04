@@ -1,0 +1,15 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: dependencies
+  labels:
+    app: slack-example
+  dependencies: requirements.txt
+spec:
+  framework: code
+  mode: local
+  description: code agent
+  instructions: execute python code
+  code: |
+    print(input[0])
+    output["answer"] = "dependencies should have been installed if requirements.txt exists"
