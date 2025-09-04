@@ -1,0 +1,44 @@
+name: Mark and close stale issues
+
+on:
+  schedule:
+    - cron: '0 3 * * *' # daily at 03:00 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run stale action (issues only)
+        uses: actions/stale@v9
+        with:
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
+          operations-per-run: 200
+
+          # Issues policy
+          days-before-issue-stale: 14
+          days-before-issue-close: 14
+          stale-issue-label: 'stale'
+          exempt-issue-labels: 'discussion,future,nice-to-have'
+          stale-issue-message: >-
+            This issue has been automatically marked as stale because it has not had
+            recent activity for 14 days. If this is still relevant, please add a comment
+            or apply an appropriate label to keep it active. Otherwise, it will be
+            closed in another 14 days.
+          close-issue-message: >-
+            Closing this issue due to prolonged inactivity. Feel free to reopen if this
+            is still a concern or provide more details.
+
+          # PR policy 
+          days-before-pr-stale: -1
+          days-before-pr-close: -1
+
+          # Behavior
+          remove-stale-when-updated: true
+          enable-statistics: true
+          debug-only: false
