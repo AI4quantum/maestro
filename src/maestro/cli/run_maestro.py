@@ -30,6 +30,7 @@ Options:
   --auto-prompt          Run prompt by default if specified
 
   --streamlit            Deploys locally as streamlit application (default deploy)
+  --node-ui              Deploys locally as Node.js UI application
 
   --url                  The deployment URL, default: 127.0.0.1:5000
   --k8s                  Deploys to Kubernetes
@@ -44,6 +45,7 @@ Options:
   --host HOST            Host to bind to (default: 127.0.0.1)
   --agent-name NAME      Specific agent name to serve (if multiple in file)
   --streaming            Enable streaming responses
+  --ui-mode MODE         UI mode: dev or prod (default: dev)
 
   -h --help              Show this screen.
   -v --version           Show version.

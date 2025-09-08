@@ -458,6 +458,7 @@ class DeployCmd(Command):
             node_deploy_script = f"{os.path.dirname(__file__)}/node_deploy.py"
             env = os.environ.copy()
             env.setdefault("CORS_ALLOW_ORIGINS", "http://localhost:5173")
+            env["MAESTRO_UI_MODE"] = self.ui_mode()
             sys.argv = [
                 "uv",
                 "run",
@@ -474,7 +475,6 @@ class DeployCmd(Command):
 
     def __deploy_agents_workflow(self, agents_yaml, workflow_yaml, env):
         try:
-            ui_mode = os.getenv("MAESTRO_UI", "streamlit").lower()
             if self.docker():
                 deploy = Deploy(agents_yaml, workflow_yaml, env)
                 deploy.deploy_to_docker()
@@ -486,10 +486,15 @@ class DeployCmd(Command):
                 if not self.silent():
                     Console.ok("Workflow deployed: http://<kubernetes address>:30051")
             else:
-                if ui_mode == "node":
+                if self.node_ui():
                     self.__deploy_agents_workflow_node()
                     if not self.silent():
-                        Console.ok("Workflow deployed: http://localhost:5173")
+                        ui_url = (
+                            "http://localhost:8080"
+                            if self.ui_mode() == "prod"
+                            else "http://localhost:5173"
+                        )
+                        Console.ok(f"Workflow deployed: {ui_url}")
                 else:
                     self.__deploy_agents_workflow_streamlit()
                     if not self.silent():
@@ -517,6 +522,12 @@ class DeployCmd(Command):
 
     def streamlit(self):
         return self.args["--streamlit"]
+
+    def node_ui(self):
+        return self.args["--node-ui"]
+
+    def ui_mode(self):
+        return self.args.get("--ui-mode", "dev")
 
     def AGENTS_FILE(self):
         return self.args["AGENTS_FILE"]
