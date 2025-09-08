@@ -55,7 +55,7 @@ async def create_agents(agents: list[str]):
 
 def serve_agent_thread(agent, agent_name, host, port):
     __serve_agent(agent, agent_name=agent_name, host=host, port=port)
-    os.remove(agents)
+    os.remove(agent)
 
 
 @mcp.tool()
