@@ -273,3 +273,4 @@ MARKDOWN_ACCURACY_REPORT.md
 # Maestro PID files
 .maestro-builder.pid
 api/.maestro-builder.pid
+project_guidelines.md
