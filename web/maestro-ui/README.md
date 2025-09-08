@@ -1,69 +1,23 @@
-# React + TypeScript + Vite
+# Maestro Node UI (Dev/Prod)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Dev (Vite)
 
-Currently, two official plugins are available:
+- Prereqs: Python venv active, backend config (e.g., OPENAI_API_KEY)
+- Start: `maestro deploy agents.yaml workflow.yaml --node-ui --ui-mode dev`
+- Open: `http://localhost:5173`
+- Stop: `bash web/maestro-ui/stop.sh`
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Prod (Dockerized)
 
-## Expanding the ESLint configuration
+- Start: `MAESTRO_UI_IMAGE=maestro-ui:dev MAESTRO_UI_PORT=8080 maestro deploy agents.yaml workflow.yaml --node-ui --ui-mode prod`
+- Open: `http://localhost:8080`
+- Stop: `bash web/maestro-ui/stop.sh` (kills 8000 and 8080 when prod)
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## Endpoints
 
-```js
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+- `POST /chat`, `POST /chat/stream`, `GET /health`, `GET /diagram` (FastAPI workflow server)
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+## Notes
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default tseslint.config([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- `stop.sh` cleans up FastAPI (8000), Vite (5173), and Docker UI (8080 in prod).
+- For CORS in backend: `export CORS_ALLOW_ORIGINS=http://localhost:5173`.
