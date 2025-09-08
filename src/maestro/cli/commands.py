@@ -453,8 +453,28 @@ class DeployCmd(Command):
             raise RuntimeError(f"{str(e)}") from e
         return 0
 
+    def __deploy_agents_workflow_node(self):
+        try:
+            node_deploy_script = f"{os.path.dirname(__file__)}/node_deploy.py"
+            env = os.environ.copy()
+            env.setdefault("CORS_ALLOW_ORIGINS", "http://localhost:5173")
+            sys.argv = [
+                "uv",
+                "run",
+                "python",
+                node_deploy_script,
+                self.AGENTS_FILE(),
+                self.WORKFLOW_FILE(),
+            ]
+            self.process = subprocess.Popen(sys.argv, env=env)
+        except Exception as e:
+            self._check_verbose()
+            raise RuntimeError(f"{str(e)}") from e
+        return 0
+
     def __deploy_agents_workflow(self, agents_yaml, workflow_yaml, env):
         try:
+            ui_mode = os.getenv("MAESTRO_UI", "streamlit").lower()
             if self.docker():
                 deploy = Deploy(agents_yaml, workflow_yaml, env)
                 deploy.deploy_to_docker()
@@ -466,9 +486,16 @@ class DeployCmd(Command):
                 if not self.silent():
                     Console.ok("Workflow deployed: http://<kubernetes address>:30051")
             else:
-                self.__deploy_agents_workflow_streamlit()
-                if not self.silent():
-                    Console.ok("Workflow deployed: http://localhost:8501/?embed=true")
+                if ui_mode == "node":
+                    self.__deploy_agents_workflow_node()
+                    if not self.silent():
+                        Console.ok("Workflow deployed: http://localhost:5173")
+                else:
+                    self.__deploy_agents_workflow_streamlit()
+                    if not self.silent():
+                        Console.ok(
+                            "Workflow deployed: http://localhost:8501/?embed=true"
+                        )
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"Unable to deploy workflow: {str(e)}") from e
