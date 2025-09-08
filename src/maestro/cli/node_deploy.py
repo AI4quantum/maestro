@@ -32,22 +32,49 @@ def main():
     # Give the API a moment to start
     time.sleep(2)
 
-    # Start Vite dev server
-    ui_cwd = os.path.join(
-        os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "web", "maestro-ui"
-    )
-    npm_cmd = ["npm", "run", "dev"]
-    ui_env = os.environ.copy()
-    ui_env.setdefault("PORT", "5173")
-    ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
+    # UI mode: dev (Vite) or prod (Docker)
+    mode = os.getenv("MAESTRO_UI_MODE", "dev").lower()
+    ui_proc = None
+    if mode == "prod":
+        ui_cwd = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "web",
+            "maestro-ui",
+        )
+        image_tag = os.getenv("MAESTRO_UI_IMAGE", "maestro-ui:latest")
+        host_port = os.getenv("MAESTRO_UI_PORT", "8080")
+        subprocess.check_call(["docker", "build", "-t", image_tag, "."], cwd=ui_cwd)
+        ui_proc = subprocess.Popen(
+            [
+                "docker",
+                "run",
+                "--rm",
+                "-p",
+                f"{host_port}:80",
+                image_tag,
+            ]
+        )
+        print(f"[INFO] UI (prod) running at http://localhost:{host_port}")
+    else:
+        ui_cwd = os.path.join(
+            os.path.dirname(os.path.dirname(os.path.dirname(__file__))),
+            "web",
+            "maestro-ui",
+        )
+        npm_cmd = ["npm", "run", "dev"]
+        ui_env = os.environ.copy()
+        ui_env.setdefault("PORT", "5173")
+        ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
+        print("[INFO] UI (dev) running at http://localhost:5173")
 
     try:
         api_proc.wait()
     finally:
-        try:
-            ui_proc.terminate()
-        except Exception:
-            pass
+        if ui_proc is not None:
+            try:
+                ui_proc.terminate()
+            except Exception:
+                pass
 
 
 if __name__ == "__main__":
