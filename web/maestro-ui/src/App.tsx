@@ -12,7 +12,6 @@ function App() {
   const sseRef = useRef<EventSource | null>(null)
 
   useEffect(() => {
-    // Initialize mermaid
     mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' })
   }, [])
 
@@ -54,7 +53,6 @@ function App() {
       setDiagram(data.diagram)
       const container = document.getElementById('mermaid-diagram')
       if (!container) return
-      // Validate before rendering
       try {
         mermaid.parse(data.diagram)
       } catch (err: any) {

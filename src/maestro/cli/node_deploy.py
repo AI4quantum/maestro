@@ -15,7 +15,7 @@ def main():
     host = os.getenv("MAESTRO_HOST", "127.0.0.1")
     port = int(os.getenv("MAESTRO_PORT", "8000"))
 
-    # Start FastAPI workflow server in a child process via uv
+    # Start FastAPI workflow server
     api_proc = subprocess.Popen(
         [
             "uv",
