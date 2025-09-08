@@ -55,6 +55,7 @@ async def create_agents(agents: list[str]):
 
 def serve_agent_thread(agent, agent_name, host, port):
     __serve_agent(agent, agent_name=agent_name, host=host, port=port)
+    os.remove(agents)
 
 
 @mcp.tool()
@@ -81,6 +82,8 @@ async def serve_agent(
 
 def serve_workflow_thread(agents, workflow, host, port):
     __serve_workflow(agents, workflow, host, port)
+    os.remove(agents)
+    os.remove(workflow)
 
 
 @mcp.tool()
@@ -178,7 +181,9 @@ async def deploy_workflow(
             subprocess.Popen(sys.argv)
         except Exception as e:
             raise RuntimeError(f"{str(e)}") from e
-        return 0
+    os.remove(agents_yaml)
+    os.remove(workflow_yaml)
+    return 0
 
 
 if __name__ == "__main__":
