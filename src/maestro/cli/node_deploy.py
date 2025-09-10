@@ -2,6 +2,41 @@ import os
 import subprocess
 import sys
 import time
+import requests
+
+
+def wait_for_api_health(host="127.0.0.1", port=8000, timeout=60, check_interval=1):
+    """Wait for the API server to be healthy by polling the /health endpoint.
+
+    Args:
+        host: API server host
+        port: API server port
+        timeout: Maximum time to wait in seconds
+        check_interval: Time between health checks in seconds
+
+    Returns:
+        bool: True if API is healthy, False if timeout reached
+    """
+    url = f"http://{host}:{port}/health"
+    start_time = time.time()
+
+    print(f"[INFO] Waiting for API server to be ready at {url}...")
+
+    while time.time() - start_time < timeout:
+        try:
+            response = requests.get(url, timeout=5)
+            if response.status_code == 200:
+                data = response.json()
+                if data.get("status") == "healthy":
+                    print("[INFO] API server is ready!")
+                    return True
+        except (requests.RequestException, ValueError):
+            pass
+
+        time.sleep(check_interval)
+
+    print(f"[ERROR] API server failed to become ready within {timeout} seconds")
+    return False
 
 
 def main():
@@ -24,8 +59,13 @@ def main():
         ]
     )
 
-    # Give the API a moment to start
-    time.sleep(2)
+    if not wait_for_api_health():
+        print("[ERROR] Failed to start API server")
+        try:
+            api_proc.terminate()
+        except Exception:
+            pass
+        sys.exit(1)
 
     # UI mode: only dev (Vite) is supported for node deployment
     # For production deployments, use --docker or --k8s modes instead
