@@ -1,6 +1,5 @@
 #!/bin/sh
 
-
 kill_port() {
   port=$1
   pids=$(lsof -t -i :$port 2>/dev/null)
@@ -12,7 +11,11 @@ kill_port() {
   fi
 }
 
-kill_port 8000
+# Kill maestro processes using environment variables or defaults
+kill_port ${MAESTRO_PORT:-8000}
+kill_port ${MAESTRO_UI_PORT:-5173}
+
+# Kill any remaining Vite/npm dev processes
 vite_pids=$(ps aux | grep -E "(vite|npm.*dev)" | grep -v grep | awk '{print $2}')
 if [ -n "$vite_pids" ]; then
   echo "Killing Vite dev processes: $vite_pids"
@@ -37,6 +40,7 @@ for port in 3000 4000 5173 8080 9000; do
     done
   fi
 done
+
 
 echo "Cleanup complete."
 
