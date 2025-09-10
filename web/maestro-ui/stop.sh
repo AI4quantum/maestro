@@ -1,5 +1,9 @@
 #!/bin/sh
 
+if [ -f "../../.env" ]; then
+  export $(cat ../../.env | grep -v '^#' | xargs)
+fi
+
 kill_port() {
   port=$1
   pids=$(lsof -t -i :$port 2>/dev/null)
