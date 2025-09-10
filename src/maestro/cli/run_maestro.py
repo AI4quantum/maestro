@@ -46,6 +46,7 @@ Options:
   --agent-name NAME      Specific agent name to serve (if multiple in file)
   --streaming            Enable streaming responses
   --ui-mode MODE         UI mode: dev or prod (default: dev)
+  --ui-port PORT         Port for UI server (default: 5173 for dev, 8080 for prod)
 
   -h --help              Show this screen.
   -v --version           Show version.

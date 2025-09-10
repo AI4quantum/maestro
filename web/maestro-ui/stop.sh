@@ -1,7 +1,5 @@
 #!/bin/sh
 
-# Stop FastAPI (8000), Vite dev (5173), and NGINX UI (8080) if running
-# Also stop optional Docker UI container if MAESTRO_UI_IMAGE is provided
 
 kill_port() {
   port=$1
@@ -14,22 +12,31 @@ kill_port() {
   fi
 }
 
-kill_port 8000   # FastAPI (backend)
-kill_port 5173   # Vite dev UI
-
-# Kill prod UI port only when using Dockerized UI
-if [ "${MAESTRO_UI_MODE}" = "prod" ] || [ -n "${MAESTRO_UI_PORT}" ]; then
-  kill_port ${MAESTRO_UI_PORT:-8080}
+kill_port 8000
+vite_pids=$(ps aux | grep -E "(vite|npm.*dev)" | grep -v grep | awk '{print $2}')
+if [ -n "$vite_pids" ]; then
+  echo "Killing Vite dev processes: $vite_pids"
+  kill -9 $vite_pids 2>/dev/null || true
 fi
 
-# Stop Dockerized UI container by image name (best-effort)
-if [ -n "$MAESTRO_UI_IMAGE" ]; then
-  cid=$(docker ps -q --filter ancestor=$MAESTRO_UI_IMAGE)
-  if [ -n "$cid" ]; then
-    echo "Stopping container $cid for image $MAESTRO_UI_IMAGE"
-    docker stop $cid >/dev/null 2>&1 || true
+docker_pids=$(docker ps -q --filter ancestor=maestro-ui 2>/dev/null)
+if [ -n "$docker_pids" ]; then
+  echo "Stopping Docker UI containers: $docker_pids"
+  docker stop $docker_pids >/dev/null 2>&1 || true
+fi
+
+for port in 3000 4000 5173 8080 9000; do
+  pids=$(lsof -t -i :$port 2>/dev/null)
+  if [ -n "$pids" ]; then
+    for pid in $pids; do
+      cmd=$(ps -p $pid -o comm= 2>/dev/null)
+      if echo "$cmd" | grep -qE "(node|vite|nginx)"; then
+        echo "Killing UI process on port $port (PID $pid): $cmd"
+        kill -9 $pid 2>/dev/null || true
+      fi
+    done
   fi
-fi
+done
 
 echo "Cleanup complete."
 

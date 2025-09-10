@@ -34,6 +34,7 @@ def main():
 
     # UI mode: dev (Vite) or prod (Docker)
     mode = os.getenv("MAESTRO_UI_MODE", "dev").lower()
+    ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173" if mode == "dev" else "8080"))
     ui_proc = None
     # Project root: three levels up from this file (src/maestro/cli/node_deploy.py -> project root)
     project_root = os.path.abspath(
@@ -42,7 +43,7 @@ def main():
     if mode == "prod":
         ui_cwd = os.path.join(project_root, "web", "maestro-ui")
         image_tag = os.getenv("MAESTRO_UI_IMAGE", "maestro-ui:latest")
-        host_port = os.getenv("MAESTRO_UI_PORT", "8080")
+        host_port = str(ui_port)
         subprocess.check_call(["docker", "build", "-t", image_tag, "."], cwd=ui_cwd)
         ui_proc = subprocess.Popen(
             [
@@ -59,9 +60,9 @@ def main():
         ui_cwd = os.path.join(project_root, "web", "maestro-ui")
         npm_cmd = ["npm", "run", "dev"]
         ui_env = os.environ.copy()
-        ui_env.setdefault("PORT", "5173")
+        ui_env.setdefault("PORT", str(ui_port))
         ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
-        print("[INFO] UI (dev) running at http://localhost:5173")
+        print(f"[INFO] UI (dev) running at http://localhost:{ui_port}")
 
     try:
         api_proc.wait()
