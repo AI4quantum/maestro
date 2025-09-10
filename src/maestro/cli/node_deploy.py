@@ -47,19 +47,19 @@ def main():
     agents_file = sys.argv[1]
     workflow_file = sys.argv[2]
 
-    # Start FastAPI workflow server using serve_workflow defaults
-    # If users need custom host/port, they should use: maestro serve AGENTS_FILE WORKFLOW_FILE --host HOST --port PORT
+    api_host = os.getenv("MAESTRO_HOST", "127.0.0.1")
+    api_port = int(os.getenv("MAESTRO_PORT", "8000"))
     api_proc = subprocess.Popen(
         [
             "uv",
             "run",
             "python",
             "-c",
-            f"from maestro.cli.fastapi_serve import serve_workflow; serve_workflow('{agents_file}', '{workflow_file}')",
+            f"from maestro.cli.fastapi_serve import serve_workflow; serve_workflow('{agents_file}', '{workflow_file}', host='{api_host}', port={api_port})",
         ]
     )
 
-    if not wait_for_api_health():
+    if not wait_for_api_health(api_host, api_port):
         print("[ERROR] Failed to start API server")
         try:
             api_proc.terminate()
@@ -68,7 +68,6 @@ def main():
         sys.exit(1)
 
     # UI mode: only dev (Vite) is supported for node deployment
-    # For production deployments, use --docker or --k8s modes instead
     ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173"))
     ui_proc = None
     # Project root: three levels up from this file (src/maestro/cli/node_deploy.py -> project root)
@@ -80,6 +79,7 @@ def main():
     ui_env = os.environ.copy()
     ui_env.setdefault("PORT", str(ui_port))
     ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
+    print(f"[INFO] API server running at http://{api_host}:{api_port}")
     print(f"[INFO] UI (dev) running at http://localhost:{ui_port}")
 
     try:

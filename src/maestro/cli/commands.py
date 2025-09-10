@@ -457,8 +457,11 @@ class DeployCmd(Command):
         try:
             node_deploy_script = f"{os.path.dirname(__file__)}/node_deploy.py"
             env = os.environ.copy()
+            api_port = self.port()
             ui_port = self.ui_port()
-            env.setdefault("CORS_ALLOW_ORIGINS", f"http://localhost:{ui_port}")
+            ui_host = self.args.get("--host", "localhost")
+            env.setdefault("CORS_ALLOW_ORIGINS", f"http://{ui_host}:{ui_port}")
+            env["MAESTRO_PORT"] = str(api_port)
             env["MAESTRO_UI_PORT"] = str(ui_port)
             sys.argv = [
                 "uv",
@@ -490,8 +493,12 @@ class DeployCmd(Command):
                 if self.node_ui():
                     self.__deploy_agents_workflow_node()
                     if not self.silent():
+                        api_port = self.port()
                         ui_port = self.ui_port()
-                        Console.ok(f"Workflow deployed: http://localhost:{ui_port}")
+                        api_host = self.args.get("--host", "localhost")
+                        Console.ok(
+                            f"Workflow deployed - API: http://{api_host}:{api_port}, UI: http://localhost:{ui_port}"
+                        )
                 else:
                     self.__deploy_agents_workflow_streamlit()
                     if not self.silent():
@@ -522,6 +529,15 @@ class DeployCmd(Command):
 
     def node_ui(self):
         return self.args["--node-ui"]
+
+    def port(self):
+        port_str = self.args.get("--port")
+        if port_str is None:
+            return 8000
+        try:
+            return int(port_str)
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid port number: {port_str}")
 
     def ui_port(self):
         port_str = self.args.get("--ui-port")
