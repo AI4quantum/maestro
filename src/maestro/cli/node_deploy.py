@@ -12,20 +12,15 @@ def main():
     agents_file = sys.argv[1]
     workflow_file = sys.argv[2]
 
-    host = os.getenv("MAESTRO_HOST", "127.0.0.1")
-    port = int(os.getenv("MAESTRO_PORT", "8000"))
-
-    # Start FastAPI workflow server
+    # Start FastAPI workflow server using serve_workflow defaults
+    # If users need custom host/port, they should use: maestro serve AGENTS_FILE WORKFLOW_FILE --host HOST --port PORT
     api_proc = subprocess.Popen(
         [
             "uv",
             "run",
             "python",
             "-c",
-            (
-                "from maestro.cli.fastapi_serve import serve_workflow; "
-                f"serve_workflow('{agents_file}', '{workflow_file}', host='{host}', port={port})"
-            ),
+            f"from maestro.cli.fastapi_serve import serve_workflow; serve_workflow('{agents_file}', '{workflow_file}')",
         ]
     )
 
