@@ -459,7 +459,6 @@ class DeployCmd(Command):
             env = os.environ.copy()
             ui_port = self.ui_port()
             env.setdefault("CORS_ALLOW_ORIGINS", f"http://localhost:{ui_port}")
-            env["MAESTRO_UI_MODE"] = self.ui_mode()
             env["MAESTRO_UI_PORT"] = str(ui_port)
             sys.argv = [
                 "uv",
@@ -524,13 +523,10 @@ class DeployCmd(Command):
     def node_ui(self):
         return self.args["--node-ui"]
 
-    def ui_mode(self):
-        return self.args.get("--ui-mode", "dev")
-
     def ui_port(self):
         port_str = self.args.get("--ui-port")
         if port_str is None:
-            return 5173 if self.ui_mode() == "dev" else 8080
+            return 5173
         try:
             return int(port_str)
         except (ValueError, TypeError):

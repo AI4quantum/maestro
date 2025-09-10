@@ -32,37 +32,20 @@ def main():
     # Give the API a moment to start
     time.sleep(2)
 
-    # UI mode: dev (Vite) or prod (Docker)
-    mode = os.getenv("MAESTRO_UI_MODE", "dev").lower()
-    ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173" if mode == "dev" else "8080"))
+    # UI mode: only dev (Vite) is supported for node deployment
+    # For production deployments, use --docker or --k8s modes instead
+    ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173"))
     ui_proc = None
     # Project root: three levels up from this file (src/maestro/cli/node_deploy.py -> project root)
     project_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "..")
     )
-    if mode == "prod":
-        ui_cwd = os.path.join(project_root, "web", "maestro-ui")
-        image_tag = os.getenv("MAESTRO_UI_IMAGE", "maestro-ui:latest")
-        host_port = str(ui_port)
-        subprocess.check_call(["docker", "build", "-t", image_tag, "."], cwd=ui_cwd)
-        ui_proc = subprocess.Popen(
-            [
-                "docker",
-                "run",
-                "--rm",
-                "-p",
-                f"{host_port}:80",
-                image_tag,
-            ]
-        )
-        print(f"[INFO] UI (prod) running at http://localhost:{host_port}")
-    else:
-        ui_cwd = os.path.join(project_root, "web", "maestro-ui")
-        npm_cmd = ["npm", "run", "dev"]
-        ui_env = os.environ.copy()
-        ui_env.setdefault("PORT", str(ui_port))
-        ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
-        print(f"[INFO] UI (dev) running at http://localhost:{ui_port}")
+    ui_cwd = os.path.join(project_root, "web", "maestro-ui")
+    npm_cmd = ["npm", "run", "dev"]
+    ui_env = os.environ.copy()
+    ui_env.setdefault("PORT", str(ui_port))
+    ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
+    print(f"[INFO] UI (dev) running at http://localhost:{ui_port}")
 
     try:
         api_proc.wait()
