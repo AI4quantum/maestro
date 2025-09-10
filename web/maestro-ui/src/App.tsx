@@ -1,15 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import './App.css'
 import mermaid from 'mermaid'
-import { chat, chatStream, health as healthApi, type StreamEvent, fetchDiagram } from './api'
+import { chatStream, health as healthApi, type StreamEvent, fetchDiagram } from './api'
 
 function App() {
   const [prompt, setPrompt] = useState('')
   const [messages, setMessages] = useState<string[]>([])
   const [health, setHealth] = useState<string>('unknown')
-  const [diagram, setDiagram] = useState<string>('')
   const [diagramError, setDiagramError] = useState<string>('')
-  const sseRef = useRef<EventSource | null>(null)
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' })
@@ -50,7 +48,6 @@ function App() {
     try {
       const data = await fetchDiagram()
       setDiagramError('')
-      setDiagram(data.diagram)
       const container = document.getElementById('mermaid-diagram')
       if (!container) return
       try {
