@@ -67,7 +67,6 @@ def main():
             pass
         sys.exit(1)
 
-    # UI mode: only dev (Vite) is supported for node deployment
     ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173"))
     ui_proc = None
     # Project root: three levels up from this file (src/maestro/cli/node_deploy.py -> project root)
@@ -80,7 +79,7 @@ def main():
     ui_env.setdefault("PORT", str(ui_port))
     ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
     print(f"[INFO] API server running at http://{api_host}:{api_port}")
-    print(f"[INFO] UI (dev) running at http://localhost:{ui_port}")
+    print(f"[INFO] UI running at http://localhost:{ui_port}")
 
     try:
         api_proc.wait()
