@@ -717,9 +717,123 @@ class CleanCmd(Command):
                     psutil.ZombieProcess,
                 ):
                     pass
+            self.__load_env_file()
+            maestro_port = os.environ.get("MAESTRO_PORT", "8000")
+            maestro_ui_port = os.environ.get("MAESTRO_UI_PORT", "5173")
+            self.__kill_port(maestro_port)
+            self.__kill_port(maestro_ui_port)
+            self.__kill_vite_npm_processes()
+            self.__stop_docker_containers()
+            self.__kill_ui_processes_by_name()
+
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
+
+    def __load_env_file(self):
+        """Load .env file like stop.sh does."""
+        env_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env")
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            key, value = line.split("=", 1)
+                            os.environ[key] = value
+            except Exception:
+                pass
+
+    def __kill_port(self, port):
+        """Kill processes on specific port using lsof (mimics stop.sh kill_port function)."""
+        try:
+            result = subprocess.run(
+                ["lsof", "-t", "-i", f":{port}"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                pids = result.stdout.strip().split("\n")
+                for pid in pids:
+                    if pid:
+                        try:
+                            os.kill(int(pid), signal.SIGTERM)
+                        except (ProcessLookupError, ValueError):
+                            pass
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    def __kill_vite_npm_processes(self):
+        """Kill vite/npm dev processes using ps aux grep (mimics stop.sh)."""
+        try:
+            result = subprocess.run(
+                ["ps", "aux"], capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                lines = result.stdout.split("\n")
+                for line in lines:
+                    if (
+                        any(term in line.lower() for term in ["vite", "npm.*dev"])
+                        and "grep" not in line
+                    ):
+                        parts = line.split()
+                        if len(parts) > 1:
+                            try:
+                                pid = int(parts[1])
+                                os.kill(pid, signal.SIGTERM)
+                            except (ValueError, ProcessLookupError):
+                                pass
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    def __stop_docker_containers(self):
+        """Stop Docker UI containers (mimics stop.sh)."""
+        try:
+            result = subprocess.run(
+                ["docker", "ps", "-q", "--filter", "ancestor=maestro-ui"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                container_ids = result.stdout.strip().split("\n")
+                for container_id in container_ids:
+                    if container_id:
+                        subprocess.run(
+                            ["docker", "stop", container_id],
+                            capture_output=True,
+                            timeout=30,
+                        )
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    def __kill_ui_processes_by_name(self):
+        """Kill UI processes by name dynamically (mimics stop.sh logic without hardcoded ports)."""
+        try:
+            result = subprocess.run(
+                ["ps", "aux"], capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                lines = result.stdout.split("\n")
+                for line in lines:
+                    if "grep" in line or "USER" in line:
+                        continue
+
+                    parts = line.split()
+                    if len(parts) > 10:
+                        pid = parts[1]
+                        command_line = " ".join(parts[10:])
+                        if any(
+                            ui_proc in command_line.lower()
+                            for ui_proc in ["node", "vite", "nginx"]
+                        ):
+                            try:
+                                os.kill(int(pid), signal.SIGTERM)
+                            except (ValueError, ProcessLookupError):
+                                pass
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
 
     # public
 
