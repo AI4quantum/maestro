@@ -53,9 +53,25 @@ maestro deploy your-agents.yaml your-workflow.yaml --node-ui
 
 ## Production (Docker)
 
-- **Start:** `MAESTRO_UI_IMAGE=maestro-ui:dev MAESTRO_UI_PORT=8080 maestro deploy agents.yaml workflow.yaml --node-ui`
-- **Open:** `http://localhost:8080`
-- **Stop:** `maestro clean`
+### Backend API:
+```bash
+maestro deploy agents.yaml workflow.yaml --docker
+```
+- API available at `http://localhost:5000`
+
+### UI (Optional):
+```bash
+cd web/maestro-ui
+docker build -t maestro-ui:dev .
+docker run -p 8080:80 maestro-ui:dev
+```
+- UI available at `http://localhost:8080`
+
+### Stop:
+```bash
+maestro clean
+docker stop $(docker ps -q --filter ancestor=maestro-ui:dev)
+```
 
 ## API Endpoints
 
