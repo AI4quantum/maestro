@@ -2,27 +2,35 @@
 
 A React/TypeScript frontend for the Maestro workflow system.
 
-## Setup
+## Prerequisites
 
-First, install the UI dependencies:
+- Python 3.8+
+- Node.js and npm
+- Git (to clone the repository)
 
-```bash
-cd web/maestro-ui
-npm install
-```
+## Installation
 
-## Development
-
-### Prerequisites
-- Python virtual environment activated
-- Backend configuration (e.g., `OPENAI_API_KEY` environment variable)
-- UI dependencies installed (see Setup above)
-
-### Running the UI
-
-1. **Start both API and UI servers:**
+1. **Install Maestro:**
    ```bash
-   maestro deploy agents.yaml workflow.yaml --node-ui
+   pip install -e .
+   ```
+
+2. **Install UI dependencies:**
+   ```bash
+   cd web/maestro-ui
+   npm install
+   ```
+
+3. **Configure environment** (for full functionality):
+   ```bash
+   export OPENAI_API_KEY=your_api_key_here
+   ```
+
+## Quick Start
+
+1. **Deploy with sample files:**
+   ```bash
+   maestro deploy tests/yamls/agents/openai_agent.yaml tests/yamls/workflows/openai_mcp_workflow.yaml --node-ui
    ```
 
 2. **Open in browser:**
@@ -34,6 +42,14 @@ npm install
    ```bash
    maestro clean
    ```
+
+## Development
+
+For custom agent and workflow files:
+
+```bash
+maestro deploy your-agents.yaml your-workflow.yaml --node-ui
+```
 
 ## Production (Docker)
 
