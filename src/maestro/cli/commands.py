@@ -18,6 +18,7 @@ import psutil
 
 from jsonschema.exceptions import ValidationError, SchemaError
 from importlib.resources import files
+from dotenv import load_dotenv
 
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
@@ -27,6 +28,8 @@ from maestro.mcptool import create_mcptools
 from datetime import datetime, UTC
 from maestro.cli.fastapi_serve import serve_agent, serve_workflow
 from maestro.cli.containered_agent import create_containered_agent
+
+load_dotenv()
 
 
 # Root CLI class
@@ -719,7 +722,6 @@ class CleanCmd(Command):
                     psutil.ZombieProcess,
                 ):
                     pass
-            self.__load_env_file()
             maestro_port = os.environ.get("MAESTRO_PORT", "8000")
             maestro_ui_port = os.environ.get("MAESTRO_UI_PORT", "5173")
             self.__kill_port(maestro_port)
@@ -731,20 +733,6 @@ class CleanCmd(Command):
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
-
-    def __load_env_file(self):
-        """Load .env file like stop.sh does."""
-        env_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", ".env")
-        if os.path.exists(env_path):
-            try:
-                with open(env_path, "r") as f:
-                    for line in f:
-                        line = line.strip()
-                        if line and not line.startswith("#") and "=" in line:
-                            key, value = line.split("=", 1)
-                            os.environ[key] = value
-            except Exception:
-                pass
 
     def __kill_port(self, port):
         """Kill processes on specific port using lsof (mimics stop.sh kill_port function)."""
