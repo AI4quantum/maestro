@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.11, <3.13"
 resolution-markers = [
     "python_full_version >= '3.12'",
@@ -1858,7 +1858,7 @@ wheels = [
 
 [[package]]
 name = "maestro"
-version = "0.6.0"
+version = "0.7.0"
 source = { editable = "." }
 dependencies = [
     { name = "beeai-framework" },
@@ -1918,7 +1918,7 @@ requires-dist = [
     { name = "opik", specifier = ">=1.7.22" },
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pycron", specifier = ">=3.1.2" },
-    { name = "pydantic-ai", extras = ["logfire"], specifier = ">=0.1.8" },
+    { name = "pydantic-ai", extras = ["logfire"], specifier = ">=0.1.8,<1.0.0" },
     { name = "python-dotenv", specifier = ">=1.0.1" },
     { name = "pyyaml", specifier = ">=6.0.2" },
     { name = "slack-sdk", specifier = ">=3.35.0" },
