@@ -40,15 +40,16 @@ def wait_for_api_health(host="127.0.0.1", port=8000, timeout=60, check_interval=
 
 
 def main():
-    if len(sys.argv) < 3:
-        print("Usage: node_deploy.py AGENTS_FILE WORKFLOW_FILE")
+    if len(sys.argv) < 5:
+        print(
+            "Usage: node_deploy.py AGENTS_FILE WORKFLOW_FILE API_HOST API_PORT [UI_PORT]"
+        )
         sys.exit(1)
 
     agents_file = sys.argv[1]
     workflow_file = sys.argv[2]
-
-    api_host = os.getenv("MAESTRO_HOST", "127.0.0.1")
-    api_port = int(os.getenv("MAESTRO_PORT", "8000"))
+    api_host = sys.argv[3]
+    api_port = int(sys.argv[4])
     api_proc = subprocess.Popen(
         [
             "uv",
@@ -67,7 +68,10 @@ def main():
             pass
         sys.exit(1)
 
-    ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173"))
+    if len(sys.argv) >= 6:
+        ui_port = int(sys.argv[5])
+    else:
+        ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173"))
     ui_proc = None
     # Project root: three levels up from this file (src/maestro/cli/node_deploy.py -> project root)
     project_root = os.path.abspath(

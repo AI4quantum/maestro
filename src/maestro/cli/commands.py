@@ -459,19 +459,21 @@ class DeployCmd(Command):
             env = os.environ.copy()
             api_port = self.port()
             ui_port = self.ui_port()
-            ui_host = self.args.get("--host", "localhost")
-            env.setdefault("CORS_ALLOW_ORIGINS", f"http://{ui_host}:{ui_port}")
-            env["MAESTRO_PORT"] = str(api_port)
-            env["MAESTRO_UI_PORT"] = str(ui_port)
-            sys.argv = [
+            api_host = self.args.get("--host") or "localhost"
+            env.setdefault("CORS_ALLOW_ORIGINS", f"http://{api_host}:{ui_port}")
+            env["MAESTRO_UI_PORT"] = str(ui_port)  # Keep for UI server
+            cmd_args = [
                 "uv",
                 "run",
                 "python",
                 node_deploy_script,
                 self.AGENTS_FILE(),
                 self.WORKFLOW_FILE(),
+                api_host,
+                str(api_port),
+                str(ui_port),
             ]
-            self.process = subprocess.Popen(sys.argv, env=env)
+            self.process = subprocess.Popen(cmd_args, env=env)
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
@@ -495,7 +497,7 @@ class DeployCmd(Command):
                     if not self.silent():
                         api_port = self.port()
                         ui_port = self.ui_port()
-                        api_host = self.args.get("--host", "localhost")
+                        api_host = self.args.get("--host") or "localhost"
                         Console.ok(
                             f"Workflow deployed - API: http://{api_host}:{api_port}, UI: http://localhost:{ui_port}"
                         )
