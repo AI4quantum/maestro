@@ -735,7 +735,7 @@ class CleanCmd(Command):
             raise RuntimeError(f"{str(e)}") from e
 
     def __kill_port(self, port):
-        """Kill processes on specific port using lsof (mimics stop.sh kill_port function)."""
+        """Kill processes on specific port using lsof."""
         try:
             result = subprocess.run(
                 ["lsof", "-t", "-i", f":{port}"],
@@ -755,7 +755,7 @@ class CleanCmd(Command):
             pass
 
     def __kill_vite_npm_processes(self):
-        """Kill vite/npm dev processes using ps aux grep (mimics stop.sh)."""
+        """Kill vite/npm dev processes using ps aux grep."""
         try:
             result = subprocess.run(
                 ["ps", "aux"], capture_output=True, text=True, timeout=10
@@ -778,7 +778,7 @@ class CleanCmd(Command):
             pass
 
     def __stop_docker_containers(self):
-        """Stop Docker UI containers (mimics stop.sh)."""
+        """Stop Docker UI containers."""
         try:
             result = subprocess.run(
                 ["docker", "ps", "-q", "--filter", "ancestor=maestro-ui"],
@@ -799,7 +799,7 @@ class CleanCmd(Command):
             pass
 
     def __kill_ui_processes_by_name(self):
-        """Kill UI processes by name dynamically (mimics stop.sh logic without hardcoded ports)."""
+        """Kill UI processes by name dynamically without hardcoded ports."""
         try:
             result = subprocess.run(
                 ["ps", "aux"], capture_output=True, text=True, timeout=10
