@@ -40,7 +40,7 @@ def parse_yaml(file_path):
                 d["source_file"] = os.path.abspath(file_path)
         return yaml_data
     except Exception:
-        Console.error("Could not parse YAML file: {file_path}")
+        Console.error(f"Could not parse YAML file: {file_path}")
 
 
 def read_file(file_path):
@@ -58,7 +58,7 @@ def read_file(file_path):
             file_content = file.read()
         return file_content
     except Exception:
-        Console.error("Could read file: {file_path}")
+        Console.error(f"Could read file: {file_path}")
 
 
 class Console:

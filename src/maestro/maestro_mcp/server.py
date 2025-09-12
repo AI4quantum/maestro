@@ -17,7 +17,8 @@ from maestro.cli.containered_agent import create_deployment_service
 from maestro.deploy import Deploy
 
 # Initialize FastMCP server
-mcp = FastMCP("Maestro", stateless_http=True)
+# mcp = FastMCP("Maestro", stateless_http=True)
+mcp = FastMCP("Maestro")
 
 
 @mcp.tool()
@@ -28,6 +29,7 @@ async def run_workflow(agents: list[str], workflow: str):
         agents: list of agent definitions
         workflow: workflow definition
     """
+    print("###")
     agent_defs = []
     for agent in agents:
         agent_defs.append(json.loads(agent))
@@ -87,7 +89,9 @@ def serve_workflow_thread(agents, workflow, host, port):
 
 
 @mcp.tool()
-async def serve_workflow(agents: str, workflow: str, host: str, port: int = 8001):
+async def serve_workflow(
+    agents: str, workflow: str, host: str = "127.0.0.1", port: int = 8001
+):
     """Serve workflow
 
     Args:
@@ -160,9 +164,13 @@ async def deploy_workflow(
     if target == "docker":
         deploy = Deploy(agents_yaml, workflow_yaml, env)
         deploy.deploy_to_docker()
+        os.remove(agents_yaml)
+        os.remove(workflow_yaml)
     elif target == "kubernetes":
         deploy = Deploy(agents_yaml, workflow_yaml, env)
         deploy.deploy_to_kubernetes()
+        os.remove(agents_yaml)
+        os.remove(workflow_yaml)
     else:
         try:
             sys.argv = [
@@ -181,8 +189,6 @@ async def deploy_workflow(
             subprocess.Popen(sys.argv)
         except Exception as e:
             raise RuntimeError(f"{str(e)}") from e
-    os.remove(agents_yaml)
-    os.remove(workflow_yaml)
     return 0
 
 
