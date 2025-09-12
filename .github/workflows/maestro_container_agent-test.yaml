@@ -99,7 +99,7 @@ jobs:
 
     - name: Setup maestro mcp server in DRY_RUN mode for test
       run: |
-        DRY_RUN=1; python src/maestro/maestro_mcp/server.py
+        DRY_RUN=1; python src/maestro/maestro_mcp/server.py &
         sleep 3
 
     - name: Test maestro mcp server functions in DRY_RUN mode
