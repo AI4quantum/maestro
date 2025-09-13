@@ -95,6 +95,9 @@ async def deploy_workflow(session):
     assert not result.isError
 
 
+@pytest.mark.skipif(
+    os.getenv("_DOCKER_TEST") != "1", reason="Docker deploy skipped"
+)
 @pytest.mark.asyncio
 async def test():
     BASE_URL = "http://localhost:8000"
