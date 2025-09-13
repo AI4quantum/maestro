@@ -1,6 +1,7 @@
 import asyncio
 import pytest
 import json
+import os
 from mcp import ClientSession
 from mcp.client.streamable_http import streamablehttp_client
 from maestro.cli.common import parse_yaml
@@ -96,7 +97,7 @@ async def deploy_workflow(session):
 
 
 @pytest.mark.skipif(
-    os.getenv("_DOCKER_TEST") != "1", reason="Docker deploy skipped"
+    os.getenv("DEPLOY_KUBERNETES_TEST") == "1", reason="No kubernetes skipped"
 )
 @pytest.mark.asyncio
 async def test():
