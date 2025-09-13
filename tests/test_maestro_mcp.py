@@ -60,7 +60,7 @@ async def serve_workflow(session):
 async def serve_container_agent(session):
     print("serve_container_agent\n")
     result = await session.call_tool(
-        "serve_containser_agent",
+        "serve_container_agent",
         {"image_url": "localhost/container-agent:latest", "app_name": "test_app"},
     )
     print(f"response: {result}")
