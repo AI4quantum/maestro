@@ -17,7 +17,6 @@ from maestro.cli.containered_agent import create_deployment_service
 from maestro.deploy import Deploy
 
 # Initialize FastMCP server
-# mcp = FastMCP("Maestro", stateless_http=True)
 mcp = FastMCP("Maestro")
 
 
@@ -29,7 +28,6 @@ async def run_workflow(agents: list[str], workflow: str):
         agents: list of agent definitions
         workflow: workflow definition
     """
-    print("###")
     agent_defs = []
     for agent in agents:
         agent_defs.append(json.loads(agent))
