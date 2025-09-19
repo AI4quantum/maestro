@@ -49,6 +49,7 @@ class CodeAgent(Agent):
                 [
                     sys.executable,
                     "-m",
+                    "uv",
                     "pip",
                     "install",
                     "-r",
