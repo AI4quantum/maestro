@@ -3,6 +3,47 @@ import subprocess
 import sys
 import time
 import requests
+import signal
+import atexit
+
+api_proc = None
+ui_proc = None
+
+
+def cleanup_processes():
+    """Clean up all spawned processes."""
+    global api_proc, ui_proc
+
+    if ui_proc is not None:
+        try:
+            ui_proc.terminate()
+            ui_proc.wait(timeout=5)
+        except (subprocess.TimeoutExpired, ProcessLookupError):
+            try:
+                ui_proc.kill()
+            except ProcessLookupError:
+                pass
+        except Exception:
+            pass
+
+    if api_proc is not None:
+        try:
+            api_proc.terminate()
+            api_proc.wait(timeout=5)
+        except (subprocess.TimeoutExpired, ProcessLookupError):
+            try:
+                api_proc.kill()
+            except ProcessLookupError:
+                pass
+        except Exception:
+            pass
+
+
+def signal_handler(signum):
+    """Handle termination signals gracefully."""
+    print(f"\n[INFO] Received signal {signum}, shutting down...")
+    cleanup_processes()
+    sys.exit(0)
 
 
 def wait_for_api_health(host="127.0.0.1", port=8000, timeout=60, check_interval=1):
@@ -40,6 +81,12 @@ def wait_for_api_health(host="127.0.0.1", port=8000, timeout=60, check_interval=
 
 
 def main():
+    global api_proc, ui_proc
+
+    signal.signal(signal.SIGINT, signal_handler)
+    signal.signal(signal.SIGTERM, signal_handler)
+    atexit.register(cleanup_processes)
+
     if len(sys.argv) < 5:
         print(
             "Usage: node_deploy.py AGENTS_FILE WORKFLOW_FILE API_HOST API_PORT [UI_PORT]"
@@ -62,18 +109,14 @@ def main():
 
     if not wait_for_api_health(api_host, api_port):
         print("[ERROR] Failed to start API server")
-        try:
-            api_proc.terminate()
-        except Exception:
-            pass
+        cleanup_processes()
         sys.exit(1)
 
     if len(sys.argv) >= 6:
         ui_port = int(sys.argv[5])
     else:
         ui_port = int(os.getenv("MAESTRO_UI_PORT", "5173"))
-    ui_proc = None
-    # Project root: three levels up from this file (src/maestro/cli/node_deploy.py -> project root)
+
     project_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "..")
     )
@@ -81,18 +124,16 @@ def main():
     npm_cmd = ["npm", "run", "dev"]
     ui_env = os.environ.copy()
     ui_env.setdefault("PORT", str(ui_port))
-    ui_proc = subprocess.Popen(npm_cmd, cwd=ui_cwd, env=ui_env)
+    ui_proc = subprocess.Popen(
+        npm_cmd, cwd=ui_cwd, env=ui_env, stderr=subprocess.DEVNULL
+    )
     print(f"[INFO] API server running at http://{api_host}:{api_port}")
     print(f"[INFO] UI running at http://localhost:{ui_port}")
 
     try:
         api_proc.wait()
     finally:
-        if ui_proc is not None:
-            try:
-                ui_proc.terminate()
-            except Exception:
-                pass
+        cleanup_processes()
 
 
 if __name__ == "__main__":
