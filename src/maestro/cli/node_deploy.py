@@ -39,8 +39,10 @@ def cleanup_processes():
             pass
 
 
-def signal_handler(signum):
-    """Handle termination signals gracefully."""
+def signal_handler(signum, frame):
+    """Handle termination signals gracefully.
+    Frame must be provided, but is not used.
+    """
     print(f"\n[INFO] Received signal {signum}, shutting down...")
     cleanup_processes()
     sys.exit(0)
