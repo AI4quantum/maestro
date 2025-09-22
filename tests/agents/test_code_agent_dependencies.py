@@ -31,6 +31,19 @@ class TestCodeAgentDependencies(unittest.IsolatedAsyncioTestCase):
         with open(self.example_agent_path, "r") as f:
             self.agent_def = yaml.safe_load(f)
 
+        self.example_agent_requirements_path = os.path.join(
+            os.path.dirname(
+                os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            ),
+            "tests",
+            "examples",
+            "code_agent_with_dependencies_requirements.yaml",
+        )
+
+        # Load the example agent definition
+        with open(self.example_agent_requirements_path, "r") as f:
+            self.agent_requirements_def = yaml.safe_load(f)
+
     def tearDown(self):
         """Reinstall dependencies after tests."""
         # Create a CodeAgent instance with the example agent definition
@@ -117,6 +130,21 @@ output = "This should not be returned"
         """Test that dependencies are installed before code execution."""
         # Create a CodeAgent instance with the example agent definition
         agent = CodeAgent(self.agent_def)
+
+        # Actually run the agent with the example URL
+        result = await agent.run("https://www.example.com")
+
+        # Check that the code executed successfully and returned a result
+        self.assertIsNotNone(result)
+        self.assertEqual(result, "Example Domain")
+
+    @pytest.mark.asyncio
+    async def test_dependencies_installation_requirements_file(self):
+        self.uninstall_dependencies()
+        """Test that dependencies are installed before code execution."""
+        # Create a CodeAgent instance with the example agent definition
+        print(self.agent_requirements_def)
+        agent = CodeAgent(self.agent_requirements_def)
 
         # Actually run the agent with the example URL
         result = await agent.run("https://www.example.com")

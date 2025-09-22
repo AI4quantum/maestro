@@ -8,6 +8,7 @@ import tempfile
 from dotenv import load_dotenv
 
 from maestro.agents.agent import Agent
+from maestro.agents.utils import get_content
 
 load_dotenv()
 
@@ -41,7 +42,9 @@ class CodeAgent(Agent):
                 mode="w", delete=False, suffix=".txt"
             ) as temp_file:
                 temp_file_path = temp_file.name
-                temp_file.write(dependencies)
+                temp_file.write(
+                    get_content(dependencies, self.agent.get("source_file", ""))
+                )
 
             # Install dependencies using pip with the current Python interpreter
             self.print(f"Running pip install with requirements file: {temp_file_path}")
