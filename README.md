@@ -4,6 +4,12 @@ Maestro is a tool for managing and running AI agents and workflows.
 
 ## Installation
 
+### Requirements
+
+- Python 3.11, 3.12, or 3.13
+
+### Install
+
 ```bash
 pip install git+https://github.com/AI4quantum/maestro.git@v0.7.0
 ```
