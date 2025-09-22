@@ -63,10 +63,6 @@ class CodeAgent(Agent):
             self.print("Dependencies installed successfully.")
             if process.stdout:
                 self.print(f"Installation output: {process.stdout}")
-        except FileNotFoundError:
-            error_msg = "Error: pip command not found. Please ensure pip is installed and in your PATH."
-            self.print(error_msg)
-            raise RuntimeError(error_msg)
         except PermissionError:
             error_msg = "Error: Permission denied when installing packages. Try running with appropriate permissions."
             self.print(error_msg)
@@ -79,6 +75,10 @@ class CodeAgent(Agent):
             if "No matching distribution found" in e.stderr:
                 self.print(
                     "Suggestion: Check if the package names and versions are correct."
+                )
+            elif "FileNotFoundError" in e.stderr:
+                self.print(
+                    "Error: uv command not found. Please ensure uv is installed and in your PATH."
                 )
             elif "Could not find a version that satisfies the requirement" in e.stderr:
                 self.print(
