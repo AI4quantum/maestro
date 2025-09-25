@@ -15,6 +15,7 @@ from maestro.cli.fastapi_serve import (
 )
 from maestro.cli.containered_agent import create_deployment_service
 from maestro.deploy import Deploy
+from maestro.mcptool import create_mcptools
 
 # Initialize FastMCP server
 mcp = FastMCP("Maestro")
@@ -51,6 +52,19 @@ async def create_agents(agents: list[str]):
     for agent in agents:
         agent_defs.append(json.loads(agent))
     workflow_create_agents(agent_defs)
+
+
+@mcp.tool()
+async def create_tools(tools: list[str]):
+    """Create tools
+
+    Args:
+        tools: list of tool definitions
+    """
+    tool_defs = []
+    for tool in tools:
+        tool_defs.append(json.loads(tool))
+    create_mcptools(tool_defs)
 
 
 def serve_agent_thread(agent, agent_name, host, port):
