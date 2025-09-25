@@ -34,9 +34,7 @@ A React/TypeScript frontend for the Maestro workflow system.
    ```
 
 2. **Open in browser:**
-   ```
    http://localhost:5173
-   ```
 
 3. **Stop servers:**
    ```bash
