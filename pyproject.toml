@@ -1,13 +1,13 @@
 [project]
 name = "maestro"
-version = "0.7.0"
+version = "0.8.0"
 description = "A multi-agent platform with the vision to facilitate deploy and run AI agents."
 authors = [
     {name = "IBM"}
 ]
 license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "python-dotenv>=1.0.1",
     "openai>=1.76.2,<1.99",
@@ -25,7 +25,7 @@ dependencies = [
     "tiktoken>=0.5.0",
     "slack_sdk>=3.35.0",
     "nest-asyncio>=1.6.0",
-    "pydantic-ai[logfire]>=0.1.8",
+    "pydantic-ai[logfire]>=0.1.8,<1.0.0",
     "opik>=1.7.22",
     "fastapi>=0.104.0",
     "uvicorn[standard]>=0.24.0",
@@ -35,6 +35,12 @@ dependencies = [
     "fastmcp>=1.0",
     "jinja2>=3.1.6",
     "crewai>=0.134.0",
+    "anyio>=4.10.0",
+    "pytest-asyncio>=1.2.0",
+    "pytest-tornasync>=0.6.0.post2",
+    "pytest-trio>=0.8.0",
+    "pytest-twisted>=1.14.3",
+    "twisted>=25.5.0",
 ]
 
 [dependency-groups]
