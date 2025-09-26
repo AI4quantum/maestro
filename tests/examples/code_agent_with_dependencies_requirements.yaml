@@ -1,0 +1,27 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: web-scraper-agent
+  dependencies: tests/examples/testrequirements.txt
+spec:
+  framework: code
+  description: A code agent that fetches and parses web content
+  code: |
+    import requests
+    from bs4 import BeautifulSoup
+    
+    # Simple function that uses the installed dependencies
+    def fetch_webpage_title(url):
+        try:
+            response = requests.get(url)
+            response.raise_for_status()
+            soup = BeautifulSoup(response.text, 'html.parser')
+            title = soup.title.string if soup.title else "No title found"
+            return title
+        except Exception as e:
+            return f"Error: {str(e)}"
+    
+    # Get a webpage title
+    url = input[0] if input and len(input) > 0 else "https://www.example.com"
+    title = fetch_webpage_title(url)
+    output = title
