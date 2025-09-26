@@ -1,0 +1,14 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: watsonx-poc-evaluator
+  labels:
+    app: poc-test
+    custom_agent: watsonx_poc_agent
+spec:
+  model: "llama3.1:latest"
+  framework: custom
+  mode: local
+  description: "POC agent to test watsonx evaluation library output"
+  instructions: "Test the watsonx evaluation library and show raw output structure"
+

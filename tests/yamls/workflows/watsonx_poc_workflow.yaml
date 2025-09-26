@@ -1,0 +1,19 @@
+apiVersion: maestro/v1alpha1
+kind: Workflow
+metadata:
+  name: watsonx-poc-test
+  labels:
+    app: poc-test
+spec:
+  description: "Simple POC workflow to test watsonx evaluation output"
+  steps:
+    - name: evaluate-sample
+      agent: watsonx-poc-evaluator
+      input:
+        prompt: "What is artificial intelligence?"
+        response: "Artificial intelligence is a branch of computer science that aims to create machines capable of performing tasks that typically require human intelligence."
+        context: 
+          - "AI includes machine learning and deep learning"
+          - "AI systems can recognize patterns and make decisions"
+        ground_truth: "AI is the simulation of human intelligence in machines that are programmed to think and learn."
+

@@ -210,6 +210,7 @@ wheels/
 # Virtual Environment
 .env
 .venv
+.venv-watsonx-test
 env/
 venv/
 ENV/
@@ -275,14 +276,37 @@ MARKDOWN_ACCURACY_REPORT.md
 api/.maestro-builder.pid
 logs/*.pid
 
-# Node.js/Frontend
-node_modules
-dist-ssr
+# Node.js
+node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
+.npm
+.yarn/
+.yarn-integrity
+.pnp.*
+
+# Build outputs
+dist/
+build/
+out/
+
+# Next.js
+.next/
+.nuxt/
+
+# Vuepress
+.vuepress/dist
+
+# Parcel
+.cache/
+.parcel-cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
 
 # GenAI project context
 project_guidelines.md
