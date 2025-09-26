@@ -10,4 +10,4 @@ spec:
   mode: local
   description: "Simple mock agent for testing automatic evaluation middleware"
   instructions: |
-    "Mock agent response for evaluation testing: " + input
+    input = "Machine learning is a branch of artificial intelligence that enables computers to learn patterns from data without explicit programming. It works by using algorithms to analyze large datasets, identify patterns, and make predictions or decisions. The key components include training data, algorithms like neural networks or decision trees, and model evaluation. Applications range from image recognition to natural language processing, making it a fundamental technology in modern AI systems."

@@ -13,6 +13,7 @@ spec:
     agents:
         - my-agent
     prompt: Say a funny story about dogs and cats.
+    context: "Dogs and cats are traditional pets that often have amusing interactions due to their different personalities - dogs being enthusiastic and social, cats being independent and aloof."
     steps:
       - name: step1
         agent: my-agent

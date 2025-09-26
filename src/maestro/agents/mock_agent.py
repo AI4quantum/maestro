@@ -57,11 +57,17 @@ class MockAgent(Agent):
             answer = eval_expression(self.instructions, prompt)
 
         # Automatic evaluation middleware
+        # For POC: provide mock context if none exists to test faithfulness evaluation
+        test_context = (
+            context
+            or "Machine learning is a subset of artificial intelligence that enables computers to learn and make decisions from data without being explicitly programmed. It uses algorithms to identify patterns in data and make predictions or classifications."
+        )
+
         await auto_evaluate_response(
             agent_name=self.agent_name,
             prompt=prompt,
             response=answer,
-            context=context,
+            context=test_context,
             step_index=step_index,
         )
 
