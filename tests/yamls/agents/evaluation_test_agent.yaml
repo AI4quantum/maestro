@@ -1,0 +1,13 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: evaluation-test-agent
+  labels:
+    app: evaluation-test
+spec:
+  model: "test-model"
+  framework: mock
+  mode: local
+  description: "Simple mock agent for testing automatic evaluation middleware"
+  instructions: |
+    "Mock agent response for evaluation testing: " + input

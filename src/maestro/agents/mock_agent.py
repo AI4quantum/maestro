@@ -5,6 +5,7 @@
 from dotenv import load_dotenv
 
 from .agent import Agent
+from .evaluation_middleware import auto_evaluate_response
 
 load_dotenv()
 
@@ -54,10 +55,20 @@ class MockAgent(Agent):
         answer = f"Mock agent: answer for {prompt}"
         if self.instructions:
             answer = eval_expression(self.instructions, prompt)
+
+        # Automatic evaluation middleware
+        await auto_evaluate_response(
+            agent_name=self.agent_name,
+            prompt=prompt,
+            response=answer,
+            context=context,
+            step_index=step_index,
+        )
+
         print(f"🤖 Response from {self.agent_name}: {answer}")
         return answer
 
-    def run_streaming(self, prompt: str) -> str:
+    async def run_streaming(self, prompt: str) -> str:
         """
         Runs the agent in streaming mode with the given prompt.
         Args:
@@ -65,5 +76,11 @@ class MockAgent(Agent):
         """
         print(f"🤖 Running {self.agent_name}...")
         answer = f"Mock agent: answer for {prompt}"
+
+        # Automatic evaluation middleware (same as run method)
+        await auto_evaluate_response(
+            agent_name=self.agent_name, prompt=prompt, response=answer
+        )
+
         print(f"🤖 Response from {self.agent_name}: {answer}")
         return answer

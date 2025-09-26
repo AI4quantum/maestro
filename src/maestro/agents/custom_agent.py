@@ -8,7 +8,6 @@ from maestro.agents.query_agent import QueryAgent
 from maestro.agents.slack_agent import SlackAgent
 from maestro.agents.scoring_agent import ScoringAgent
 from maestro.agents.prompt_agent import PromptAgent
-from maestro.agents.watsonx_poc_agent import WatsonxPocAgent
 
 # adding a custom agent
 # 1. add necessary import for the agent
@@ -23,7 +22,6 @@ custom_agent = {
     "scoring_agent": ScoringAgent,
     "prompt_agent": PromptAgent,
     "query_agent": QueryAgent,
-    "watsonx_poc_agent": WatsonxPocAgent,
 }
 
 
