@@ -88,6 +88,30 @@ uv run ruff format
 uv run ruff check --fix
 ```
 
+## Agent Evaluation
+
+Maestro includes automatic evaluation capabilities using IBM's watsonx governance platform:
+
+### Quick Start
+```bash
+# Activate evaluation environment
+source .venv-eval/bin/activate
+
+# Enable automatic evaluation
+export MAESTRO_AUTO_EVALUATION=true
+
+# Run any workflow - evaluation happens automatically
+maestro run your_agents.yaml your_workflow.yaml
+```
+
+### Features
+- **Automatic Evaluation**: No code changes required
+- **Multiple Metrics**: Answer Relevance, Faithfulness, Context Relevance, Answer Similarity
+- **Real Scores**: Actual numerical metrics (0.0-1.0 scale)
+- **Transparent Integration**: Works with any existing agent
+
+For detailed documentation, see [Watsonx Evaluation README](docs/WATSONX_EVALUATION_README.md).
+
 ## Builder Frontend and Demos
 
 The Maestro Builder (web interface) has been moved to a separate repository: [maestro-builder](https://github.com/AI4quantum/maestro-builder)
