@@ -211,6 +211,7 @@ wheels/
 .env
 .venv
 .venv-watsonx-test
+.venv-eval
 env/
 venv/
 ENV/
