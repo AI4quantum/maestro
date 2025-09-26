@@ -10,19 +10,6 @@ such as answer relevance, faithfulness, context relevance, etc.
 Usage:
     Set MAESTRO_AUTO_EVALUATION=true to enable automatic evaluation.
     Requires WATSONX_APIKEY environment variable for actual evaluations.
-
-Status:
-    ✅ Middleware integration complete and functional
-    ✅ Watsonx decorator pattern implemented correctly
-    ✅ Authentication integration working
-    ⏳ Pending: WATSONX_APIKEY for actual metric calculations
-
-TODO:
-    - [ ] Add database storage for evaluation results (Phase 2)
-    - [ ] Implement additional metrics (content safety, readability, etc.)
-    - [ ] Add configuration for metric selection
-    - [ ] Add error retry logic for API failures
-    - [ ] Add offline evaluation mode for development
 """
 
 import os
@@ -149,10 +136,6 @@ class SimpleEvaluationMiddleware:
             response_text = str(response) if not isinstance(response, str) else response
 
             print(f"🔍 Maestro Auto Evaluation: Evaluating response from {agent_name}")
-            print(f"🔍 DEBUG: Context received: {kwargs.get('context', 'None')}")
-            print(
-                f"🔍 DEBUG: Prompt length: {len(prompt)}, Response length: {len(response_text)}"
-            )
 
             # Start evaluation run
             self.evaluator.start_run()
@@ -176,10 +159,6 @@ class SimpleEvaluationMiddleware:
                 evaluation_results = {}
 
                 try:
-                    print(
-                        "🔍 DEBUG: Using correct watsonx state-based evaluation pattern..."
-                    )
-
                     # Create the state object that will be mutated by the decorated functions
                     state = EvaluationState(
                         input_text=prompt, interaction_id=eval_input["interaction_id"]
@@ -208,27 +187,16 @@ class SimpleEvaluationMiddleware:
                         }
 
                     run_answer_relevance(state, None)
-                    print("✅ Triggered answer relevance evaluation.")
                     evaluation_results["answer_relevance"] = "triggered"
 
                 except Exception as relevance_error:
                     print(f"⚠️  Answer relevance evaluation failed: {relevance_error}")
-                    print(
-                        f"🔍 DEBUG: Full error details: {type(relevance_error).__name__}: {str(relevance_error)}"
-                    )
-                    import traceback
-
-                    print("🔍 DEBUG: Full traceback:")
-                    traceback.print_exc()
                     evaluation_results["answer_relevance"] = None
 
                 # Faithfulness - use state-based evaluation
                 try:
                     # Faithfulness typically requires context, so only run if we have it
                     if "context" in eval_input and eval_input["context"]:
-                        print(
-                            "🔍 DEBUG: Using state-based evaluation for faithfulness..."
-                        )
 
                         @self.evaluator.evaluate_faithfulness
                         def run_faithfulness(state: EvaluationState, config=None):
@@ -248,7 +216,6 @@ class SimpleEvaluationMiddleware:
                             }
 
                         run_faithfulness(state, None)
-                        print("✅ Triggered faithfulness evaluation.")
                         evaluation_results["faithfulness"] = "triggered"
                     else:
                         print(
@@ -256,17 +223,11 @@ class SimpleEvaluationMiddleware:
                         )
                 except Exception as faithfulness_error:
                     print(f"⚠️  Faithfulness evaluation failed: {faithfulness_error}")
-                    print(
-                        f"🔍 DEBUG: Full error details: {type(faithfulness_error).__name__}: {str(faithfulness_error)}"
-                    )
                     evaluation_results["faithfulness"] = None
 
                 # Context Relevance - use state-based evaluation
                 try:
                     if "context" in eval_input and eval_input["context"]:
-                        print(
-                            "🔍 DEBUG: Using state-based evaluation for context relevance..."
-                        )
 
                         @self.evaluator.evaluate_context_relevance
                         def run_context_relevance(state: EvaluationState, config=None):
@@ -286,7 +247,6 @@ class SimpleEvaluationMiddleware:
                             }
 
                         run_context_relevance(state, None)
-                        print("✅ Triggered context relevance evaluation.")
                         evaluation_results["context_relevance"] = "triggered"
                     else:
                         print(
@@ -295,9 +255,6 @@ class SimpleEvaluationMiddleware:
                 except Exception as context_relevance_error:
                     print(
                         f"⚠️  Context relevance evaluation failed: {context_relevance_error}"
-                    )
-                    print(
-                        f"🔍 DEBUG: Full error details: {type(context_relevance_error).__name__}: {str(context_relevance_error)}"
                     )
                     evaluation_results["context_relevance"] = None
 
@@ -321,7 +278,6 @@ class SimpleEvaluationMiddleware:
                             }
 
                         run_answer_similarity(state, None)
-                        print("✅ Triggered answer similarity evaluation.")
                         evaluation_results["answer_similarity"] = "triggered"
                     else:
                         print(
@@ -347,18 +303,9 @@ class SimpleEvaluationMiddleware:
             online_results = getattr(
                 self.evaluator, "_AgenticEvaluator__online_metric_results", []
             )
-            print(
-                f"🔍 DEBUG: Found {len(online_results)} online metric results before end_run()"
-            )
 
             # Extract the actual metric scores
-            for i, metric_result in enumerate(online_results):
-                print(f"🔍 DEBUG: Online metric result {i}: {metric_result}")
-                print(f"🔍 DEBUG: Metric name: {metric_result.name}")
-                print(f"🔍 DEBUG: Metric value: {metric_result.value}")
-                print(f"🔍 DEBUG: Metric method: {metric_result.method}")
-                print(f"🔍 DEBUG: Metric provider: {metric_result.provider}")
-
+            for metric_result in online_results:
                 # Store the actual scores
                 if metric_result.name in [
                     "answer_relevance",
@@ -375,42 +322,13 @@ class SimpleEvaluationMiddleware:
                     evaluation_results[f"{metric_result.name}_provider"] = (
                         metric_result.provider
                     )
-                    print(f"✅ Found {metric_result.name} score: {metric_result.value}")
 
             self.evaluator.end_run()
             eval_result = self.evaluator.get_result()
 
-            # DEBUG: Let's examine the evaluator result to find the actual scores
-            print(f"🔍 DEBUG: Evaluator result type: {type(eval_result)}")
-            print(f"🔍 DEBUG: Evaluator result: {eval_result}")
-
             # Check if we have any metrics results in the evaluator result
             if hasattr(eval_result, "metrics_results") and eval_result.metrics_results:
-                print(
-                    f"🔍 DEBUG: Found {len(eval_result.metrics_results)} metrics results!"
-                )
-                for i, metric_result in enumerate(eval_result.metrics_results):
-                    print(f"🔍 DEBUG: Metric result {i}: {metric_result}")
-                    print(f"🔍 DEBUG: Metric name: {metric_result.name}")
-                    print(f"🔍 DEBUG: Metric value: {metric_result.value}")
-                    print(f"🔍 DEBUG: Metric node_name: {metric_result.node_name}")
-            else:
-                print("🔍 DEBUG: No metrics results found in evaluator result")
-
-            # Now that all decorated functions have been called, get the aggregated results
-            print("🔍 DEBUG: Getting aggregated evaluation results...")
-
-            # Check if we have any metrics results in the evaluator result
-            if hasattr(eval_result, "metrics_results") and eval_result.metrics_results:
-                print(
-                    f"🔍 DEBUG: Found {len(eval_result.metrics_results)} metrics results!"
-                )
-                for i, metric_result in enumerate(eval_result.metrics_results):
-                    print(f"🔍 DEBUG: Metric result {i}: {metric_result}")
-                    print(f"🔍 DEBUG: Metric name: {metric_result.name}")
-                    print(f"🔍 DEBUG: Metric value: {metric_result.value}")
-                    print(f"🔍 DEBUG: Metric node_name: {metric_result.node_name}")
-
+                for metric_result in eval_result.metrics_results:
                     # Store the actual scores
                     if metric_result.name in [
                         "answer_relevance",
@@ -421,84 +339,14 @@ class SimpleEvaluationMiddleware:
                         evaluation_results[f"{metric_result.name}_score"] = (
                             metric_result.value
                         )
-                        print(
-                            f"✅ Found {metric_result.name} score: {metric_result.value}"
-                        )
-            else:
-                print("🔍 DEBUG: No metrics results found in evaluator result")
-
-            # Try to get individual metric results by node name
-            try:
-                print(
-                    "🔍 DEBUG: Trying to get individual metric results by node name..."
-                )
-                for metric_name in [
-                    "answer_relevance",
-                    "faithfulness",
-                    "context_relevance",
-                ]:
-                    try:
-                        # Try different node names that might have been used
-                        for node_name in [
-                            "mock_agent_response",
-                            "mock_agent_response_faithfulness",
-                            "mock_agent_response_context_relevance",
-                        ]:
-                            try:
-                                metric_result = self.evaluator.get_metric_result(
-                                    metric_name, node_name
-                                )
-                                print(
-                                    f"🔍 DEBUG: {metric_name} result for {node_name}: {metric_result}"
-                                )
-                                if metric_result:
-                                    evaluation_results[f"{metric_name}_score"] = (
-                                        metric_result
-                                    )
-                            except Exception as node_error:
-                                print(
-                                    f"🔍 DEBUG: {metric_name} for {node_name} failed: {node_error}"
-                                )
-                                continue
-                    except Exception as metric_error:
-                        print(f"🔍 DEBUG: {metric_name} error: {metric_error}")
-            except Exception as individual_error:
-                print(
-                    f"🔍 DEBUG: Individual metric retrieval failed: {individual_error}"
-                )
 
             try:
                 df = eval_result.to_df()
-                print(f"🔍 DEBUG: DataFrame shape: {df.shape}")
-                print(f"🔍 DEBUG: DataFrame columns: {list(df.columns)}")
-                print(f"🔍 DEBUG: DataFrame head:\n{df.head()}")
                 evaluation_data = self._extract_evaluation_data(df)
             except Exception as df_error:
                 print(
                     f"📊 Maestro Auto Evaluation: DataFrame conversion issue: {df_error}"
                 )
-
-                # Try to get individual metric results
-                try:
-                    print("🔍 DEBUG: Trying to get individual metric results...")
-                    for metric_name in [
-                        "answer_relevance",
-                        "faithfulness",
-                        "context_relevance",
-                        "answer_similarity",
-                    ]:
-                        try:
-                            metric_result = self.evaluator.get_metric_result(
-                                metric_name
-                            )
-                            print(f"🔍 DEBUG: {metric_name} result: {metric_result}")
-                        except Exception as metric_error:
-                            print(f"🔍 DEBUG: {metric_name} error: {metric_error}")
-                except Exception as metric_error:
-                    print(
-                        f"🔍 DEBUG: Individual metric retrieval failed: {metric_error}"
-                    )
-
                 evaluation_data = {
                     "status": "evaluator_ready",
                     "note": "Evaluation framework initialized but no metrics calculated yet",

@@ -535,19 +535,11 @@ class OpenAIAgent(MaestroAgent):
             response = await self._run_internal(prompt)
 
         # Automatic evaluation middleware
-        print(f"🔍 DEBUG: OpenAI Agent context received: {context}")
-
-        # For POC: Add test context if none provided to enable context-based metrics
-        test_context = (
-            context
-            or "Dogs and cats are traditional pets that often have amusing interactions due to their different personalities - dogs being enthusiastic and social, cats being independent and aloof. Pet stories often involve their contrasting behaviors leading to humorous situations."
-        )
-
         await auto_evaluate_response(
             agent_name=self.agent_name,
             prompt=prompt,
             response=response,
-            context=test_context,
+            context=context,
             step_index=step_index,
         )
 
