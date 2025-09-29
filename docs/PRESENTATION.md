@@ -1,7 +1,7 @@
 ## Maestro
 
 **Repository**: [https://github.com/AI4quantum/maestro](https://github.com/AI4quantum/maestro)
-**Started**: 01/2025
+**Started**: 11/2024
 **Code**: python 81.3%
 **License**: Apache-2.0 license
 
