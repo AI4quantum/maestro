@@ -1,4 +1,4 @@
-# from typing import Any, Dict, List
+# from typing: Any, Dict, List
 from fastmcp import FastMCP
 
 import json
@@ -7,6 +7,7 @@ import sys
 import subprocess
 import threading
 import tempfile
+import argparse
 
 from maestro.workflow import Workflow, create_agents as workflow_create_agents
 from maestro.cli.fastapi_serve import (
@@ -191,5 +192,15 @@ async def deploy_workflow(
 
 
 if __name__ == "__main__":
-    # Initialize and run the server
-    mcp.run(transport="streamable-http")
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Maestro MCP Server")
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port for the FastMCP server (default: 8000)",
+    )
+    args = parser.parse_args()
+
+    # Initialize and run the server with the specified port
+    mcp.run(transport="streamable-http", port=args.port)
