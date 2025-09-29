@@ -80,6 +80,16 @@ class SimpleEvaluationMiddleware:
     def _initialize_evaluator(self) -> None:
         """Initialize the watsonx evaluator with basic metrics."""
         try:
+            # TODO(maestro-eval): Extend metrics beyond core QA set.
+            # - Candidates:
+            #   - Content Safety (toxicity/PII/harm)
+            #   - Readability/Fluency
+            #   - Retrieval Quality variants (groundedness/coverage/support)
+            # - Notes:
+            #   - Some metrics require additional inputs (e.g., context list, references,
+            #     expected_answer). Ensure the state is populated accordingly.
+            #   - Adding more metrics may increase evaluation latency.
+            #   - Make metric selection configurable via env (e.g., MAESTRO_EVAL_METRICS).
             # Use comprehensive watsonx metrics
             self.metrics_config = MetricsConfiguration(
                 metrics=[
@@ -155,23 +165,16 @@ class SimpleEvaluationMiddleware:
                     "🔄 Maestro Auto Evaluation: Running watsonx evaluation metrics..."
                 )
 
-                # Use the correct watsonx pattern: state-based evaluation
                 evaluation_results = {}
 
                 try:
-                    # Create the state object that will be mutated by the decorated functions
                     state = EvaluationState(
                         input_text=prompt, interaction_id=eval_input["interaction_id"]
                     )
 
-                    # Populate context if available
                     if "context" in eval_input and eval_input["context"]:
-                        state.context = [
-                            eval_input["context"]
-                        ]  # Context should be a list
+                        state.context = [eval_input["context"]]
 
-                    # Apply decorator and trigger evaluation
-                    # The function must update the state object as a side effect
                     @self.evaluator.evaluate_answer_relevance
                     def run_answer_relevance(state: EvaluationState, config=None):
                         """Function that mutates state object for answer relevance evaluation."""
@@ -193,19 +196,14 @@ class SimpleEvaluationMiddleware:
                     print(f"⚠️  Answer relevance evaluation failed: {relevance_error}")
                     evaluation_results["answer_relevance"] = None
 
-                # Faithfulness - use state-based evaluation
                 try:
-                    # Faithfulness typically requires context, so only run if we have it
                     if "context" in eval_input and eval_input["context"]:
 
                         @self.evaluator.evaluate_faithfulness
                         def run_faithfulness(state: EvaluationState, config=None):
                             """Function that mutates state object for faithfulness evaluation."""
                             state.generated_text = response_text
-                            state.context = (
-                                state.context
-                            )  # Re-assign to ensure it's present
-                            # Return a dictionary as expected by the watsonx library
+                            state.context = state.context
                             return {
                                 "generated_text": response_text,
                                 "input_text": state.input_text,
@@ -225,7 +223,6 @@ class SimpleEvaluationMiddleware:
                     print(f"⚠️  Faithfulness evaluation failed: {faithfulness_error}")
                     evaluation_results["faithfulness"] = None
 
-                # Context Relevance - use state-based evaluation
                 try:
                     if "context" in eval_input and eval_input["context"]:
 
@@ -233,10 +230,7 @@ class SimpleEvaluationMiddleware:
                         def run_context_relevance(state: EvaluationState, config=None):
                             """Function that mutates state object for context relevance evaluation."""
                             state.generated_text = response_text
-                            state.context = (
-                                state.context
-                            )  # Re-assign to ensure it's present
-                            # Return a dictionary as expected by the watsonx library
+                            state.context = state.context
                             return {
                                 "generated_text": response_text,
                                 "input_text": state.input_text,
@@ -258,10 +252,7 @@ class SimpleEvaluationMiddleware:
                     )
                     evaluation_results["context_relevance"] = None
 
-                # Answer Similarity - measures similarity between expected and actual answers
                 try:
-                    # Note: This metric typically requires an expected/reference answer
-                    # For now, we'll skip it unless we have a reference answer in context
                     if "expected_answer" in kwargs and kwargs["expected_answer"]:
 
                         @self.evaluator.evaluate_answer_similarity
@@ -269,7 +260,6 @@ class SimpleEvaluationMiddleware:
                             """Function that mutates state object for answer similarity evaluation."""
                             state.generated_text = response_text
                             state.expected_answer = kwargs["expected_answer"]
-                            # Return a dictionary as expected by the watsonx library
                             return {
                                 "generated_text": response_text,
                                 "input_text": state.input_text,
@@ -298,15 +288,11 @@ class SimpleEvaluationMiddleware:
                 )
                 evaluation_results = {}
 
-            # Capture results from __online_metric_results BEFORE end_run()
-            # This is where the actual metric scores are stored
             online_results = getattr(
                 self.evaluator, "_AgenticEvaluator__online_metric_results", []
             )
 
-            # Extract the actual metric scores
             for metric_result in online_results:
-                # Store the actual scores
                 if metric_result.name in [
                     "answer_relevance",
                     "faithfulness",
@@ -356,7 +342,6 @@ class SimpleEvaluationMiddleware:
             end_time = time.time()
             evaluation_time = end_time - start_time
 
-            # Create final result with actual metric scores
             final_result = {
                 "agent_name": agent_name,
                 "prompt": prompt,
@@ -382,7 +367,6 @@ class SimpleEvaluationMiddleware:
                 },
             }
 
-            # Print the evaluation structure (for POC visibility)
             self._print_evaluation_summary(final_result)
 
             return final_result
@@ -400,11 +384,8 @@ class SimpleEvaluationMiddleware:
         if df.empty:
             return {"status": "no_data", "note": "No evaluation metrics available"}
 
-        # Extract the first row as evaluation results
         row = df.iloc[0]
         metrics = {}
-
-        # Extract known metric columns
         for col in df.columns:
             if col.startswith(
                 (
@@ -441,14 +422,12 @@ class SimpleEvaluationMiddleware:
                 if "note" in metrics:
                     print(f"   📝 Note: {metrics['note']}")
 
-            # Print any actual metric values
             metric_values = metrics.get("metrics", {}) if "metrics" in metrics else {}
             if metric_values:
                 print(f"   📏 Metrics calculated: {len(metric_values)}")
                 for key, value in metric_values.items():
                     print(f"      {key}: {value}")
 
-        # Show actual watsonx scores if available
         if "watsonx_scores" in result and result["watsonx_scores"]:
             print("   🎯 Watsonx Evaluation Scores:")
             for metric_name, score in result["watsonx_scores"].items():
@@ -460,7 +439,6 @@ class SimpleEvaluationMiddleware:
                 )
                 print(f"      {metric_name}: {score:.3f} ({method} via {provider})")
         else:
-            # Show the structure that would go to database
             print("   🗄️  Database structure preview:")
             print(f"      agent_name: {result.get('agent_name')}")
             print(f"      timestamp: {result.get('timestamp')}")
@@ -469,7 +447,6 @@ class SimpleEvaluationMiddleware:
             print(f"      evaluator: {result.get('evaluator')}")
 
 
-# Global middleware instance
 _evaluation_middleware = None
 
 
