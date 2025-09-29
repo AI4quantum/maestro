@@ -3,7 +3,7 @@
 ## Introduction (1 minute)
 Good [morning/afternoon/evening], everyone. Today, I'm excited to introduce you to Maestro, an orchestration framework for AI agents that addresses a critical challenge in the AI development landscape. While Large Language Models have become increasingly powerful, building robust applications with them remains complex. Maestro simplifies this process by providing a structured way to coordinate multiple AI agents, manage workflows, and integrate external tools.
 
-Maestro is an open-source project under the Apache-2.0 license that started in January 2025, primarily written in Python. Let's dive into what makes it special.
+Maestro is an open-source project under the Apache-2.0 license that started in November 2024, primarily written in Python. Let's dive into what makes it special.
 
 ## What is Maestro (1.5 minutes)
 At its core, Maestro is designed to enable the creation, management, and execution of complex workflows involving multiple AI agents. Think of it as a conductor that coordinates different AI specialists to work together harmoniously.
@@ -20,7 +20,7 @@ This flexibility allows developers to build sophisticated AI applications withou
 ## Agents in Maestro (2 minutes)
 Agents are the building blocks of any Maestro application. The framework supports multiple agent types to fit different needs:
 
-- **BeeAI**: Our default agent framework with both local and remote options
+- **BeeAI**: For those already using the BeeAI framework
 - **CrewAI**: For those already using the CrewAI framework
 - **DSPy**: Integration with DSPy for enhanced reasoning capabilities
 - **OpenAI**: Direct integration with OpenAI's powerful models
@@ -39,7 +39,7 @@ metadata:
   labels:
     app: weather
 spec:
-  model: llama3.1:latest
+  model: gpt-oss:latest
   description: retrieve weather information
   instructions: You are a helpful agent. You have a weather tool.
   framework: openai

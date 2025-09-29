@@ -42,7 +42,7 @@ metadata:
   labels:
     app: weather
 spec:
-  model: llama3.1:latest
+  model: gpt-oss:latest
   description: retrieve weather information
   instructions: You are a helpful agent. You have a weather tool.
   framework: openai
