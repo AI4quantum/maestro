@@ -1,4 +1,3 @@
-# from typing: Any, Dict, List
 from fastmcp import FastMCP
 
 import json
