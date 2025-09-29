@@ -95,7 +95,7 @@ This workflow coordinates three specialized agents: one to gather stock informat
 ## Tools in Maestro (2 minutes)
 Tools extend the capabilities of agents by connecting them to external services and functionalities. Maestro provides several ways to integrate tools:
 
-- **MCP Tools**: Model Control Protocol tools for standardized integration
+- **MCP Tools**: Model Context Protocol tools for standardized integration
 - **Built-in Tools**: Weather, search, code execution, and more
 - **Custom Tools**: Create and integrate your own specialized tools
 
