@@ -48,7 +48,7 @@ spec:
   - weather
 ```
 
-This configuration creates a weather agent using the llama3.1 model that can access a weather tool. The declarative nature makes it easy to understand and modify.
+This configuration creates a weather agent using the gpt-oss model that can access a weather tool. The declarative nature makes it easy to understand and modify.
 
 ## Workflows in Maestro (2.5 minutes)
 Workflows are where Maestro truly shines. They allow you to define how agents interact and collaborate to accomplish complex tasks. Maestro supports sophisticated flow controls:
