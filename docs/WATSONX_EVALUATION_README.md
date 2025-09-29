@@ -4,8 +4,6 @@
 
 This document outlines the integration of IBM's watsonx governance evaluation capabilities into the Maestro multi-agent platform. The goal is to automatically evaluate agent responses for quality, safety, and reliability.
 
-## Status: Production Ready ✅
-
 We have successfully implemented **automatic evaluation middleware** that seamlessly integrates with existing Maestro agents without requiring any code changes. **The system is fully functional and returning actual metric scores!**
 
 ### ✅ What's Working
@@ -26,6 +24,20 @@ We have successfully implemented **automatic evaluation middleware** that seamle
   - **Context Relevance**: Measures how relevant the context is to the question
   - **Answer Similarity**: Measures similarity between expected and actual answers
 - **Actual Scores**: Returns real numerical scores (0.0-1.0) with evaluation methods
+
+#### 2.1. **Available Metrics (Current)**
+
+| Metric              | Needs Context? | Needs Expected Answer? | Notes |
+|---------------------|----------------|-------------------------|-------|
+| Answer Relevance    | No             | No                      | Response addresses the question |
+| Faithfulness        | Yes            | No                      | Response grounded in provided context |
+| Context Relevance   | Yes            | No                      | Context relevance to the question |
+| Answer Similarity   | No             | Yes                     | Similarity to a reference answer |
+
+Inputs:
+- Context must be a list of strings (e.g., `["doc chunk 1", "doc chunk 2"]`).
+- Expected answer is a single string.
+- If a required input is missing, that metric is skipped gracefully.
 
 #### 3. **Environment Setup**
 - **Python 3.11**: Dedicated `.venv-eval` environment for watsonx compatibility
@@ -63,7 +75,7 @@ graph LR
 ```
 
 ### ⚡ Performance
-- **Evaluation Time**: ~3-6 seconds per evaluation (LLM-based metrics)
+- **Evaluation Time**: typically ~3–6 seconds per evaluation (varies by metrics and provider)
 - **Async Compatible**: Non-blocking integration
 - **Error Resilient**: Never breaks agent execution
 - **Real Scores**: Actual numerical metrics (0.0-1.0 scale)
@@ -87,6 +99,12 @@ graph LR
 - [ ] Real-time evaluation monitoring
 - [ ] Custom evaluation rules
 - [ ] Integration with other evaluation libraries
+
+### ⚙️ **Configuration**
+- Current:
+  - `MAESTRO_AUTO_EVALUATION=true` enables evaluation globally.
+- Planned:
+  - `MAESTRO_EVAL_METRICS` to select metrics, e.g. `answer_relevance,faithfulness,context_relevance`.
 
 ## Usage Instructions
 
@@ -127,6 +145,8 @@ pip install "ibm-watsonx-gov[agentic]"
 pip install -e .
 ```
 
+Note: watsonx requires Python 3.11. Keep evaluation in `.venv-eval` while core Maestro may run on 3.12+.
+
 ### 📊 **Expected Output**
 
 When evaluation is enabled, you'll see output like:
@@ -134,14 +154,14 @@ When evaluation is enabled, you'll see output like:
 ```bash
 ✅ Maestro Auto Evaluation: Watsonx evaluator initialized
 🔍 Maestro Auto Evaluation: Evaluating response from my-agent
-📊 Maestro Auto Evaluation: Completed 3 metrics
+📊 Maestro Auto Evaluation: Completed N metrics
 📊 Maestro Auto Evaluation Summary for my-agent:
-   ⏱️  Evaluation time: 3502ms
+   ⏱️  Evaluation time: ~3–6s
    📈 Status: evaluator_ready
    🎯 Watsonx Evaluation Scores:
-      answer_relevance_score: 0.556 (token_recall via unitxt)
-      faithfulness_score: 0.409 (token_k_precision via unitxt)
-      context_relevance_score: 0.556 (token_precision via unitxt)
+      answer_relevance_score: 0.28x (token_recall via unitxt)
+      faithfulness_score: 0.40x (token_k_precision via unitxt)
+      context_relevance_score: 0.55x (token_precision via unitxt)
 ```
 
 ### Environment Variables
@@ -171,6 +191,28 @@ When evaluation is enabled, you'll see output like:
 ```
 
 **Note**: Context-based metrics (faithfulness, context_relevance) are skipped when no context is provided, which is expected behavior.
+
+### 🧩 Extending Metrics
+Additional metrics (e.g., content safety, readability, retrieval quality) can be added with minimal code:
+
+```python
+# Inside evaluation_middleware.py metrics configuration
+self.metrics_config = MetricsConfiguration(metrics=[
+    AnswerRelevanceMetric(),
+    FaithfulnessMetric(),
+    ContextRelevanceMetric(),
+    AnswerSimilarityMetric(),
+    # Add: ContentSafetyMetric(), ReadabilityMetric(), RetrievalQualityMetric(), ...
+])
+```
+
+Some metrics require more inputs (e.g., context list, references/expected answer). Adding more metrics may increase latency.
+
+### 🛠️ Troubleshooting
+- Empty or missing scores: verify `WATSONX_APIKEY` and provider access; ensure required inputs present.
+- Skipped metrics: provide `context` (list[str]) or `expected_answer` (str) as needed.
+- DataFrame conversion warnings: occur when no tabular result is available; not fatal.
+- Instrumentation warnings (e.g., fastapi/generativeai): safe to ignore unless using those providers.
 
 ## Architecture
 
