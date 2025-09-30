@@ -92,23 +92,18 @@ uv run ruff check --fix
 
 Maestro includes automatic evaluation capabilities using IBM's watsonx governance platform:
 
-### Quick Start
-```bash
-# Activate evaluation environment
-source .venv-eval/bin/activate
+- Reference: [IBM watsonx governance Agentic AI Evaluation SDK](https://dataplatform.cloud.ibm.com/docs/content/wsj/model/wxgov-agentic-ai-evaluation-sdk.html?context=wx&locale=en#examples)
+- Prerequisites: IBM Cloud account, valid `WATSONX_APIKEY`, service access to watsonx.governance (usage may incur costs), and a Python 3.11 evaluation environment (`.venv-eval`).
+- Agent model: Your choice of inference model for agents is independent from evaluation. For example, you can run a local Ollama model like `llama3.1:latest` for generation while using watsonx for evaluation.
 
-# Enable automatic evaluation
-export MAESTRO_AUTO_EVALUATION=true
-
-# Run any workflow - evaluation happens automatically
-maestro run your_agents.yaml your_workflow.yaml
-```
+For setup and usage, see the detailed guide: [Watsonx Evaluation README](docs/WATSONX_EVALUATION_README.md)
 
 ### Features
 - **Automatic Evaluation**: No code changes required
 - **Multiple Metrics**: Answer Relevance, Faithfulness, Context Relevance, Answer Similarity
 - **Real Scores**: Actual numerical metrics (0.0-1.0 scale)
 - **Transparent Integration**: Works with any existing agent
+- **Dedicated Environment**: Uses `.venv-eval` (Python 3.11) for watsonx compatibility
 
 For detailed documentation, see [Watsonx Evaluation README](docs/WATSONX_EVALUATION_README.md).
 
