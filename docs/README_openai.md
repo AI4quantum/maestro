@@ -34,8 +34,10 @@ In addition to regular maestro yaml, the following environment variables are nee
 * **Extra Headers (Optional):** Set `MAESTRO_OPENAI_EXTRA_HEADERS` to a JSON string representing a dictionary of custom HTTP headers to send with requests to the OpenAI API or compatible endpoint. These are added via the `ModelSettings`.
   * Example: `export MAESTRO_OPENAI_EXTRA_HEADERS='{"SECRET_ACCESS_KEY": "aB3dE5fG7h", "AI-Resource-Group": "ishaan-resource"}'`. **Note:** For security, the *values* of these headers will be obfuscated (shown as `*****`) when printed in the agent's startup logs, but the actual values will be sent to the API.
   * Note: Ensure the JSON string is properly quoted for your shell environment. The example shows setting `SECRET_ACCESS_KEY` to a random 10-character alphanumeric value.
-* **Use LiteLLM Backend (Optional):** Set `MAESTRO_OPENAI_USE_LITELLM=true` to use the LiteLLM library as the backend instead of the default OpenAI client. This allows connecting to a wider range of LLM providers
-  * When enabled, `spec.model` in the agent definition should be the LiteLLM model string (e.g., `anthropic/claude-3-opus-20240229`, `groq/llama3-70b-8192`). See the LiteLLM Providers Docs for supported models.
+* **Consider using the LiteLLM Backend (Optional):** 
+  * Ensure model names (`spec.model`) used conform to the format in the [OpenAI Agent SDK documentation](https://openai.github.io/openai-agents-python/models/).
+  * For more flexibility, set `MAESTRO_OPENAI_USE_LITELLM=true` to use the [LiteLLM library](https://docs.litellm.ai/docs/providers) as the backend instead of the default OpenAI client. This allows connecting to a wider range of LLM providers
+  * When enabled, `spec.model` in the agent definition should be the LiteLLM model string including provider (e.g., `anthropic/claude-3-opus-20240229`, `groq/llama3-70b-8192`). An example for an openAI-compatible endpoint such as ollama is `openai/granite3.3:8b`.
   * `OPENAI_API_KEY` will be used as the `api_key` passed to LiteLLM. Ensure this key is appropriate for the selected LiteLLM model provider.
   * `OPENAI_BASE_URL` can be used to specify a custom LiteLLM proxy endpoint or a provider-specific base URL if needed.
   * 'MAESTRO_OPENAI_EXTRA_HEADERS' will still be passed as above
