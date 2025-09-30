@@ -40,8 +40,12 @@ Inputs:
 - If a required input is missing, that metric is skipped gracefully.
 
 #### 3. **Environment Setup**
-- **Python 3.11**: Dedicated `.venv-eval` environment for watsonx compatibility
-- **Dual Environment**: Separate evaluation environment from main development
+- **Python versions**:
+  - Maestro supports Python 3.11 and 3.12+ (with 3.13/3.14 expected).
+  - The IBM `ibm-watsonx-gov` evaluation library currently requires Python 3.11, so we pin a dedicated evaluation environment to 3.11. This is a third‑party constraint; Maestro itself works on 3.11+.
+- **Virtual environments**:
+  - `.venv` (primary dev env, default): Your usual Maestro environment on Python 3.11 or 3.12+.
+  - `.venv-eval` (evaluation env): Python 3.11 only with Maestro installed plus all regular dependencies, and the watsonx evaluation library. Use this when you want evaluations to run; it can run all normal Maestro commands too. Keeping it separate avoids Python-version conflicts and makes the eval stack optional.
 - **Error Handling**: Robust error handling for missing dependencies
 - **Environment Variables**: Proper integration with `WATSONX_APIKEY` requirement
 
@@ -61,18 +65,10 @@ tests/yamls/workflows/evaluation_test_workflow.yaml # Test workflow
 3. **Watsonx evaluation decorators applied** → calculates metrics
 4. **Results logged** → ready for database storage (Phase 2)
 
-### 📊 Evaluation Flow
-
-```mermaid
-graph LR
-    A[Agent.run()] --> B[Generate Response]
-    B --> C{Auto Eval Enabled?}
-    C -->|Yes| D[Create Watsonx Decorator]
-    D --> E[Run Evaluation Metrics]
-    E --> F[Log Results]
-    F --> G[Return Response]
-    C -->|No| G
-```
+Context and references:
+- **Middleware**: The evaluation middleware lives in `src/maestro/agents/evaluation_middleware.py`. It intercepts agent prompts/responses and orchestrates a watsonx evaluation run.
+- **Decorators (watsonx)**: The watsonx.governance library uses a decorator-based API where small functions accept and mutate an `EvaluationState` (setting `generated_text`, `input_text`, `context`, etc.) and return a dict shape the library expects. See: [IBM watsonx governance Agentic AI Evaluation SDK documentation](https://dataplatform.cloud.ibm.com/docs/content/wsj/model/wxgov-agentic-ai-evaluation-sdk.html?context=wx&locale=en#examples) and [ibm-watsonx-gov on PyPI](https://ibm.github.io/ibm-watsonx-gov/api.html).
+- **Our integration**: We initialize an `AgenticEvaluator`, configure metrics, call `start_run`, execute the decorated metric functions, capture results prior to `end_run` (as `end_run` clears transient results), then format and log scores. The middleware is transparent to agents and only runs when `MAESTRO_AUTO_EVALUATION=true`.
 
 ### ⚡ Performance
 - **Evaluation Time**: typically ~3–6 seconds per evaluation (varies by metrics and provider)
@@ -134,18 +130,33 @@ graph LR
 The evaluation system uses a dedicated Python 3.11 environment:
 
 ```bash
-# Create evaluation environment (already done)
+# Create evaluation environment
 python3.11 -m venv .venv-eval
 
 # Activate evaluation environment
 source .venv-eval/bin/activate
 
-# Install dependencies (already done)
-pip install "ibm-watsonx-gov[agentic]"
-pip install -e .
+# Install Maestro (without pulling full project deps to avoid litellm conflicts)
+uv pip install -e . --no-deps
+
+# Install Watsonx evaluation library
+uv pip install "ibm-watsonx-gov[agentic]==1.2.2"
 ```
 
-Note: watsonx requires Python 3.11. Keep evaluation in `.venv-eval` while core Maestro may run on 3.12+.
+Note: We intentionally avoid installing the full project dependency set in `.venv-eval` to prevent version conflicts (e.g., litellm). This environment is purpose-built for running evaluations alongside Maestro; install additional packages here only if your specific workflow requires them (e.g., `openai`).
+
+What to run in this evaluation environment:
+- Run any Maestro commands here when you want evaluations to execute.
+- Typical flow:
+  ```bash
+  source .venv-eval/bin/activate
+  export MAESTRO_AUTO_EVALUATION=true
+  # Example: run a workflow (evaluation runs automatically)
+  maestro run tests/yamls/agents/evaluation_test_agent.yaml tests/yamls/workflows/evaluation_test_workflow.yaml
+  # Or with OpenAI agent
+  maestro run tests/yamls/agents/openai_agent.yaml tests/yamls/workflows/openai_workflow.yaml
+  ```
+- Running outside `.venv-eval` is fine for normal dev, but evaluations will be skipped unless the eval library is available (Python 3.11).
 
 ### 📊 **Expected Output**
 
@@ -222,16 +233,6 @@ The evaluation middleware follows a **decorator pattern** that wraps agent respo
 2. **Configurable Activation**: Environment variable controls enable/disable
 3. **Extensible Design**: Easy to add new metrics and evaluation providers
 4. **Error Resilient**: Never impacts core agent functionality
-
-## Conclusion
-
-The watsonx evaluation integration is **production-ready and fully functional** with:
-- ✅ Seamless integration with existing Maestro agents
-- ✅ Automatic evaluation without code changes
-- ✅ Proper watsonx library integration with Python 3.11
-- ✅ Real metric scores being returned (Answer Relevance, Faithfulness, Context Relevance)
-- ✅ Dedicated evaluation environment (`.venv-eval`) for compatibility
-- ✅ **Ready for production use** - just activate the evaluation environment!
 
 ### 🎯 **Current Capabilities**
 - **Answer Relevance**: Measures how well responses address questions (0.0-1.0 scale)
