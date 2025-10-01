@@ -28,6 +28,7 @@ Options:
   --dry-run              Mocks agents and other parts of workflow execution.
   --prompt               Reads a user prompt and executes workflow with it
   --auto-prompt          Run prompt by default if specified
+  --evaluate             Enable optional evaluation (same as MAESTRO_AUTO_EVALUATION=true)
 
   --streamlit            Deploys locally as streamlit application (default deploy)
   --node-ui              Deploys locally as Node.js UI application

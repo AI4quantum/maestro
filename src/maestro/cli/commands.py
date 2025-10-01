@@ -322,6 +322,12 @@ class RunCmd(Command):
         logger = FileLogger()
         workflow_id = logger.generate_workflow_id()
 
+        try:
+            if self.args.get("--evaluate"):
+                os.environ["MAESTRO_AUTO_EVALUATION"] = "true"
+        except Exception:
+            pass
+
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
 
         agents_file_arg = self.AGENTS_FILE()

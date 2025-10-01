@@ -92,6 +92,20 @@ uv run ruff check --fix
 
 Maestro includes automatic evaluation capabilities using IBM's watsonx governance platform:
 
+Note: This feature is optional and disabled by default. To opt in, set the environment variable `MAESTRO_AUTO_EVALUATION=true` when running workflows. If unset or set to anything else, evaluation will be skipped.
+
+```bash
+# Enable optional evaluation (opt-in)
+export MAESTRO_AUTO_EVALUATION=true
+maestro run <agents_file> <workflow_file>
+```
+
+Alternatively, you can enable evaluation via the CLI flag:
+
+```bash
+maestro run <agents_file> <workflow_file> --evaluate
+```
+
 - Reference: [IBM watsonx governance Agentic AI Evaluation SDK](https://dataplatform.cloud.ibm.com/docs/content/wsj/model/wxgov-agentic-ai-evaluation-sdk.html?context=wx&locale=en#examples)
 - Prerequisites: IBM Cloud account, valid `WATSONX_APIKEY`, service access to watsonx.governance (usage may incur costs), and a Python 3.11 evaluation environment (`.venv-eval`).
 - Agent model: Your choice of inference model for agents is independent from evaluation. For example, you can run a local Ollama model like `llama3.1:latest` for generation while using watsonx for evaluation.
