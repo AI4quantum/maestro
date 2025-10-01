@@ -210,8 +210,7 @@ wheels/
 # Virtual Environment
 .env
 .venv
-.venv-watsonx-test
-.venv-eval
+.venv-*
 env/
 venv/
 ENV/

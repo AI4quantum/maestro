@@ -54,14 +54,10 @@ Add your IBM watsonx API key to your `.env` file:
 echo "WATSONX_APIKEY=your_api_key_here" >> .env
 ```
 
-### 3. Enable Evaluation
-```bash
-export MAESTRO_AUTO_EVALUATION=true
-```
-
 ## Usage
 
 Run any workflow - evaluation happens automatically:
+
 ```bash
 # Test with mock agent
 maestro run tests/yamls/agents/evaluation_test_agent.yaml tests/yamls/workflows/evaluation_test_workflow.yaml
