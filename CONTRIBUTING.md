@@ -4,13 +4,28 @@ Thank you for your interest in contributing to Maestro! This document provides g
 
 ## Development Setup
 
-1. Clone the repository:
+1. Fork in the cloud
+- Visit https://github.com/AI4quantum/maestro
+- Click `Fork` button (top right) to establish a cloud-based fork.
+
+2. Clone the forked repository:
 ```bash
-git clone https://github.com/AI4quantum/maestro.git
+git clone https://github.com/<your-github-username>/maestro.git
 cd maestro
 ```
 
-2. Activate the virtual environment:
+3. Configure upstream repo
+```bash
+git remote add upstream https://github.com/AI4quantum/maestro.git
+
+# Never push to upstream main
+git remote set-url --push upstream no_push
+
+# Confirm that your remotes make sense:
+git remote -v
+```
+
+4. Activate the virtual environment:
 ```bash
 uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
@@ -18,12 +33,12 @@ source .venv/bin/activate  # On Unix/macOS
 .venv\Scripts\activate  # On Windows
 ```
 
-3. Install dependencies:
+5. Install dependencies:
 ```bash
 uv sync --all-extras
 ```
 
-4. (optional) Enable pre-commit
+6. (optional) Enable pre-commit
 ```bash
 uv run pre-commit install
 ```
@@ -116,7 +131,7 @@ If you are new to Maestro contributing, we recommend you do the following before
 
 Maestro uses the following tools to meet code quality standards and ensure a unified code style across the codebase:
 
-We use the following libs to check the Python code: 
+We use the following libs to check the Python code:
 - [ruff](https://docs.astral.sh/ruff/) - Code Formatter and Linter
 
 ## Issues and pull requests
@@ -185,7 +200,7 @@ Ref: #15
 uv run ruff format
 uv run ruff check --fix
 ```
-  
+
 
 7. **Run Tests:** Ensure your changes pass all tests:
 
@@ -197,7 +212,7 @@ uv run pytest tests/unit
 uv run pytest tests/integration
 ```
 
-8. **Commit:**  
+8. **Commit:**
 
      - commit: use the following command to sign-off your commit with `-s`:
 
@@ -278,4 +293,4 @@ This image contains maestro executables.  It can be used as the base image for t
 
 This image extends the maestro image to use as maestro CLI. It runs maestro command when it is started
 
-The `tools/buildimg.sh` script generates development images.  Run `uv build` before executing the script. 
+The `tools/buildimg.sh` script generates development images.  Run `uv build` before executing the script.
