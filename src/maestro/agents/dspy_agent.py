@@ -82,6 +82,7 @@ class DspyAgent(BaseAgent):
             dspy_tools = []
             if self.tool_names and len(self.tool_names):
                 for tool_name in self.tool_names:
+                    # print(f"tool: {tool_name}")
                     dspy_tools.extend(
                         await get_mcp_tools(
                             tool_name, dspy.Tool.from_mcp_tool, mcp_stack
@@ -89,13 +90,20 @@ class DspyAgent(BaseAgent):
                     )
             self.print(f"Running Dspy agent: {self.agent_name} with prompt: {prompt}\n")
             self.dspy_agent = dspy.ReAct(self.dspy_signature, dspy_tools)
+            result = {}
             try:
                 result = await self.dspy_agent.acall(user_request=prompt)
             except Exception as e:
                 print(f"Agent error: {e}")
-            self.print(f"Response from {self.agent_name}: {result.process_result}\n")
+
             await mcp_stack.aclose()
-            return result.process_result
+            if result and result.process_result:
+                self.print(
+                    f"Response from {self.agent_name}: {result.process_result}\n"
+                )
+                return result.process_result
+            print("No response from Agent")
+            return "Agent error"
         except Exception as e:
             self.print(f"Failed to execute dspy agent: {self.agent_name}: {e}\n")
             raise RuntimeError(f"Error executing Dspy agent {self.agent_name}") from e
