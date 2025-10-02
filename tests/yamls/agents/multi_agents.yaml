@@ -9,7 +9,7 @@ spec:
   model: llama3.1
   # model: granite3.1-dense:8b
   framework: beeai
-  mode: remote
+  mode: local
   description: beeai agent
   tools:
     - code_interpreter
@@ -47,7 +47,7 @@ spec:
   model: llama3.1
   # model: granite3.1-dense:8b
   framework: beeai
-  mode: remote
+  mode: local
   description: beeai agent
   tools:
     - code_interpreter

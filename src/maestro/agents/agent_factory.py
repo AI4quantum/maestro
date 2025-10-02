@@ -2,7 +2,7 @@
 from enum import StrEnum
 from typing import Callable, Union
 
-from .beeai_agent import BeeAIAgent, BeeAILocalAgent
+from .beeai_agent import BeeAILocalAgent
 from .crewai_agent import CrewAIAgent
 from .dspy_agent import DspyAgent
 from .openai_agent import OpenAIAgent
@@ -37,7 +37,6 @@ class AgentFactory:
     ) -> Callable[
         ...,
         Union[
-            BeeAIAgent,
             BeeAILocalAgent,
             CrewAIAgent,
             DspyAgent,
@@ -65,7 +64,6 @@ class AgentFactory:
         }
 
         remote_factories = {
-            AgentFramework.BEEAI: BeeAIAgent,
             AgentFramework.REMOTE: RemoteAgent,
             AgentFramework.MOCK: MockAgent,
         }
@@ -76,6 +74,9 @@ class AgentFactory:
             raise ValueError(f"Unknown framework: {framework}")
 
         if mode == "remote" or framework == AgentFramework.REMOTE:
+            if framework == AgentFramework.BEEAI:
+                # BeeAI remote mode is no longer supported, fall back to local
+                return factories[framework]
             return remote_factories[framework]
         else:
             return factories[framework]
@@ -86,7 +87,6 @@ class AgentFactory:
     ) -> Callable[
         ...,
         Union[
-            BeeAIAgent,
             BeeAILocalAgent,
             CrewAIAgent,
             DspyAgent,

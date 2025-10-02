@@ -31,7 +31,7 @@ def get_agent_class(framework: str, mode="local") -> type:
 def create_agents(agent_defs):
     for agent_def in agent_defs:
         agent_def["spec"]["framework"] = agent_def["spec"].get(
-            "framework", AgentFramework.BEEAI
+            "framework", AgentFramework.OPENAI
         )
         cls = get_agent_class(
             agent_def["spec"]["framework"], agent_def["spec"].get("mode")
