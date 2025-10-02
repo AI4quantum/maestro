@@ -41,6 +41,7 @@ def parse_yaml(file_path):
         return yaml_data
     except Exception:
         Console.error(f"Could not parse YAML file: {file_path}")
+        raise
 
 
 def read_file(file_path):
