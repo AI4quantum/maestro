@@ -38,6 +38,9 @@ In addition to regular maestro yaml, the following environment variables are nee
   * Ensure model names (`spec.model`) used conform to the format in the [OpenAI Agent SDK documentation](https://openai.github.io/openai-agents-python/models/).
   * For more flexibility, set `MAESTRO_OPENAI_USE_LITELLM=true` to use the [LiteLLM library](https://docs.litellm.ai/docs/providers) as the backend instead of the default OpenAI client. This allows connecting to a wider range of LLM providers
   * When enabled, `spec.model` in the agent definition should be the LiteLLM model string including provider (e.g., `anthropic/claude-3-opus-20240229`, `groq/llama3-70b-8192`). An example for an openAI-compatible endpoint such as ollama is `openai/granite3.3:8b`.
+  * `OPENAI_API_KEY` will be used as the `api_key` passed to LiteLLM. Ensure this key is appropriate for the selected LiteLLM model provider.
+  * `OPENAI_BASE_URL` can be used to specify a custom LiteLLM proxy endpoint or a provider-specific base URL if needed.
+  * 'MAESTRO_OPENAI_EXTRA_HEADERS' will still be passed as above
 
 ### Basic Agent Definition
 
