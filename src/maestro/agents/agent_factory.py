@@ -1,6 +1,5 @@
 # SPDX-License-Identifier: Apache-2.0
 import logging
-from beeai_framework.logger import Logger
 from enum import StrEnum
 from typing import Callable, Union
 
@@ -14,7 +13,8 @@ from .custom_agent import CustomAgent
 from .code_agent import CodeAgent
 
 # Configure logging - using DEBUG instead of trace
-logger = Logger("agent_factory", level=logging.DEBUG)
+logger = logging.getLogger("agent_factory")
+logger.setLevel(logging.DEBUG)
 
 
 class AgentFramework(StrEnum):
