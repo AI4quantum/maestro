@@ -411,6 +411,8 @@ class RunCmd(Command):
                 duration_ms=duration_ms,
             )
 
+        except KeyError as e:
+            Console.error(f"processing yaml file. key: {str(e)}")
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
