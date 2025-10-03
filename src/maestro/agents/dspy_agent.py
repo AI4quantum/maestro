@@ -102,7 +102,7 @@ class DspyAgent(BaseAgent):
                 )
                 return result.process_result
             self.print("No response from Agent")
-            return "Agent error"
+            raise Exception("Agent error: No response from Agent")
         except Exception as e:
             self.print(f"Failed to execute dspy agent: {self.agent_name}: {e}\n")
             raise RuntimeError(f"Error executing Dspy agent {self.agent_name}") from e
