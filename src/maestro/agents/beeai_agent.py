@@ -32,7 +32,6 @@ from contextlib import AsyncExitStack
 dotenv.load_dotenv()
 
 
-
 def user_customizer(config: PromptTemplateInput[Any]) -> PromptTemplateInput[Any]:
     """user_customizer"""
 

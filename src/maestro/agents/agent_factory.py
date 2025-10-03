@@ -1,4 +1,6 @@
 # SPDX-License-Identifier: Apache-2.0
+import logging
+from beeai_framework.logger import Logger
 from enum import StrEnum
 from typing import Callable, Union
 
@@ -10,6 +12,9 @@ from .remote_agent import RemoteAgent
 from .mock_agent import MockAgent
 from .custom_agent import CustomAgent
 from .code_agent import CodeAgent
+
+# Configure logging - using DEBUG instead of trace
+logger = Logger("agent_factory", level=logging.DEBUG)
 
 
 class AgentFramework(StrEnum):
@@ -76,6 +81,9 @@ class AgentFactory:
         if mode == "remote" or framework == AgentFramework.REMOTE:
             if framework == AgentFramework.BEEAI:
                 # BeeAI remote mode is no longer supported, fall back to local
+                logger.info(
+                    "BeeAI remote mode is no longer supported, falling back to local mode"
+                )
                 return factories[framework]
             return remote_factories[framework]
         else:
