@@ -42,6 +42,7 @@ dependencies = [
     "pytest-twisted>=1.14.3",
     "twisted>=25.5.0",
     "argparse>=1.4.0",
+    "pandas>=2.0.0",
 ]
 
 [dependency-groups]
