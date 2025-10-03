@@ -15,16 +15,19 @@ Usage:
 import os
 import time
 from typing import Dict, Any, Optional
+import pandas as pd
 
-# Load environment variables from .env file
 try:
     from dotenv import load_dotenv
 
     load_dotenv()
 except ImportError:
-    pass  # dotenv not available, continue without it
+    raise ImportError(
+        "Missing required dependency: python-dotenv. "
+        "Install it with: pip install python-dotenv or uv pip install python-dotenv. "
+        "This is required for loading environment variables including WATSONX_APIKEY."
+    )
 
-# Try to import watsonx evaluation - graceful failure if not available
 try:
     from ibm_watsonx_gov.evaluators.agentic_evaluator import AgenticEvaluator
     from ibm_watsonx_gov.entities.state import EvaluationState
@@ -46,7 +49,6 @@ try:
 except ImportError:
     WATSONX_AVAILABLE = False
 
-    # Define dummy classes when watsonx not available
     class EvaluationState:
         pass
 
@@ -287,7 +289,6 @@ class SimpleEvaluationMiddleware:
                     f"⚠️  Maestro Auto Evaluation: Evaluation call failed: {eval_error}"
                 )
                 evaluation_results = {}
-
             online_results = getattr(
                 self.evaluator, "_AgenticEvaluator__online_metric_results", []
             )
@@ -326,16 +327,32 @@ class SimpleEvaluationMiddleware:
                             metric_result.value
                         )
 
-            try:
-                df = eval_result.to_df()
-                evaluation_data = self._extract_evaluation_data(df)
-            except Exception as df_error:
-                print(
-                    f"📊 Maestro Auto Evaluation: DataFrame conversion issue: {df_error}"
-                )
+            if evaluation_results:
+                try:
+                    df = self._create_evaluation_dataframe(
+                        evaluation_results, eval_input["interaction_id"]
+                    )
+                    evaluation_data = self._extract_evaluation_data(df)
+                except Exception as df_error:
+                    print(
+                        f"📊 Maestro Auto Evaluation: DataFrame creation issue: {df_error}"
+                    )
+                    evaluation_data = {
+                        "status": "dataframe_creation_failed",
+                        "note": "Failed to create DataFrame from captured results",
+                        "framework": "watsonx_governance",
+                        "metrics_count": len(
+                            [
+                                k
+                                for k in evaluation_results.keys()
+                                if k.endswith("_score")
+                            ]
+                        ),
+                    }
+            else:
                 evaluation_data = {
-                    "status": "evaluator_ready",
-                    "note": "Evaluation framework initialized but no metrics calculated yet",
+                    "status": "no_metrics",
+                    "note": "No evaluation metrics were captured",
                     "framework": "watsonx_governance",
                 }
 
@@ -378,6 +395,55 @@ class SimpleEvaluationMiddleware:
                 "error": str(e),
                 "status": "evaluation_failed",
             }
+
+    def _create_evaluation_dataframe(
+        self, evaluation_results: Dict[str, Any], interaction_id: str
+    ) -> pd.DataFrame:
+        """Create a DataFrame from captured evaluation results.
+
+        This works around the watsonx library bug where to_df() fails.
+        """
+
+        df_data = []
+        for metric_name, score in evaluation_results.items():
+            if metric_name.endswith("_score"):
+                base_name = metric_name.replace("_score", "")
+                method = evaluation_results.get(f"{base_name}_method", "unknown")
+                provider = evaluation_results.get(f"{base_name}_provider", "unknown")
+
+                df_data.append(
+                    {
+                        "interaction_id": interaction_id,
+                        "metric_name": base_name,
+                        "value": score,
+                        "method": method,
+                        "provider": provider,
+                        "applies_to": "interaction",
+                        "node_name": "evaluation",
+                    }
+                )
+
+        if df_data:
+            df = pd.DataFrame(df_data)
+
+            def col_name(row):
+                if row["applies_to"] == "node":
+                    return f"{row['node_name']}.{row['metric_name']}"
+                elif row["applies_to"] == "interaction":
+                    return f"interaction.{row['metric_name']}"
+                else:
+                    return f"unknown.{row['metric_name']}"
+
+            df["idx"] = df.apply(col_name, axis=1)
+            df_wide = (
+                df.pivot_table(index="interaction_id", columns="idx", values="value")
+                .reset_index()
+                .rename_axis("", axis=1)
+            )
+
+            return df_wide
+        else:
+            return pd.DataFrame()
 
     def _extract_evaluation_data(self, df) -> Dict[str, Any]:
         """Extract evaluation data from watsonx DataFrame."""
