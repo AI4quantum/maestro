@@ -16,6 +16,7 @@ import os
 import time
 from typing import Dict, Any, Optional
 import pandas as pd
+from maestro.file_logger import EvaluationLogger
 
 try:
     from dotenv import load_dotenv
@@ -70,6 +71,7 @@ class SimpleEvaluationMiddleware:
     def __init__(self):
         self.evaluator = None
         self.metrics_config = None
+        self.eval_logger = EvaluationLogger()
 
         # Initialize evaluator if watsonx is available (we'll check enabled status at runtime)
         if WATSONX_AVAILABLE:
@@ -385,6 +387,15 @@ class SimpleEvaluationMiddleware:
             }
 
             self._print_evaluation_summary(final_result)
+
+            try:
+                if "run_id" not in final_result:
+                    final_result["run_id"] = f"{agent_name}_{final_result['timestamp']}"
+                self.eval_logger.append(final_result)
+            except Exception as log_err:
+                print(
+                    f"⚠️  Maestro Auto Evaluation: Failed to persist evaluation run: {log_err}"
+                )
 
             return final_result
 

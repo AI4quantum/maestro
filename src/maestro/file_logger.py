@@ -84,3 +84,42 @@ class FileLogger:
             "duration_ms": duration_ms,
         }
         self._write_json_line(log_path, data)
+
+
+class EvaluationLogger:
+    """Append-only JSONL logger for evaluation runs.
+
+    Writes one JSON object per line to a dated file in the evaluation logs directory.
+    The base directory can be overridden with the MAESTRO_EVAL_LOG_DIR environment variable.
+    """
+
+    def __init__(self, log_dir: str | None = None) -> None:
+        base_dir = (
+            Path(os.getenv("MAESTRO_EVAL_LOG_DIR"))
+            if os.getenv("MAESTRO_EVAL_LOG_DIR")
+            else None
+        )
+        if log_dir is not None:
+            base_dir = Path(log_dir)
+        if base_dir is None:
+            base_dir = DEFAULT_LOG_DIR
+        self.log_dir = Path(base_dir)
+        self.log_dir.mkdir(parents=True, exist_ok=True)
+
+    def _log_path_for_today(self) -> Path:
+        today = datetime.now(UTC).strftime("%Y%m%d")
+        return self.log_dir / f"maestro_evals_{today}.jsonl"
+
+    def _write_json_line(self, log_path: Path, data: dict) -> None:
+        with open(log_path, "a", encoding="utf-8") as f:
+            f.write(json.dumps(data) + "\n")
+
+    def append(self, run: dict) -> None:
+        """Append a single evaluation run as one JSON line.
+
+        Ensures minimal required fields exist and adds a timestamp if missing.
+        """
+        enriched = dict(run)
+        if "timestamp" not in enriched:
+            enriched["timestamp"] = datetime.now(UTC).isoformat()
+        self._write_json_line(self._log_path_for_today(), enriched)
