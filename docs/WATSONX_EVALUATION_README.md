@@ -114,3 +114,46 @@ The pinned versions satisfy both libraries' requirements without forcing incompa
 ## Reference
 
 - [IBM watsonx governance Agentic AI Evaluation SDK](https://dataplatform.cloud.ibm.com/docs/content/wsj/model/wxgov-agentic-ai-evaluation-sdk.html?context=wx&locale=en#examples)
+
+## Finding Evaluation Metric Logs (POC Storage)
+
+When auto-evaluation is enabled, Maestro writes one JSON object per line for each evaluation run.
+
+- Default location: `~/.maestro/logs/maestro_evals_YYYYMMDD.jsonl`
+- Override directory with: `MAESTRO_EVAL_LOG_DIR=/custom/path`
+
+Quick checks:
+
+```bash
+# Tail latest log file for today
+tail -n 1 ~/.maestro/logs/maestro_evals_$(date +%Y%m%d).jsonl
+
+# Pretty-print last record (if jq installed)
+tail -n 1 ~/.maestro/logs/maestro_evals_$(date +%Y%m%d).jsonl | jq .
+```
+
+Example record (fields may vary by metrics available):
+
+```json
+{
+  "run_id": "my-agent_1759687157",
+  "agent_name": "my-agent",
+  "prompt": "Say a funny story about dogs and cats.",
+  "response": "...",
+  "evaluation_time_ms": 2628,
+  "timestamp": 1759687157,
+  "evaluator": "watsonx_governance",
+  "metrics": {
+    "status": "success",
+    "dataframe_shape": [1, 2],
+    "dataframe_columns": ["interaction_id", "interaction.answer_relevance"]
+  },
+  "watsonx_scores": { "answer_relevance_score": 0.143 },
+  "watsonx_methods": { "answer_relevance_method": "token_recall" },
+  "watsonx_providers": { "answer_relevance_provider": "unitxt" }
+}
+```
+
+Notes:
+- Records are append-only JSONL for easy grepping and later export to CSV/DB.
+- Metric keys are dynamic; new metrics will appear as new keys in `watsonx_scores`.
