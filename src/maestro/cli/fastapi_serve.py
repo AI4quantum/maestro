@@ -322,6 +322,18 @@ class FastAPIWorkflowServer:
                 timestamp=datetime.utcnow().isoformat() + "Z",
             )
 
+        @self.app.get("/diagram")
+        async def diagram():
+            """Return Mermaid diagram for the current workflow."""
+            try:
+                if not self.workflow:
+                    raise HTTPException(status_code=500, detail="No workflow loaded")
+                mermaid_str = self.workflow.to_mermaid("sequenceDiagram")
+                return {"diagram": mermaid_str, "workflow_name": self.workflow_name}
+            except Exception as e:
+                Console.error(f"Error in diagram endpoint: {str(e)}")
+                raise HTTPException(status_code=500, detail=str(e))
+
         @self.app.post("/chat/stream")
         async def chat_stream(request: WorkflowChatRequest):
             """Chat with the workflow using streaming."""

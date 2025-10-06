@@ -1,0 +1,20 @@
+apiVersion: maestro/v1
+kind: Workflow
+metadata:
+  name: evaluation-test-workflow
+  labels:
+    app: evaluation-test
+spec:
+  template:
+    metadata:
+      name: evaluation-middleware-test
+      labels:
+        app: evaluation-test
+        use-case: test
+    agents:
+      - evaluation-test-agent
+    prompt: "What is machine learning and how does it work?"
+    context: "Machine learning is a subset of artificial intelligence that enables computers to learn and make decisions from data without being explicitly programmed. It uses algorithms to identify patterns in data and make predictions or classifications."
+    steps:
+      - name: test-evaluation
+        agent: evaluation-test-agent

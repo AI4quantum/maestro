@@ -1,0 +1,13 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: evaluation-test-agent
+  labels:
+    app: evaluation-test
+spec:
+  model: "test-model"
+  framework: mock
+  mode: local
+  description: "Simple mock agent for testing automatic evaluation middleware"
+  instructions: |
+    input = "Machine learning is a branch of artificial intelligence that enables computers to learn patterns from data without explicit programming. It works by using algorithms to analyze large datasets, identify patterns, and make predictions or decisions. The key components include training data, algorithms like neural networks or decision trees, and model evaluation. Applications range from image recognition to natural language processing, making it a fundamental technology in modern AI systems."

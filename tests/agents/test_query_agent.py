@@ -63,7 +63,7 @@ class MockClient:
     async def call_tool(self, tool, params):
         return CallToolResult(
             content=[TextContent(type="text", text=json.dumps(db_data))],
-            data=db_data,
+            data=json.dumps(db_data),
             structured_content=None,
         )
 

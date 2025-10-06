@@ -1,8 +1,9 @@
 # SPDX-License-Identifier: Apache-2.0
+import logging
 from enum import StrEnum
 from typing import Callable, Union
 
-from .beeai_agent import BeeAIAgent, BeeAILocalAgent
+from .beeai_agent import BeeAILocalAgent
 from .crewai_agent import CrewAIAgent
 from .dspy_agent import DspyAgent
 from .openai_agent import OpenAIAgent
@@ -10,6 +11,10 @@ from .remote_agent import RemoteAgent
 from .mock_agent import MockAgent
 from .custom_agent import CustomAgent
 from .code_agent import CodeAgent
+
+# Configure logging - using DEBUG instead of trace
+logger = logging.getLogger("agent_factory")
+logger.setLevel(logging.DEBUG)
 
 
 class AgentFramework(StrEnum):
@@ -37,7 +42,6 @@ class AgentFactory:
     ) -> Callable[
         ...,
         Union[
-            BeeAIAgent,
             BeeAILocalAgent,
             CrewAIAgent,
             DspyAgent,
@@ -65,7 +69,6 @@ class AgentFactory:
         }
 
         remote_factories = {
-            AgentFramework.BEEAI: BeeAIAgent,
             AgentFramework.REMOTE: RemoteAgent,
             AgentFramework.MOCK: MockAgent,
         }
@@ -76,6 +79,12 @@ class AgentFactory:
             raise ValueError(f"Unknown framework: {framework}")
 
         if mode == "remote" or framework == AgentFramework.REMOTE:
+            if framework == AgentFramework.BEEAI:
+                # BeeAI remote mode is no longer supported, fall back to local
+                logger.info(
+                    "BeeAI remote mode is no longer supported, falling back to local mode"
+                )
+                return factories[framework]
             return remote_factories[framework]
         else:
             return factories[framework]
@@ -86,7 +95,6 @@ class AgentFactory:
     ) -> Callable[
         ...,
         Union[
-            BeeAIAgent,
             BeeAILocalAgent,
             CrewAIAgent,
             DspyAgent,

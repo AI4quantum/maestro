@@ -7,7 +7,7 @@ authors = [
 ]
 license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.11,<3.13"
+requires-python = ">=3.11,<3.14"
 dependencies = [
     "python-dotenv>=1.0.1",
     "openai>=1.76.2,<1.99",
@@ -35,6 +35,14 @@ dependencies = [
     "fastmcp>=1.0",
     "jinja2>=3.1.6",
     "crewai>=0.134.0",
+    "anyio>=4.10.0",
+    "pytest-asyncio>=1.2.0",
+    "pytest-tornasync>=0.6.0.post2",
+    "pytest-trio>=0.8.0",
+    "pytest-twisted>=1.14.3",
+    "twisted>=25.5.0",
+    "argparse>=1.4.0",
+    "pandas>=2.0.0",
 ]
 
 [dependency-groups]

@@ -28,8 +28,10 @@ Options:
   --dry-run              Mocks agents and other parts of workflow execution.
   --prompt               Reads a user prompt and executes workflow with it
   --auto-prompt          Run prompt by default if specified
+  --evaluate             Enable optional evaluation (same as MAESTRO_AUTO_EVALUATION=true)
 
   --streamlit            Deploys locally as streamlit application (default deploy)
+  --node-ui              Deploys locally as Node.js UI application
 
   --url                  The deployment URL, default: 127.0.0.1:5000
   --k8s                  Deploys to Kubernetes
@@ -44,6 +46,7 @@ Options:
   --host HOST            Host to bind to (default: 127.0.0.1)
   --agent-name NAME      Specific agent name to serve (if multiple in file)
   --streaming            Enable streaming responses
+  --ui-port PORT         Port for UI server (default: 5173)
 
   -h --help              Show this screen.
   -v --version           Show version.

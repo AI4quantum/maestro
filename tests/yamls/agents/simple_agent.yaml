@@ -7,7 +7,7 @@ metadata:
 spec:
   model: meta-llama/llama-3-1-70b-instruct
   framework: beeai
-  mode: remote
+  mode: local
   description: this is a test
   tools:
     - code_interpreter
@@ -25,7 +25,7 @@ metadata:
 spec:
   model: meta-llama/llama-3-1-70b-instruct
   framework: beeai
-  mode: remote
+  mode: local
   description: this is a test
   tools:
     - code_interpreter
@@ -43,7 +43,7 @@ metadata:
 spec:
   model: meta-llama/llama-3-1-70b-instruct
   framework: beeai
-  mode: remote
+  mode: local
   description: this is a test
   tools:
     - code_interpreter
@@ -61,7 +61,7 @@ metadata:
 spec:
   model: meta-llama/llama-3-1-70b-instruct
   framework: beeai
-  mode: remote
+  mode: local
   description: this is a test
   tools:
     - code_interpreter
@@ -79,7 +79,7 @@ metadata:
 spec:
   model: meta-llama/llama-3-1-70b-instruct
   framework: beeai
-  mode: remote
+  mode: local
   description: this is a test
   tools:
     - code_interpreter

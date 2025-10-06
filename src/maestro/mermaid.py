@@ -21,12 +21,22 @@ class Mermaid:
             raise RuntimeError(f"Invalid Mermaid kind: {self.kind}")
 
     def __fix_agent_name(self, name):
-        return name.replace("-", "_")
+        if name is None:
+            return None
+        elif hasattr(name, "agent_name"):
+            agent_name = name.agent_name
+        elif isinstance(name, str):
+            agent_name = name
+        else:
+            agent_name = str(name)
+
+        return agent_name.replace("-", "_")
 
     def __agent_for_step(self, step_name):
         for step in self.workflow["spec"]["template"]["steps"]:
             if step["name"] == step_name:
-                return step.get("agent")
+                agent = step.get("agent")
+                return self.__fix_agent_name(agent) if agent else None
         return None
 
     # returns a markdown of the workflow as a mermaid sequence diagram
@@ -122,7 +132,7 @@ class Mermaid:
                 sb += f"  cron->>{self.__agent_for_step(step_name)}: {step_name}\n"
         else:
             agent = event.get("agent")
-            sb += f"  cron->>{agent}: {name}\n"
+            sb += f"  cron->>{self.__fix_agent_name(agent)}: {name}\n"
         sb += "else\n"
         sb += f"  cron->>exit: {exit}\n"
         sb += "end\n"
@@ -187,13 +197,13 @@ class Mermaid:
                 i += 1
                 continue
 
-            aL = step.get("agent")
+            aL = self.__fix_agent_name(step.get("agent"))
             # find next real step
             aR = None
             for nxt in steps[i + 1 :]:
                 if any(k in nxt for k in ("context", "outputs")):
                     continue
-                aR = nxt.get("agent")
+                aR = self.__fix_agent_name(nxt.get("agent"))
                 break
 
             if aR:

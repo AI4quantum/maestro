@@ -35,6 +35,8 @@ from maestro.agents.utils import TokenUsageExtractor
 
 from dotenv import load_dotenv
 
+from maestro.agents.evaluation_middleware import auto_evaluate_response
+
 load_dotenv()
 
 SUPPORTED_TOOL_NAME: Final[str] = "web_search"
@@ -518,18 +520,30 @@ class OpenAIAgent(MaestroAgent):
         """
         streaming_override = os.getenv("MAESTRO_OPENAI_STREAMING", "auto").lower()
 
+        # Execute the agent
         if streaming_override == "true":
             self.print(
                 f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=true, overriding run() to use streaming."
             )
-            return await self._run_streaming_internal(prompt)
+            response = await self._run_streaming_internal(prompt)
         elif streaming_override == "false":
             self.print(
                 f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=false, forcing non-streaming."
             )
-            return await self._run_internal(prompt)
+            response = await self._run_internal(prompt)
         else:  # auto or unset
-            return await self._run_internal(prompt)
+            response = await self._run_internal(prompt)
+
+        # Automatic evaluation middleware
+        await auto_evaluate_response(
+            agent_name=self.agent_name,
+            prompt=prompt,
+            response=response,
+            context=context,
+            step_index=step_index,
+        )
+
+        return response
 
     async def run_streaming(self, prompt: str, context=None, step_index=None) -> str:
         """
@@ -543,15 +557,27 @@ class OpenAIAgent(MaestroAgent):
         """
         streaming_override = os.getenv("MAESTRO_OPENAI_STREAMING", "auto").lower()
 
+        # Execute the agent
         if streaming_override == "true":
             self.print(
                 f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=true, forcing streaming."
             )
-            return await self._run_streaming_internal(prompt)
+            response = await self._run_streaming_internal(prompt)
         elif streaming_override == "false":
             self.print(
                 f"INFO [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_STREAMING=false, overriding run_streaming() to use non-streaming."
             )
-            return await self._run_internal(prompt)
+            response = await self._run_internal(prompt)
         else:  # auto or unset
-            return await self._run_streaming_internal(prompt)
+            response = await self._run_streaming_internal(prompt)
+
+        # Automatic evaluation middleware
+        await auto_evaluate_response(
+            agent_name=self.agent_name,
+            prompt=prompt,
+            response=response,
+            context=context,
+            step_index=step_index,
+        )
+
+        return response

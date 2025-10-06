@@ -5,7 +5,7 @@ metadata:
   labels:
     app: my-agent
 spec:
-  model: granite3.3:8b
+  model: llama3.1:latest
   description: my-agent
   instructions: You are a helpful agent. Respond to the users question, making use of any required tools
   framework: openai

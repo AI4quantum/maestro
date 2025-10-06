@@ -18,6 +18,7 @@ import psutil
 
 from jsonschema.exceptions import ValidationError, SchemaError
 from importlib.resources import files
+from dotenv import load_dotenv
 
 from maestro.deploy import Deploy
 from maestro.workflow import Workflow, create_agents
@@ -27,6 +28,8 @@ from maestro.mcptool import create_mcptools
 from datetime import datetime, UTC
 from maestro.cli.fastapi_serve import serve_agent, serve_workflow
 from maestro.cli.containered_agent import create_containered_agent
+
+load_dotenv()
 
 
 # Root CLI class
@@ -319,6 +322,12 @@ class RunCmd(Command):
         logger = FileLogger()
         workflow_id = logger.generate_workflow_id()
 
+        try:
+            if self.args.get("--evaluate"):
+                os.environ["MAESTRO_AUTO_EVALUATION"] = "true"
+        except Exception:
+            pass
+
         workflow_yaml = parse_yaml(self.WORKFLOW_FILE())
 
         agents_file_arg = self.AGENTS_FILE()
@@ -402,6 +411,8 @@ class RunCmd(Command):
                 duration_ms=duration_ms,
             )
 
+        except KeyError as e:
+            Console.error(f"processing yaml file. key: {str(e)}")
         except Exception as e:
             self._check_verbose()
             Console.error(f"Unable to run workflow: {str(e)}")
@@ -453,6 +464,32 @@ class DeployCmd(Command):
             raise RuntimeError(f"{str(e)}") from e
         return 0
 
+    def __deploy_agents_workflow_node(self):
+        try:
+            node_deploy_script = f"{os.path.dirname(__file__)}/node_deploy.py"
+            env = os.environ.copy()
+            api_port = self.port()
+            ui_port = self.ui_port()
+            api_host = self.args.get("--host") or "localhost"
+            env.setdefault("CORS_ALLOW_ORIGINS", f"http://{api_host}:{ui_port}")
+            env["MAESTRO_UI_PORT"] = str(ui_port)  # Keep for UI server
+            cmd_args = [
+                "uv",
+                "run",
+                "python",
+                node_deploy_script,
+                self.AGENTS_FILE(),
+                self.WORKFLOW_FILE(),
+                api_host,
+                str(api_port),
+                str(ui_port),
+            ]
+            self.process = subprocess.Popen(cmd_args, env=env)
+        except Exception as e:
+            self._check_verbose()
+            raise RuntimeError(f"{str(e)}") from e
+        return 0
+
     def __deploy_agents_workflow(self, agents_yaml, workflow_yaml, env):
         try:
             if self.docker():
@@ -466,9 +503,21 @@ class DeployCmd(Command):
                 if not self.silent():
                     Console.ok("Workflow deployed: http://<kubernetes address>:30051")
             else:
-                self.__deploy_agents_workflow_streamlit()
-                if not self.silent():
-                    Console.ok("Workflow deployed: http://localhost:8501/?embed=true")
+                if self.node_ui():
+                    self.__deploy_agents_workflow_node()
+                    if not self.silent():
+                        api_port = self.port()
+                        ui_port = self.ui_port()
+                        api_host = self.args.get("--host") or "localhost"
+                        Console.ok(
+                            f"Workflow deployed - API: http://{api_host}:{api_port}, UI: http://localhost:{ui_port}"
+                        )
+                else:
+                    self.__deploy_agents_workflow_streamlit()
+                    if not self.silent():
+                        Console.ok(
+                            "Workflow deployed: http://localhost:8501/?embed=true"
+                        )
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"Unable to deploy workflow: {str(e)}") from e
@@ -490,6 +539,27 @@ class DeployCmd(Command):
 
     def streamlit(self):
         return self.args["--streamlit"]
+
+    def node_ui(self):
+        return self.args["--node-ui"]
+
+    def port(self):
+        port_str = self.args.get("--port")
+        if port_str is None:
+            return 8000
+        try:
+            return int(port_str)
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid port number: {port_str}")
+
+    def ui_port(self):
+        port_str = self.args.get("--ui-port")
+        if port_str is None:
+            return 5173
+        try:
+            return int(port_str)
+        except (ValueError, TypeError):
+            raise ValueError(f"Invalid UI port number: {port_str}")
 
     def AGENTS_FILE(self):
         return self.args["AGENTS_FILE"]
@@ -660,9 +730,108 @@ class CleanCmd(Command):
                     psutil.ZombieProcess,
                 ):
                     pass
+            maestro_port = os.environ.get("MAESTRO_PORT", "8000")
+            maestro_ui_port = os.environ.get("MAESTRO_UI_PORT", "5173")
+            self.__kill_port(maestro_port)
+            self.__kill_port(maestro_ui_port)
+            self.__kill_vite_npm_processes()
+            self.__stop_docker_containers()
+            self.__kill_ui_processes_by_name()
+
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"{str(e)}") from e
+
+    def __kill_port(self, port):
+        """Kill processes on specific port using lsof."""
+        try:
+            result = subprocess.run(
+                ["lsof", "-t", "-i", f":{port}"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                pids = result.stdout.strip().split("\n")
+                for pid in pids:
+                    if pid:
+                        try:
+                            os.kill(int(pid), signal.SIGTERM)
+                        except (ProcessLookupError, ValueError):
+                            pass
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    def __kill_vite_npm_processes(self):
+        """Kill vite/npm dev processes using ps aux grep."""
+        try:
+            result = subprocess.run(
+                ["ps", "aux"], capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                lines = result.stdout.split("\n")
+                for line in lines:
+                    if (
+                        any(term in line.lower() for term in ["vite", "npm.*dev"])
+                        and "grep" not in line
+                    ):
+                        parts = line.split()
+                        if len(parts) > 1:
+                            try:
+                                pid = int(parts[1])
+                                os.kill(pid, signal.SIGTERM)
+                            except (ValueError, ProcessLookupError):
+                                pass
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    def __stop_docker_containers(self):
+        """Stop Docker UI containers."""
+        try:
+            result = subprocess.run(
+                ["docker", "ps", "-q", "--filter", "ancestor=maestro-ui"],
+                capture_output=True,
+                text=True,
+                timeout=10,
+            )
+            if result.returncode == 0 and result.stdout.strip():
+                container_ids = result.stdout.strip().split("\n")
+                for container_id in container_ids:
+                    if container_id:
+                        subprocess.run(
+                            ["docker", "stop", container_id],
+                            capture_output=True,
+                            timeout=30,
+                        )
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
+
+    def __kill_ui_processes_by_name(self):
+        """Kill UI processes by name dynamically without hardcoded ports."""
+        try:
+            result = subprocess.run(
+                ["ps", "aux"], capture_output=True, text=True, timeout=10
+            )
+            if result.returncode == 0:
+                lines = result.stdout.split("\n")
+                for line in lines:
+                    if "grep" in line or "USER" in line:
+                        continue
+
+                    parts = line.split()
+                    if len(parts) > 10:
+                        pid = parts[1]
+                        command_line = " ".join(parts[10:])
+                        if any(
+                            ui_proc in command_line.lower()
+                            for ui_proc in ["node", "vite", "nginx"]
+                        ):
+                            try:
+                                os.kill(int(pid), signal.SIGTERM)
+                            except (ValueError, ProcessLookupError):
+                                pass
+        except (subprocess.TimeoutExpired, FileNotFoundError):
+            pass
 
     # public
 

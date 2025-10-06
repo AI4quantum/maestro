@@ -91,6 +91,21 @@ jobs:
             exit 1
         fi
 
+    - name: Delete container agent
+      run: |
+        # Delete container agent deployment and services
+        kubectl delete deployment containeredagnet1
+        kubectl delete svc containeredagnet1
+
+    - name: Setup maestro mcp server in DRY_RUN mode for test
+      run: |
+        DRY_RUN=1; python src/maestro/maestro_mcp/server.py &
+        sleep 3
+
+    - name: Test maestro mcp server functions in DRY_RUN mode
+      run: |
+        uv run pytest tests/test_maestro_mcp.py
+
     - uses: chainguard-dev/actions/kind-diag@main
       # Only upload logs on failure.
       if: ${{ failure() }}

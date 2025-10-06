@@ -1,4 +1,3 @@
-# from typing import Any, Dict, List
 from fastmcp import FastMCP
 
 import json
@@ -7,6 +6,7 @@ import sys
 import subprocess
 import threading
 import tempfile
+import argparse
 
 from maestro.workflow import Workflow, create_agents as workflow_create_agents
 from maestro.cli.fastapi_serve import (
@@ -15,9 +15,10 @@ from maestro.cli.fastapi_serve import (
 )
 from maestro.cli.containered_agent import create_deployment_service
 from maestro.deploy import Deploy
+from maestro.mcptool import create_mcptools
 
 # Initialize FastMCP server
-mcp = FastMCP("Maestro", stateless_http=True)
+mcp = FastMCP("Maestro")
 
 
 @mcp.tool()
@@ -51,6 +52,19 @@ async def create_agents(agents: list[str]):
     for agent in agents:
         agent_defs.append(json.loads(agent))
     workflow_create_agents(agent_defs)
+
+
+@mcp.tool()
+async def create_tools(tools: list[str]):
+    """Create tools
+
+    Args:
+        tools: list of tool definitions
+    """
+    tool_defs = []
+    for tool in tools:
+        tool_defs.append(json.loads(tool))
+    create_mcptools(tool_defs)
 
 
 def serve_agent_thread(agent, agent_name, host, port):
@@ -87,7 +101,9 @@ def serve_workflow_thread(agents, workflow, host, port):
 
 
 @mcp.tool()
-async def serve_workflow(agents: str, workflow: str, host: str, port: int = 8001):
+async def serve_workflow(
+    agents: str, workflow: str, host: str = "127.0.0.1", port: int = 8001
+):
     """Serve workflow
 
     Args:
@@ -160,9 +176,13 @@ async def deploy_workflow(
     if target == "docker":
         deploy = Deploy(agents_yaml, workflow_yaml, env)
         deploy.deploy_to_docker()
+        os.remove(agents_yaml)
+        os.remove(workflow_yaml)
     elif target == "kubernetes":
         deploy = Deploy(agents_yaml, workflow_yaml, env)
         deploy.deploy_to_kubernetes()
+        os.remove(agents_yaml)
+        os.remove(workflow_yaml)
     else:
         try:
             sys.argv = [
@@ -181,11 +201,19 @@ async def deploy_workflow(
             subprocess.Popen(sys.argv)
         except Exception as e:
             raise RuntimeError(f"{str(e)}") from e
-    os.remove(agents_yaml)
-    os.remove(workflow_yaml)
     return 0
 
 
 if __name__ == "__main__":
-    # Initialize and run the server
-    mcp.run(transport="streamable-http")
+    # Parse command-line arguments
+    parser = argparse.ArgumentParser(description="Maestro MCP Server")
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=8000,
+        help="Port for the FastMCP server (default: 8000)",
+    )
+    args = parser.parse_args()
+
+    # Initialize and run the server with the specified port
+    mcp.run(transport="streamable-http", port=args.port)

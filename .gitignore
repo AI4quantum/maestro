@@ -210,6 +210,7 @@ wheels/
 # Virtual Environment
 .env
 .venv
+.venv-*
 env/
 venv/
 ENV/
@@ -273,3 +274,39 @@ MARKDOWN_ACCURACY_REPORT.md
 # Maestro PID files
 .maestro-builder.pid
 api/.maestro-builder.pid
+logs/*.pid
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/
+.yarn-integrity
+.pnp.*
+
+# Build outputs
+dist/
+build/
+out/
+
+# Next.js
+.next/
+.nuxt/
+
+# Vuepress
+.vuepress/dist
+
+# Parcel
+.cache/
+.parcel-cache/
+
+# TypeScript
+*.tsbuildinfo
+
+# ESLint
+.eslintcache
+
+# GenAI project context
+project_guidelines.md

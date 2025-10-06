@@ -7,7 +7,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: "Create the necessary agents, outputting an agent.yaml file that is executable by Maestro"
   instructions: |
       """
@@ -21,7 +21,7 @@ spec:
       name: A unique identifier.
       model: The model identifier (e.g., "llama3.1:latest").
       framework: beeai
-      mode: remote
+      mode: local
       instructions: A description of the role or context of the agent to be used as context for the agent (no code).
       tools: A list of required tools. If the input specifies a tool (e.g., OpenMeteo, DuckDuckGo), its name must be included.
       NOTE: DO NOT INCLUDE ANY CODE!
@@ -40,7 +40,7 @@ spec:
       spec:
         model: "llama3.1:latest"
         framework: beeai
-        mode: remote
+        mode: local
         description: Retrieves weather data for a given location using OpenMeteo.
         tools:
           - code_interpreter
@@ -87,7 +87,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: "Formats a structured prompt by replacing placeholders with user-defined values."
   instructions: |
     You are a prompt formatter agent. Your sole task is to take structured user input and replace placeholders in the template exactly as provided. Do not add any extra commentary or modify any agent details.
@@ -133,7 +133,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: "Plan agent descriptions based on natural language input."
   instructions: |
     You are a structured prompt generator. Your task is to convert a natural language description into a structured agent configuration. Your response must always follow the given format below and nothing else:
@@ -182,7 +182,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: "Generates a structured workflow based on available agents"
   instructions: |
     You are an AI workflow definition generator that produces workflow files in YAML format following the workflow.schema.json specification. Your task is to generate a complete, valid workflow based on the provided requirements and agent definitions
@@ -266,7 +266,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: "Formats a structured prompt by replacing placeholders with user-defined values."
   instructions: |
     You are a **workflow prompt formatter agent**. Your job is to format a structured workflow as given below.
@@ -333,7 +333,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: "adds file tags for parsing"
   instructions: |
     You are a YAML formatting assistant. The given input will be a valid yaml file that is a bit hard to read. Your task is to output it properly inside a markdown code block to make it easier for the human eye to read. Do not execute or run any part of the YAML; simply reformat and present it exactly as plain text. Do not change any of the value/text. In the final yaml file, try not to have extra spaces between each line. Do not output anything other than the final yaml file, and directly print it here with a code block.
@@ -350,7 +350,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: "takes a YAML file and formats it to be more readable in a code block" 
   instructions: |
     When given an input query, you must output the exact input with two additional wrapper tags. Do not modify, rewrap, or remove any of the original newlines, bullet points, or spacing. Simply add the tag <file start> at the very beginning, and add the tag </file> at the very end, each on its own separate line.

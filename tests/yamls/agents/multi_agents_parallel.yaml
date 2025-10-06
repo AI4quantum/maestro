@@ -7,7 +7,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: beeai agent
   tools:
     - code_interpreter
@@ -46,7 +46,7 @@ metadata:
 spec:
   model: llama3.1
   framework: beeai
-  mode: remote
+  mode: local
   description: beeai agent
   tools:
     - code_interpreter

@@ -42,7 +42,7 @@
         },
         "framework": {
           "type": "string",
-            "description": "The agent framework type. beeai, crewai, remote or mock"
+            "description": "The agent framework type. beeai, crewai, openai, remote or mock"
         },
         "mode": {
           "type": "string",
