@@ -84,7 +84,7 @@ class CodeAgent(Agent):
         dependencies = self.agent.get("metadata", {}).get("dependencies")
         self.print(dependencies)
         if not dependencies or dependencies.strip() == "":
-            self.print("No dependenies found")
+            self.print("No dependencies found")
             return
 
         self.print(f"Installing dependencies for {self.agent_name}...")
