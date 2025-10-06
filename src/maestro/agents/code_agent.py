@@ -71,6 +71,7 @@ class CodeAgent(Agent):
                 self.print("Virtual environment removed successfully.")
                 self.venv_path = None
             except Exception as e:
+                self.venv_path = None
                 self.print(
                     f"Warning: Failed to remove virtual environment {self.venv_path}: {str(e)}"
                 )
@@ -212,9 +213,14 @@ print(json.dumps(output))
             )
 
             # Parse the output from stdout
-            output_data = json.loads(process.stdout.strip())
-            local = {"output": output_data}
-            answer = str(local["output"])
+            try:
+                output_data = json.loads(process.stdout.strip())
+                local = {"output": output_data}
+                answer = str(local["output"])
+            except json.JSONDecodeError as je:
+                self.print(f"JSON decode error: {je}. Raw output: {process.stdout}")
+                local = {"output": process.stdout.strip()}
+                answer = str(local["output"])
 
             # Log any stderr from the process
             if process.stderr:
@@ -302,9 +308,14 @@ print(json.dumps(output))
             )
 
             # Parse the output from stdout
-            output_data = json.loads(process.stdout.strip())
-            local = {"output": output_data}
-            answer = str(local["output"])
+            try:
+                output_data = json.loads(process.stdout.strip())
+                local = {"output": output_data}
+                answer = str(local["output"])
+            except json.JSONDecodeError as je:
+                self.print(f"JSON decode error: {je}. Raw output: {process.stdout}")
+                local = {"output": process.stdout.strip()}
+                answer = str(local["output"])
 
             # Log any stderr from the process
             if process.stderr:
