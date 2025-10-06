@@ -3,9 +3,6 @@
 
 import pytest
 import os
-import subprocess
-import sys
-import tempfile
 import unittest
 import yaml
 import asyncio
@@ -52,48 +49,6 @@ class TestCodeAgentDependencies(unittest.IsolatedAsyncioTestCase):
         # Reinstall dependencies
         agent._install_dependencies()
 
-    def uninstall_dependencies(self):
-        """Uninstall dependencies found in the agent metadata."""
-        # Get dependencies from agent metadata
-        dependencies = self.agent_def.get("metadata", {}).get("dependencies")
-
-        if not dependencies:
-            print("No dependencies found in agent metadata")
-            return
-
-        print(f"Uninstalling dependencies: {dependencies}")
-
-        # Create a temporary requirements.txt file
-        with tempfile.NamedTemporaryFile(
-            mode="w", delete=False, suffix=".txt"
-        ) as temp_file:
-            temp_file_path = temp_file.name
-            temp_file.write(dependencies)
-
-        try:
-            # Uninstall dependencies using pip with the current Python interpreter
-            process = subprocess.run(
-                [sys.executable, "-m", "pip", "uninstall", "-r", temp_file_path, "-y"],
-                check=True,
-                capture_output=True,
-                text=True,
-            )
-            print("Dependencies uninstalled successfully.")
-            if process.stdout:
-                print(f"Uninstallation output: {process.stdout}")
-        except subprocess.CalledProcessError as e:
-            print(f"Error uninstalling dependencies: {e.stderr}")
-        finally:
-            # Clean up the temporary file
-            if os.path.exists(temp_file_path):
-                try:
-                    os.remove(temp_file_path)
-                    print(f"Temporary requirements file removed: {temp_file_path}")
-                except Exception as e:
-                    print(
-                        f"Warning: Failed to remove temporary file {temp_file_path}: {str(e)}"
-                    )
-
     def test_missing_dependencies(self):
         """Test that code execution fails when dependencies are missing."""
         # Create a copy of the agent definition with code that imports a non-existent module
@@ -126,7 +81,6 @@ output = "This should not be returned"
 
     @pytest.mark.asyncio
     async def test_dependencies_installation(self):
-        self.uninstall_dependencies()
         """Test that dependencies are installed before code execution."""
         # Create a CodeAgent instance with the example agent definition
         agent = CodeAgent(self.agent_def)
@@ -140,7 +94,6 @@ output = "This should not be returned"
 
     @pytest.mark.asyncio
     async def test_dependencies_installation_requirements_file(self):
-        self.uninstall_dependencies()
         """Test that dependencies are installed before code execution."""
         # Create a CodeAgent instance with the example agent definition
         print(self.agent_requirements_def)
@@ -155,7 +108,6 @@ output = "This should not be returned"
 
     @pytest.mark.asyncio
     async def test_dependencies_installation_streaming(self):
-        self.uninstall_dependencies()
         """Test that dependencies are installed before code execution."""
         # Create a CodeAgent instance with the example agent definition
         agent = CodeAgent(self.agent_def)
