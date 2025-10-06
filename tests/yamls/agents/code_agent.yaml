@@ -18,6 +18,8 @@ apiVersion: maestro/v1alpha1
 kind: Agent
 metadata:
   name: github-lister
+  dependencies: |
+    requests==2.31.0
   labels:
     app: cbom-demo-pretest
 spec:
