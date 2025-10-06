@@ -4,7 +4,7 @@
 FROM python:3.12-slim
 WORKDIR /usr/src/app
 
-ARG MAESTRO_VERSION="0.8.0"
+ARG MAESTRO_VERSION="0.9.0"
 
 # set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
