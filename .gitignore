@@ -310,3 +310,7 @@ out/
 
 # GenAI project context
 project_guidelines.md
+
+# Include built UI assets
+!src/maestro/ui/dist/
+!src/maestro/ui/dist/**
