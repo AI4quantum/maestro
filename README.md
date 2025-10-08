@@ -134,3 +134,12 @@ Please read [CONTRIBUTING.md](CONTRIBUTING.md) for details on our code of conduc
 ## License
 
 This project is licensed under the Apache License - see the [LICENSE](LICENSE) file for details.
+
+## UI Development
+
+- Built assets in `src/maestro/ui/dist` are tracked to provide zero-setup installs.
+- To develop the UI, run in `src/maestro/ui`:
+
+
+
+The Python package includes the built files automatically via `pyproject.toml`.
