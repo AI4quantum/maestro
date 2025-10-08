@@ -122,7 +122,7 @@ def main():
     project_root = os.path.abspath(
         os.path.join(os.path.dirname(__file__), "..", "..", "..")
     )
-    ui_cwd = os.path.join(project_root, "web", "maestro-ui")
+    ui_cwd = os.path.join(project_root, "src", "maestro", "ui")
     npm_cmd = ["npm", "run", "dev"]
     ui_env = os.environ.copy()
     ui_env.setdefault("PORT", str(ui_port))

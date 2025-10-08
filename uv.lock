@@ -2071,7 +2071,7 @@ wheels = [
 
 [[package]]
 name = "maestro"
-version = "0.8.0"
+version = "0.9.0"
 source = { editable = "." }
 dependencies = [
     { name = "anyio" },
@@ -2092,6 +2092,7 @@ dependencies = [
     { name = "openai-agents", extra = ["litellm"] },
     { name = "openapi" },
     { name = "opik" },
+    { name = "pandas" },
     { name = "psutil" },
     { name = "pycron" },
     { name = "pydantic-ai", extra = ["logfire"] },
@@ -2139,6 +2140,7 @@ requires-dist = [
     { name = "openai-agents", extras = ["litellm"], specifier = ">=0.0.14" },
     { name = "openapi", specifier = ">=2.0.0" },
     { name = "opik", specifier = ">=1.7.22" },
+    { name = "pandas", specifier = ">=2.0.0" },
     { name = "psutil", specifier = ">=7.0.0" },
     { name = "pycron", specifier = ">=3.1.2" },
     { name = "pydantic-ai", extras = ["logfire"], specifier = ">=0.1.8,<1.0.0" },

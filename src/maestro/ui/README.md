@@ -17,7 +17,7 @@ A React/TypeScript frontend for the Maestro workflow system.
 
 2. **Install UI dependencies:**
    ```bash
-   cd web/maestro-ui
+   cd src/maestro/ui
    npm install
    ```
 
@@ -59,7 +59,7 @@ maestro deploy agents.yaml workflow.yaml --docker
 
 ### UI (Optional):
 ```bash
-cd web/maestro-ui
+cd src/maestro/ui
 docker build -t maestro-ui:dev .
 docker run -p 8080:80 maestro-ui:dev
 ```

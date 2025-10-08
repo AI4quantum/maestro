@@ -66,7 +66,7 @@ where = ["src"]
 include = ["maestro*"]
 
 [tool.setuptools.package-data]
-"maestro" = ["images/*.png", "schemas/*.json"]
+"maestro" = ["images/*.png", "schemas/*.json", "ui/dist/**/*", "ui/dist/assets/*"]
 
 [tool.pytest.ini_options]
 addopts = "-v -s --ignore=framework"
