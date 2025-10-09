@@ -14,6 +14,7 @@ function App() {
   const [messages, setMessages] = useState<Message[]>([])
   const [health, setHealth] = useState<string>('unknown')
   const [diagramError, setDiagramError] = useState<string>('')
+  const [isLoading, setIsLoading] = useState(false)
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' })
@@ -33,11 +34,15 @@ function App() {
   }, [checkHealth])
 
   const startStream = useCallback(async () => {
-    if (!prompt.trim()) return
-    setMessages((m) => [...m, { text: prompt, type: 'user' }])
+    if (!prompt.trim() || isLoading) return
+    
+    const userPrompt = prompt
+    setMessages((m) => [...m, { text: userPrompt, type: 'user' }])
     setPrompt('')
+    setIsLoading(true)
+    
     try {
-      await chatStream(prompt, (data: StreamEvent) => {
+      await chatStream(userPrompt, (data: StreamEvent) => {
         if (data.error) {
           setMessages((m) => [...m, { text: `Error: ${data.error}`, type: 'assistant' }])
           return
@@ -49,8 +54,10 @@ function App() {
       })
     } catch (e: any) {
       setMessages((m) => [...m, { text: `Stream failed: ${e?.message ?? e}`, type: 'assistant' }])
+    } finally {
+      setIsLoading(false)
     }
-  }, [prompt])
+  }, [prompt, isLoading])
 
   const renderDiagram = useCallback(async () => {
     try {
@@ -106,7 +113,7 @@ function App() {
         display: 'flex',
         flexDirection: 'column',
       }}>
-        {messages.length === 0 ? (
+        {messages.length === 0 && !isLoading ? (
           <div style={{ 
             flex: 1, 
             display: 'flex', 
@@ -118,32 +125,60 @@ function App() {
             Start a conversation...
           </div>
         ) : (
-          messages.map((m, i) => (
-            <div
-              key={i}
-              style={{
-                display: 'flex',
-                justifyContent: m.type === 'user' ? 'flex-start' : 'flex-end',
-                marginBottom: 12,
-              }}
-            >
+          <>
+            {messages.map((m, i) => (
               <div
-                className={`message-bubble ${m.type === 'user' ? 'user-message' : 'assistant-message'}`}
+                key={i}
                 style={{
-                  maxWidth: '70%',
-                  padding: '10px 14px',
-                  borderRadius: 18,
-                  backgroundColor: m.type === 'user' ? '#007AFF' : '#E5E5EA',
-                  color: m.type === 'user' ? 'white' : 'black',
-                  textAlign: 'left',
+                  display: 'flex',
+                  justifyContent: m.type === 'user' ? 'flex-start' : 'flex-end',
+                  marginBottom: 12,
                 }}
               >
-                <div className="markdown-content">
-                  <ReactMarkdown>{m.text}</ReactMarkdown>
+                <div
+                  className={`message-bubble ${m.type === 'user' ? 'user-message' : 'assistant-message'}`}
+                  style={{
+                    maxWidth: '70%',
+                    padding: '10px 14px',
+                    borderRadius: 18,
+                    backgroundColor: m.type === 'user' ? '#007AFF' : '#E5E5EA',
+                    color: m.type === 'user' ? 'white' : 'black',
+                    textAlign: 'left',
+                  }}
+                >
+                  <div className="markdown-content">
+                    <ReactMarkdown>{m.text}</ReactMarkdown>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))
+            ))}
+            {isLoading && (
+              <div
+                style={{
+                  display: 'flex',
+                  justifyContent: 'flex-end',
+                  marginBottom: 12,
+                }}
+              >
+                <div
+                  className="message-bubble assistant-message typing-indicator"
+                  style={{
+                    padding: '10px 14px',
+                    borderRadius: 18,
+                    backgroundColor: '#E5E5EA',
+                    color: 'black',
+                    display: 'flex',
+                    gap: 4,
+                    alignItems: 'center',
+                  }}
+                >
+                  <span className="dot"></span>
+                  <span className="dot"></span>
+                  <span className="dot"></span>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </div>
 
@@ -154,18 +189,25 @@ function App() {
         backgroundColor: 'var(--bg-color, #ffffff)',
         flexShrink: 0,
       }}>
-        <div style={{ display: 'flex', gap: 12, maxWidth: 1000, margin: '0 auto' }}>
-          <input
+        <div style={{ display: 'flex', gap: 12, maxWidth: 1000, margin: '0 auto', alignItems: 'flex-end' }}>
+          <textarea
             style={{ 
               flex: 1, 
               padding: '12px 16px',
-              borderRadius: 24,
+              borderRadius: 16,
               border: '1px solid #ddd',
               fontSize: '15px',
               outline: 'none',
+              resize: 'none',
+              minHeight: 48,
+              maxHeight: 200,
+              fontFamily: 'inherit',
+              lineHeight: '1.5',
+              opacity: isLoading ? 0.6 : 1,
             }}
-            placeholder="Enter your prompt"
+            placeholder="Enter your prompt (Shift+Enter for new line)"
             value={prompt}
+            disabled={isLoading}
             onChange={(e) => setPrompt(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
@@ -173,21 +215,30 @@ function App() {
                 startStream()
               }
             }}
+            rows={1}
+            onInput={(e) => {
+              const target = e.target as HTMLTextAreaElement
+              target.style.height = 'auto'
+              target.style.height = Math.min(target.scrollHeight, 200) + 'px'
+            }}
           />
           <button 
             onClick={startStream}
+            disabled={isLoading || !prompt.trim()}
             style={{
               padding: '12px 24px',
               borderRadius: 24,
               border: 'none',
-              backgroundColor: '#007AFF',
+              backgroundColor: isLoading || !prompt.trim() ? '#ccc' : '#007AFF',
               color: 'white',
               fontSize: '15px',
               fontWeight: '500',
-              cursor: 'pointer',
+              cursor: isLoading || !prompt.trim() ? 'not-allowed' : 'pointer',
+              opacity: isLoading || !prompt.trim() ? 0.6 : 1,
+              transition: 'all 0.2s ease',
             }}
           >
-            Send
+            {isLoading ? 'Sending...' : 'Send'}
           </button>
         </div>
       </div>

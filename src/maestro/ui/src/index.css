@@ -58,13 +58,18 @@ button:focus-visible {
   outline-offset: 2px;
 }
 
-input {
+input, textarea {
   font-family: inherit;
   transition: border-color 0.2s ease;
 }
-input:focus {
+input:focus, textarea:focus {
   border-color: #007AFF !important;
   outline: none;
+}
+
+textarea:disabled {
+  cursor: not-allowed;
+  background-color: #f5f5f5;
 }
 
 @media (prefers-color-scheme: light) {
