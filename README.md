@@ -93,27 +93,27 @@ uv run ruff format
 uv run ruff check --fix
 ```
 
-**Note**: The UI build (`npm install && npm run build`) runs automatically during installation if Node.js is available. If Node.js is not installed, the UI components will be skipped but core functionality will still work.
+**Note**: If Node.js is available, the UI will be automatically built during installation (`npm install && npm run build`). If Node.js is not installed, the UI components will be skipped but all core functionality will still work.
 
 ## UI Options
 
-Maestro provides multiple ways to interact with workflows - all pre-built and ready to use:
+Maestro provides multiple ways to interact with workflows:
 
-### Streamlit UI (Primary)
-The main UI for Maestro workflows is built with Streamlit:
+### Streamlit UI (Default)
+Deploy workflows with Streamlit's interactive interface:
 
 ```bash
-# Deploy a workflow with Streamlit UI
 maestro deploy agents.yaml workflow.yaml
 ```
 
-### React UI (Built-in)
-Maestro also includes a React/TypeScript interface that's pre-built and included in the package:
+### React UI
+Deploy workflows with the React/TypeScript interface:
 
 ```bash
-# Deploy with React UI
 maestro deploy agents.yaml workflow.yaml --node-ui
 ```
+
+Both UIs are automatically built and included during installation when Node.js is available.
 
 ## Agent Evaluation
 
