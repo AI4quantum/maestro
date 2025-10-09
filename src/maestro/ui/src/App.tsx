@@ -4,9 +4,14 @@ import mermaid from 'mermaid'
 import ReactMarkdown from 'react-markdown'
 import { chatStream, health as healthApi, type StreamEvent, fetchDiagram } from './api'
 
+type Message = {
+  text: string
+  type: 'user' | 'assistant'
+}
+
 function App() {
   const [prompt, setPrompt] = useState('')
-  const [messages, setMessages] = useState<string[]>([])
+  const [messages, setMessages] = useState<Message[]>([])
   const [health, setHealth] = useState<string>('unknown')
   const [diagramError, setDiagramError] = useState<string>('')
 
@@ -29,21 +34,21 @@ function App() {
 
   const startStream = useCallback(async () => {
     if (!prompt.trim()) return
-    setMessages((m) => [...m, `> ${prompt}`])
+    setMessages((m) => [...m, { text: prompt, type: 'user' }])
     setPrompt('')
     try {
       await chatStream(prompt, (data: StreamEvent) => {
         if (data.error) {
-          setMessages((m) => [...m, `Error: ${data.error}`])
+          setMessages((m) => [...m, { text: `Error: ${data.error}`, type: 'assistant' }])
           return
         }
         const line = data.step_name
           ? `${data.step_name} (${data.agent_name ?? ''}): ${data.step_result ?? ''}`
           : data.step_result ?? ''
-        if (line) setMessages((m) => [...m, line])
+        if (line) setMessages((m) => [...m, { text: line, type: 'assistant' }])
       })
     } catch (e: any) {
-      setMessages((m) => [...m, `Stream failed: ${e?.message ?? e}`])
+      setMessages((m) => [...m, { text: `Stream failed: ${e?.message ?? e}`, type: 'assistant' }])
     }
   }, [prompt])
 
@@ -92,10 +97,31 @@ function App() {
         <button onClick={startStream}>Send</button>
       </div>
 
-      <div style={{ border: '1px solid #ddd', padding: 8, minHeight: 160, textAlign: 'left' }}>
+      <div style={{ border: '1px solid #ddd', padding: 16, minHeight: 160, overflowY: 'auto', maxHeight: 500 }}>
         {messages.map((m, i) => (
-          <div key={i} className="markdown-content" style={{ marginBottom: 12 }}>
-            <ReactMarkdown>{m}</ReactMarkdown>
+          <div
+            key={i}
+            style={{
+              display: 'flex',
+              justifyContent: m.type === 'user' ? 'flex-start' : 'flex-end',
+              marginBottom: 12,
+            }}
+          >
+            <div
+              className={`message-bubble ${m.type === 'user' ? 'user-message' : 'assistant-message'}`}
+              style={{
+                maxWidth: '70%',
+                padding: '10px 14px',
+                borderRadius: 18,
+                backgroundColor: m.type === 'user' ? '#007AFF' : '#E5E5EA',
+                color: m.type === 'user' ? 'white' : 'black',
+                textAlign: 'left',
+              }}
+            >
+              <div className="markdown-content">
+                <ReactMarkdown>{m.text}</ReactMarkdown>
+              </div>
+            </div>
           </div>
         ))}
       </div>
