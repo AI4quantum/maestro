@@ -68,7 +68,12 @@ git clone https://github.com/AI4quantum/maestro.git
 cd maestro
 ```
 
-2. Install development dependencies:
+2. Install in editable mode (automatically builds UI if Node.js is available):
+```bash
+uv pip install -e .
+```
+
+Or use uv sync for development dependencies:
 ```bash
 uv sync --all-extras
 ```
@@ -86,6 +91,28 @@ uv run ruff format
 5. Run the linter:
 ```bash
 uv run ruff check --fix
+```
+
+**Note**: The UI build (`npm install && npm run build`) runs automatically during installation if Node.js is available. If Node.js is not installed, the UI components will be skipped but core functionality will still work.
+
+## UI Options
+
+Maestro provides multiple ways to interact with workflows - all pre-built and ready to use:
+
+### Streamlit UI (Primary)
+The main UI for Maestro workflows is built with Streamlit:
+
+```bash
+# Deploy a workflow with Streamlit UI
+maestro deploy agents.yaml workflow.yaml
+```
+
+### React UI (Built-in)
+Maestro also includes a React/TypeScript interface that's pre-built and included in the package:
+
+```bash
+# Deploy with React UI
+maestro deploy agents.yaml workflow.yaml --node-ui
 ```
 
 ## Agent Evaluation
