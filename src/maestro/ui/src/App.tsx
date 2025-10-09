@@ -79,6 +79,12 @@ function App() {
           placeholder="Enter your prompt"
           value={prompt}
           onChange={(e) => setPrompt(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              startStream()
+            }
+          }}
         />
         <button onClick={startStream}>Send</button>
       </div>
