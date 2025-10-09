@@ -10,6 +10,12 @@ type Message = {
   isError?: boolean
 }
 
+type TokenUsage = {
+  promptTokens: number
+  responseTokens: number
+  totalTokens: number
+}
+
 function App() {
   const [prompt, setPrompt] = useState('')
   const [messages, setMessages] = useState<Message[]>([])
@@ -17,6 +23,11 @@ function App() {
   const [diagramError, setDiagramError] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
   const [lastUserPrompt, setLastUserPrompt] = useState('')
+  const [tokenUsage, setTokenUsage] = useState<TokenUsage>({
+    promptTokens: 0,
+    responseTokens: 0,
+    totalTokens: 0,
+  })
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' })
@@ -45,6 +56,14 @@ function App() {
           setMessages((m) => [...m, { text: `Error: ${data.error}`, type: 'assistant', isError: true }])
           return
         }
+        if (data.prompt_tokens !== undefined || data.response_tokens !== undefined || data.total_tokens !== undefined) {
+          setTokenUsage((prev) => ({
+            promptTokens: prev.promptTokens + (data.prompt_tokens || 0),
+            responseTokens: prev.responseTokens + (data.response_tokens || 0),
+            totalTokens: prev.totalTokens + (data.total_tokens || 0),
+          }))
+        }
+        
         const line = data.step_name
           ? `${data.step_name} (${data.agent_name ?? ''}): ${data.step_result ?? ''}`
           : data.step_result ?? ''
@@ -74,6 +93,7 @@ function App() {
     if (isLoading) return
     setMessages([])
     setLastUserPrompt('')
+    setTokenUsage({ promptTokens: 0, responseTokens: 0, totalTokens: 0 })
   }, [isLoading])
 
   const retryLastMessage = useCallback(async () => {
@@ -159,6 +179,23 @@ function App() {
             >
               Clear Chat
             </button>
+          )}
+          {tokenUsage.totalTokens > 0 && (
+            <div 
+              style={{ 
+                fontSize: '13px', 
+                color: '#666',
+                padding: '6px 12px',
+                borderRadius: 8,
+                backgroundColor: '#f5f5f5',
+                display: 'flex',
+                gap: 8,
+              }}
+              title={`Prompt: ${tokenUsage.promptTokens.toLocaleString()} | Response: ${tokenUsage.responseTokens.toLocaleString()}`}
+            >
+              <span>🔢</span>
+              <span>{tokenUsage.totalTokens.toLocaleString()} tokens</span>
+            </div>
           )}
           <div style={{ fontSize: '14px', color: '#666' }}>Health: {health}</div>
         </div>
