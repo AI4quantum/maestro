@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import './App.css'
 import mermaid from 'mermaid'
+import ReactMarkdown from 'react-markdown'
 import { chatStream, health as healthApi, type StreamEvent, fetchDiagram } from './api'
 
 function App() {
@@ -93,7 +94,9 @@ function App() {
 
       <div style={{ border: '1px solid #ddd', padding: 8, minHeight: 160, textAlign: 'left' }}>
         {messages.map((m, i) => (
-          <div key={i} style={{ whiteSpace: 'pre-wrap' }}>{m}</div>
+          <div key={i} className="markdown-content" style={{ marginBottom: 12 }}>
+            <ReactMarkdown>{m}</ReactMarkdown>
+          </div>
         ))}
       </div>
 
