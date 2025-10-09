@@ -7,6 +7,7 @@ import { chatStream, health as healthApi, type StreamEvent, fetchDiagram } from 
 type Message = {
   text: string
   type: 'user' | 'assistant'
+  isError?: boolean
 }
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
   const [health, setHealth] = useState<string>('unknown')
   const [diagramError, setDiagramError] = useState<string>('')
   const [isLoading, setIsLoading] = useState(false)
+  const [lastUserPrompt, setLastUserPrompt] = useState('')
 
   useEffect(() => {
     mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' })
@@ -33,18 +35,14 @@ function App() {
     checkHealth()
   }, [checkHealth])
 
-  const startStream = useCallback(async () => {
-    if (!prompt.trim() || isLoading) return
-    
-    const userPrompt = prompt
-    setMessages((m) => [...m, { text: userPrompt, type: 'user' }])
-    setPrompt('')
+  const executeStream = useCallback(async (userPrompt: string) => {
     setIsLoading(true)
+    setLastUserPrompt(userPrompt)
     
     try {
       await chatStream(userPrompt, (data: StreamEvent) => {
         if (data.error) {
-          setMessages((m) => [...m, { text: `Error: ${data.error}`, type: 'assistant' }])
+          setMessages((m) => [...m, { text: `Error: ${data.error}`, type: 'assistant', isError: true }])
           return
         }
         const line = data.step_name
@@ -53,11 +51,52 @@ function App() {
         if (line) setMessages((m) => [...m, { text: line, type: 'assistant' }])
       })
     } catch (e: any) {
-      setMessages((m) => [...m, { text: `Stream failed: ${e?.message ?? e}`, type: 'assistant' }])
+      setMessages((m) => [...m, { 
+        text: `Stream failed: ${e?.message ?? e}`, 
+        type: 'assistant',
+        isError: true 
+      }])
     } finally {
       setIsLoading(false)
     }
-  }, [prompt, isLoading])
+  }, [])
+
+  const startStream = useCallback(async () => {
+    if (!prompt.trim() || isLoading) return
+    
+    const userPrompt = prompt
+    setMessages((m) => [...m, { text: userPrompt, type: 'user' }])
+    setPrompt('')
+    await executeStream(userPrompt)
+  }, [prompt, isLoading, executeStream])
+
+  const clearConversation = useCallback(() => {
+    if (isLoading) return
+    setMessages([])
+    setLastUserPrompt('')
+  }, [isLoading])
+
+  const retryLastMessage = useCallback(async () => {
+    if (!lastUserPrompt || isLoading) return
+    
+    // Remove the last assistant message(s) if they exist
+    setMessages((m) => {
+      // Find last user message index
+      let lastUserIndex = -1
+      for (let i = m.length - 1; i >= 0; i--) {
+        if (m[i].type === 'user') {
+          lastUserIndex = i
+          break
+        }
+      }
+      if (lastUserIndex !== -1) {
+        return m.slice(0, lastUserIndex + 1)
+      }
+      return m
+    })
+    
+    await executeStream(lastUserPrompt)
+  }, [lastUserPrompt, isLoading, executeStream])
 
   const renderDiagram = useCallback(async () => {
     try {
@@ -102,7 +141,27 @@ function App() {
         flexShrink: 0,
       }}>
         <h2 style={{ margin: 0 }}>Maestro Workflow UI</h2>
-        <div style={{ fontSize: '14px', color: '#666' }}>Health: {health}</div>
+        <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          {messages.length > 0 && (
+            <button
+              onClick={clearConversation}
+              disabled={isLoading}
+              style={{
+                padding: '8px 16px',
+                borderRadius: 8,
+                border: '1px solid #ddd',
+                backgroundColor: 'transparent',
+                color: '#666',
+                fontSize: '14px',
+                cursor: isLoading ? 'not-allowed' : 'pointer',
+                opacity: isLoading ? 0.5 : 1,
+              }}
+            >
+              Clear Chat
+            </button>
+          )}
+          <div style={{ fontSize: '14px', color: '#666' }}>Health: {health}</div>
+        </div>
       </div>
 
       {/* Chat Messages Area */}
@@ -126,32 +185,67 @@ function App() {
           </div>
         ) : (
           <>
-            {messages.map((m, i) => (
-              <div
-                key={i}
-                style={{
-                  display: 'flex',
-                  justifyContent: m.type === 'user' ? 'flex-start' : 'flex-end',
-                  marginBottom: 12,
-                }}
-              >
-                <div
-                  className={`message-bubble ${m.type === 'user' ? 'user-message' : 'assistant-message'}`}
-                  style={{
-                    maxWidth: '70%',
-                    padding: '10px 14px',
-                    borderRadius: 18,
-                    backgroundColor: m.type === 'user' ? '#007AFF' : '#E5E5EA',
-                    color: m.type === 'user' ? 'white' : 'black',
-                    textAlign: 'left',
-                  }}
-                >
-                  <div className="markdown-content">
-                    <ReactMarkdown>{m.text}</ReactMarkdown>
+            {messages.map((m, i) => {
+              const isLastMessage = i === messages.length - 1
+              const showRetry = isLastMessage && m.type === 'assistant' && !isLoading
+              
+              return (
+                <div key={i}>
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: m.type === 'user' ? 'flex-start' : 'flex-end',
+                      marginBottom: 12,
+                    }}
+                  >
+                    <div
+                      className={`message-bubble ${m.type === 'user' ? 'user-message' : 'assistant-message'}`}
+                      style={{
+                        maxWidth: '70%',
+                        padding: '10px 14px',
+                        borderRadius: 18,
+                        backgroundColor: m.isError 
+                          ? '#ffebee' 
+                          : m.type === 'user' ? '#007AFF' : '#E5E5EA',
+                        color: m.isError 
+                          ? '#c62828'
+                          : m.type === 'user' ? 'white' : 'black',
+                        textAlign: 'left',
+                        border: m.isError ? '1px solid #ef5350' : 'none',
+                      }}
+                    >
+                      <div className="markdown-content">
+                        <ReactMarkdown>{m.text}</ReactMarkdown>
+                      </div>
+                    </div>
                   </div>
+                  {showRetry && (
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, marginTop: -8 }}>
+                      <button
+                        onClick={retryLastMessage}
+                        disabled={isLoading}
+                        style={{
+                          padding: '6px 12px',
+                          borderRadius: 12,
+                          border: '1px solid #ddd',
+                          backgroundColor: 'white',
+                          color: '#666',
+                          fontSize: '13px',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 4,
+                        }}
+                        title="Regenerate response"
+                      >
+                        <span>🔄</span>
+                        {m.isError ? 'Retry' : 'Regenerate'}
+                      </button>
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))}
+              )
+            })}
             {isLoading && (
               <div
                 style={{
