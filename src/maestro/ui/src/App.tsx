@@ -91,7 +91,7 @@ function App() {
         <button onClick={startStream}>Send</button>
       </div>
 
-      <div style={{ border: '1px solid #ddd', padding: 8, minHeight: 160 }}>
+      <div style={{ border: '1px solid #ddd', padding: 8, minHeight: 160, textAlign: 'left' }}>
         {messages.map((m, i) => (
           <div key={i} style={{ whiteSpace: 'pre-wrap' }}>{m}</div>
         ))}
