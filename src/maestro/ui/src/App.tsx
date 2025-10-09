@@ -27,7 +27,9 @@ function App() {
   }, [checkHealth])
 
   const startStream = useCallback(async () => {
+    if (!prompt.trim()) return
     setMessages((m) => [...m, `> ${prompt}`])
+    setPrompt('')
     try {
       await chatStream(prompt, (data: StreamEvent) => {
         if (data.error) {
