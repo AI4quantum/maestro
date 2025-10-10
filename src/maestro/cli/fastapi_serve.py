@@ -284,7 +284,20 @@ class FastAPIWorkflowServer:
                     except Exception:
                         str_result = str(step_result)
 
-                    yield f"data: {json.dumps({'step_name': step_name, 'step_result': str_result, 'agent_name': agent_name, 'step_complete': True})}\n\n"
+                    response_data = {
+                        "step_name": step_name,
+                        "step_result": str_result,
+                        "agent_name": agent_name,
+                        "step_complete": True,
+                    }
+                    if "prompt_tokens" in step_data:
+                        response_data["prompt_tokens"] = step_data["prompt_tokens"]
+                    if "response_tokens" in step_data:
+                        response_data["response_tokens"] = step_data["response_tokens"]
+                    if "total_tokens" in step_data:
+                        response_data["total_tokens"] = step_data["total_tokens"]
+
+                    yield f"data: {json.dumps(response_data)}\n\n"
         except Exception as e:
             yield f"data: {json.dumps({'error': str(e)})}\n\n"
 

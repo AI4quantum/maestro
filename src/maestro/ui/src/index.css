@@ -24,10 +24,9 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
   min-width: 320px;
   min-height: 100vh;
+  overflow: hidden;
 }
 
 h1 {
@@ -44,14 +43,33 @@ button {
   font-family: inherit;
   background-color: #1a1a1a;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: all 0.2s ease;
 }
 button:hover {
-  border-color: #646cff;
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+button:active {
+  transform: translateY(0);
 }
 button:focus,
 button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+  outline: 2px solid #007AFF;
+  outline-offset: 2px;
+}
+
+input, textarea {
+  font-family: inherit;
+  transition: border-color 0.2s ease;
+}
+input:focus, textarea:focus {
+  border-color: #007AFF !important;
+  outline: none;
+}
+
+textarea:disabled {
+  cursor: not-allowed;
+  background-color: #f5f5f5;
 }
 
 @media (prefers-color-scheme: light) {

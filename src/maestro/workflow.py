@@ -387,21 +387,27 @@ class Workflow:
                     )
             else:
                 step_prompt = prompt
-                result = await self.steps[current].run(
-                    step_prompt, step_index=step_index
-                )
+
+            result = await self.steps[current].run(step_prompt, step_index=step_index)
 
             prompt = result.get("prompt")
             step_results[current] = prompt
             step_index += 1
+            agent_obj = definition.get("agent")
+            token_data = {}
+            if agent_obj and hasattr(agent_obj, "prompt_tokens"):
+                token_data = {
+                    "prompt_tokens": getattr(agent_obj, "prompt_tokens", 0),
+                    "response_tokens": getattr(agent_obj, "response_tokens", 0),
+                    "total_tokens": getattr(agent_obj, "total_tokens", 0),
+                }
 
             yield {
                 "step_name": current,
                 "step_result": prompt,
                 "step_index": step_index - 1,
-                "agent_name": definition.get("agent", {}).agent_name
-                if definition.get("agent")
-                else None,
+                "agent_name": agent_obj.agent_name if agent_obj else None,
+                **token_data,
             }
 
             if "next" in result:

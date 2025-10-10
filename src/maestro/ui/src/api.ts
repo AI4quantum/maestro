@@ -10,6 +10,9 @@ export type StreamEvent = {
   agent_name?: string
   step_complete?: boolean
   error?: string
+  prompt_tokens?: number
+  response_tokens?: number
+  total_tokens?: number
 }
 
 export async function health(): Promise<string> {
