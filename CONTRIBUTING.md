@@ -27,6 +27,7 @@ git remote -v
 
 4. Activate the virtual environment:
 ```bash
+pip install uv # Install uv if not already
 uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
