@@ -2,6 +2,10 @@
 
 Thank you for your interest in contributing to Maestro! This document provides guidelines and instructions for contributing to the project.
 
+## Requirements
+- Python 3.11, 3.12, or 3.13
+- uv installed (refer to the [uv installation guide](https://docs.astral.sh/uv/getting-started/installation/#standalone-installer) for instructions)
+
 ## Development Setup
 
 1. Fork in the cloud
@@ -27,7 +31,6 @@ git remote -v
 
 4. Activate the virtual environment:
 ```bash
-pip install uv # Install uv if not already
 uv venv --python 3.12
 source .venv/bin/activate  # On Unix/macOS
 # or
