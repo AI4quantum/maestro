@@ -325,10 +325,16 @@ class TestMermaid_event_cron(TestCase):
             markdown = mermaid.to_markdown()
             expected_markdown = [
                 f"flowchart {orientation}",
-                # TODO complete
+                'CRON["cron event<br/>10 14 * * 1"]',
+                'CRON["cron event<br/>10 14 * * 1"] -->|trigger| test4',
+                'CRON["cron event<br/>10 14 * * 1"] -->|exit: ( "test" in input  )| END[End]',
+                "test2-- step1 -->test2",
+                "test2-- step2 -->test3",
+                "test3-- step3 -->test1",
+                "test1-- step4 -->test1",
             ]
             for m in expected_markdown:
-                self.assertTrue(m in markdown)
+                self.assertTrue(m in markdown, f"Expected '{m}' not found in markdown")
 
 
 class TestMermaid_event_cron_many_steps(TestCase):
@@ -378,10 +384,16 @@ class TestMermaid_event_cron_many_steps(TestCase):
             markdown = mermaid.to_markdown()
             expected_markdown = [
                 f"flowchart {orientation}",
-                # TODO: complete
+                'CRON["multi step cron<br/>* * * * *"]',
+                'CRON["multi step cron<br/>* * * * *"] -->|trigger| test2',
+                'CRON["multi step cron<br/>* * * * *"] -->|trigger| test5',
+                'CRON["multi step cron<br/>* * * * *"] -->|exit: (input.get("final_prompt").find("This is a test input") != -1)| END[End]',
+                "test2-- step2 -->test5",
+                "test5-- step1 -->test3",
+                "test3-- step3 -->test3",
             ]
             for m in expected_markdown:
-                self.assertTrue(m in markdown)
+                self.assertTrue(m in markdown, f"Expected '{m}' not found in markdown")
 
 
 class TestMermaid_parallel(TestCase):

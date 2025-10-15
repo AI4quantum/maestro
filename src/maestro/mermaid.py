@@ -189,6 +189,11 @@ class Mermaid:
     def __to_flowchart(self) -> str:
         sb = f"flowchart {self.orientation}\n"
         steps = self.workflow["spec"]["template"].get("steps", [])
+
+        event = self.workflow["spec"]["template"].get("event")
+        if event and "cron" in event:
+            sb += self.__to_flowchart_event(event, steps)
+
         i = 0
         while i < len(steps):
             step = steps[i]
@@ -239,8 +244,33 @@ class Mermaid:
             sb += f"  Condition -- No --> {els}\n"
         return sb
 
-    def __to_flowchart_event(self, event):
-        return ""
+    def __to_flowchart_event(self, event, steps):
+        """Generate flowchart representation of cron events.
+
+        Creates a cron trigger node that connects to the triggered agents/steps
+        and shows the exit condition.
+        """
+        cron = event.get("cron")
+        name = event.get("name", "cron event")
+        exit_condition = event.get("exit", "")
+        sb = ""
+
+        cron_node = f'CRON["{name}<br/>{cron}"]'
+        sb += f"{cron_node}\n"
+
+        if event.get("steps"):
+            for step_name in event["steps"]:
+                agent = self.__agent_for_step(step_name)
+                if agent:
+                    sb += f"{cron_node} -->|trigger| {agent}\n"
+        elif event.get("agent"):
+            agent = self.__fix_agent_name(event["agent"])
+            sb += f"{cron_node} -->|trigger| {agent}\n"
+
+        if exit_condition:
+            sb += f"{cron_node} -->|exit: {exit_condition}| END[End]\n"
+
+        return sb
 
     def __to_flowchart_exception(self, steps, exception):
         sb = ""
