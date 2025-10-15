@@ -27,6 +27,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   overflow: hidden;
+  background-color: #ffffff;
+  transition: background-color 0.2s ease;
 }
 
 h1 {
@@ -72,6 +74,10 @@ textarea:disabled {
   background-color: #f5f5f5;
 }
 
+.dark-mode body {
+  background-color: #1a1a1a;
+}
+
 @media (prefers-color-scheme: light) {
   :root {
     color: #213547;
@@ -82,5 +88,11 @@ textarea:disabled {
   }
   button {
     background-color: #f9f9f9;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: #1a1a1a;
   }
 }

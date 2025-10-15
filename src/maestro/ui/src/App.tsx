@@ -28,10 +28,26 @@ function App() {
     responseTokens: 0,
     totalTokens: 0,
   })
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    const saved = localStorage.getItem('darkMode')
+    if (saved !== null) return saved === 'true'
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
 
   useEffect(() => {
-    mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: 'default' })
-  }, [])
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark-mode')
+      document.body.style.backgroundColor = '#1a1a1a'
+    } else {
+      document.documentElement.classList.remove('dark-mode')
+      document.body.style.backgroundColor = '#ffffff'
+    }
+    localStorage.setItem('darkMode', isDarkMode.toString())
+  }, [isDarkMode])
+
+  useEffect(() => {
+    mermaid.initialize({ startOnLoad: false, securityLevel: 'loose', theme: isDarkMode ? 'dark' : 'default' })
+  }, [isDarkMode])
 
   const checkHealth = useCallback(async () => {
     try {
@@ -149,19 +165,37 @@ function App() {
       height: '100vh',
       maxWidth: 1200,
       margin: '0 auto',
-      backgroundColor: 'var(--bg-color, #ffffff)',
+      backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
+      color: isDarkMode ? '#fff' : '#000',
     }}>
       {/* Header */}
       <div style={{ 
         padding: '16px 24px', 
-        borderBottom: '1px solid #ddd',
+        borderBottom: isDarkMode ? '1px solid #333' : '1px solid #ddd',
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
         flexShrink: 0,
       }}>
-        <h2 style={{ margin: 0 }}>Maestro Workflow UI</h2>
+        <h2 style={{ margin: 0, color: isDarkMode ? '#fff' : '#000' }}>Maestro Workflow UI</h2>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            style={{
+              padding: '8px 12px',
+              borderRadius: 8,
+              border: isDarkMode ? '1px solid #444' : '1px solid #ddd',
+              backgroundColor: 'transparent',
+              color: isDarkMode ? '#fff' : '#666',
+              fontSize: '18px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+            }}
+            title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+          >
+            {isDarkMode ? '☀️' : '🌙'}
+          </button>
           {messages.length > 0 && (
             <button
               onClick={clearConversation}
@@ -169,9 +203,9 @@ function App() {
               style={{
                 padding: '8px 16px',
                 borderRadius: 8,
-                border: '1px solid #ddd',
+                border: isDarkMode ? '1px solid #444' : '1px solid #ddd',
                 backgroundColor: 'transparent',
-                color: '#666',
+                color: isDarkMode ? '#aaa' : '#666',
                 fontSize: '14px',
                 cursor: isLoading ? 'not-allowed' : 'pointer',
                 opacity: isLoading ? 0.5 : 1,
@@ -184,10 +218,10 @@ function App() {
             <div 
               style={{ 
                 fontSize: '13px', 
-                color: '#666',
+                color: isDarkMode ? '#aaa' : '#666',
                 padding: '6px 12px',
                 borderRadius: 8,
-                backgroundColor: '#f5f5f5',
+                backgroundColor: isDarkMode ? '#2a2a2a' : '#f5f5f5',
                 display: 'flex',
                 gap: 8,
               }}
@@ -197,7 +231,7 @@ function App() {
               <span>{tokenUsage.totalTokens.toLocaleString()} tokens</span>
             </div>
           )}
-          <div style={{ fontSize: '14px', color: '#666' }}>Health: {health}</div>
+          <div style={{ fontSize: '14px', color: isDarkMode ? '#aaa' : '#666' }}>Health: {health}</div>
         </div>
       </div>
 
@@ -316,8 +350,8 @@ function App() {
       {/* Input Area - Fixed at bottom */}
       <div style={{ 
         padding: '16px 24px',
-        borderTop: '1px solid #ddd',
-        backgroundColor: 'var(--bg-color, #ffffff)',
+        borderTop: isDarkMode ? '1px solid #333' : '1px solid #ddd',
+        backgroundColor: isDarkMode ? '#1a1a1a' : '#ffffff',
         flexShrink: 0,
       }}>
         <div style={{ display: 'flex', gap: 12, maxWidth: 1000, margin: '0 auto', alignItems: 'flex-end' }}>
@@ -326,7 +360,7 @@ function App() {
               flex: 1, 
               padding: '12px 16px',
               borderRadius: 16,
-              border: '1px solid #ddd',
+              border: isDarkMode ? '1px solid #444' : '1px solid #ddd',
               fontSize: '15px',
               outline: 'none',
               resize: 'none',
@@ -335,6 +369,8 @@ function App() {
               fontFamily: 'inherit',
               lineHeight: '1.5',
               opacity: isLoading ? 0.6 : 1,
+              backgroundColor: isDarkMode ? '#2a2a2a' : '#fff',
+              color: isDarkMode ? '#fff' : '#000',
             }}
             placeholder="Enter your prompt (Shift+Enter for new line)"
             value={prompt}
@@ -376,14 +412,15 @@ function App() {
 
       {/* Diagram Section - Collapsible */}
       <details style={{ 
-        borderTop: '1px solid #ddd',
-        backgroundColor: '#f9f9f9',
+        borderTop: isDarkMode ? '1px solid #333' : '1px solid #ddd',
+        backgroundColor: isDarkMode ? '#222' : '#f9f9f9',
       }}>
         <summary style={{ 
           padding: '12px 24px',
           cursor: 'pointer',
           fontWeight: '500',
           userSelect: 'none',
+          color: isDarkMode ? '#fff' : '#000',
         }}>
           Workflow Diagram
         </summary>
