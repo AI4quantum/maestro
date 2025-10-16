@@ -60,7 +60,7 @@ function App() {
 
   useEffect(() => {
     checkHealth()
-  }, [checkHealth])
+  }, [])
 
   const executeStream = useCallback(async (userPrompt: string) => {
     setIsLoading(true)
@@ -116,15 +116,8 @@ function App() {
     if (!lastUserPrompt || isLoading) return
     
     setMessages((m) => {
-      let lastUserIndex = -1
       for (let i = m.length - 1; i >= 0; i--) {
-        if (m[i].type === 'user') {
-          lastUserIndex = i
-          break
-        }
-      }
-      if (lastUserIndex !== -1) {
-        return m.slice(0, lastUserIndex + 1)
+        if (m[i].type === 'user') return m.slice(0, i + 1)
       }
       return m
     })
@@ -172,7 +165,7 @@ function App() {
         alignItems: 'center',
         flexShrink: 0,
       }}>
-        <h2 style={{ margin: 0, color: isDarkMode ? '#fff' : '#000' }}>Maestro Workflow UI</h2>
+        <h2 style={{ margin: 0 }}>Maestro Workflow UI</h2>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -248,108 +241,108 @@ function App() {
             display: 'flex',
             flexDirection: 'column',
           }}>
-        {messages.length === 0 && !isLoading ? (
-          <div style={{ 
-            flex: 1, 
-            display: 'flex', 
-            alignItems: 'center', 
-            justifyContent: 'center',
-            color: '#999',
-            fontSize: '18px',
-          }}>
-            Start a conversation...
-          </div>
-        ) : (
-          <>
-            {messages.map((m, i) => {
-              const isLastMessage = i === messages.length - 1
-              const showRetry = isLastMessage && m.type === 'assistant' && !isLoading
-              
-              return (
-                <div key={i}>
+            {messages.length === 0 && !isLoading ? (
+              <div style={{ 
+                flex: 1, 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                color: '#999',
+                fontSize: '18px',
+              }}>
+                Start a conversation...
+              </div>
+            ) : (
+              <>
+                {messages.map((m, i) => {
+                  const isLastMessage = i === messages.length - 1
+                  const showRetry = isLastMessage && m.type === 'assistant' && !isLoading
+                  
+                  return (
+                    <div key={i}>
+                      <div
+                        style={{
+                          display: 'flex',
+                          justifyContent: m.type === 'user' ? 'flex-start' : 'flex-end',
+                          marginBottom: 12,
+                        }}
+                      >
+                        <div
+                          className={`message-bubble ${m.type === 'user' ? 'user-message' : 'assistant-message'}`}
+                          style={{
+                            maxWidth: '70%',
+                            padding: '10px 14px',
+                            borderRadius: 18,
+                            backgroundColor: m.isError 
+                              ? '#ffebee' 
+                              : m.type === 'user' ? '#007AFF' : '#E5E5EA',
+                            color: m.isError 
+                              ? '#c62828'
+                              : m.type === 'user' ? 'white' : 'black',
+                            textAlign: 'left',
+                            border: m.isError ? '1px solid #ef5350' : 'none',
+                          }}
+                        >
+                          <div className="markdown-content">
+                            <ReactMarkdown>{m.text}</ReactMarkdown>
+                          </div>
+                        </div>
+                      </div>
+                      {showRetry && (
+                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, marginTop: -8 }}>
+                          <button
+                            onClick={retryLastMessage}
+                            disabled={isLoading}
+                            style={{
+                              padding: '6px 12px',
+                              borderRadius: 12,
+                              border: '1px solid #ddd',
+                              backgroundColor: 'white',
+                              color: '#666',
+                              fontSize: '13px',
+                              cursor: 'pointer',
+                              display: 'flex',
+                              alignItems: 'center',
+                              gap: 4,
+                            }}
+                            title="Regenerate response"
+                          >
+                            <span>🔄</span>
+                            {m.isError ? 'Retry' : 'Regenerate'}
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
+                {isLoading && (
                   <div
                     style={{
                       display: 'flex',
-                      justifyContent: m.type === 'user' ? 'flex-start' : 'flex-end',
+                      justifyContent: 'flex-end',
                       marginBottom: 12,
                     }}
                   >
                     <div
-                      className={`message-bubble ${m.type === 'user' ? 'user-message' : 'assistant-message'}`}
+                      className="message-bubble assistant-message typing-indicator"
                       style={{
-                        maxWidth: '70%',
                         padding: '10px 14px',
                         borderRadius: 18,
-                        backgroundColor: m.isError 
-                          ? '#ffebee' 
-                          : m.type === 'user' ? '#007AFF' : '#E5E5EA',
-                        color: m.isError 
-                          ? '#c62828'
-                          : m.type === 'user' ? 'white' : 'black',
-                        textAlign: 'left',
-                        border: m.isError ? '1px solid #ef5350' : 'none',
+                        backgroundColor: '#E5E5EA',
+                        color: 'black',
+                        display: 'flex',
+                        gap: 4,
+                        alignItems: 'center',
                       }}
                     >
-                      <div className="markdown-content">
-                        <ReactMarkdown>{m.text}</ReactMarkdown>
-                      </div>
+                      <span className="dot"></span>
+                      <span className="dot"></span>
+                      <span className="dot"></span>
                     </div>
                   </div>
-                  {showRetry && (
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12, marginTop: -8 }}>
-                      <button
-                        onClick={retryLastMessage}
-                        disabled={isLoading}
-                        style={{
-                          padding: '6px 12px',
-                          borderRadius: 12,
-                          border: '1px solid #ddd',
-                          backgroundColor: 'white',
-                          color: '#666',
-                          fontSize: '13px',
-                          cursor: 'pointer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 4,
-                        }}
-                        title="Regenerate response"
-                      >
-                        <span>🔄</span>
-                        {m.isError ? 'Retry' : 'Regenerate'}
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )
-            })}
-            {isLoading && (
-              <div
-                style={{
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  marginBottom: 12,
-                }}
-              >
-                <div
-                  className="message-bubble assistant-message typing-indicator"
-                  style={{
-                    padding: '10px 14px',
-                    borderRadius: 18,
-                    backgroundColor: '#E5E5EA',
-                    color: 'black',
-                    display: 'flex',
-                    gap: 4,
-                    alignItems: 'center',
-                  }}
-                >
-                  <span className="dot"></span>
-                  <span className="dot"></span>
-                  <span className="dot"></span>
-                </div>
-              </div>
+                )}
+              </>
             )}
-          </>
-        )}
           </div>
 
           <div style={{ 
@@ -427,7 +420,6 @@ function App() {
             borderBottom: isDarkMode ? '1px solid #333' : '1px solid #ddd',
             fontWeight: '500',
             fontSize: '16px',
-            color: isDarkMode ? '#fff' : '#000',
           }}>
             Workflow Diagram
           </div>
