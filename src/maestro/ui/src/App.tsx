@@ -154,7 +154,7 @@ function App() {
 
   useEffect(() => {
     renderDiagram()
-  }, [renderDiagram])
+  }, [renderDiagram, isDarkMode])
 
   return (
     <div style={{ 
