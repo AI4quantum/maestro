@@ -236,7 +236,7 @@ function App() {
         overflow: 'hidden',
       }}>
         <div style={{ 
-          flex: '1 1 70%',
+          flex: '1 1 50%',
           display: 'flex',
           flexDirection: 'column',
           borderRight: isDarkMode ? '1px solid #333' : '1px solid #ddd',
@@ -416,7 +416,7 @@ function App() {
         </div>
 
         <div style={{ 
-          flex: '0 0 30%',
+          flex: '1 1 50%',
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: isDarkMode ? '#0f0f0f' : '#f9f9f9',
