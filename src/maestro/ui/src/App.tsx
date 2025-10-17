@@ -33,6 +33,11 @@ function App() {
     if (saved !== null) return saved === 'true'
     return window.matchMedia('(prefers-color-scheme: dark)').matches
   })
+  const [leftPanelWidth, setLeftPanelWidth] = useState(() => {
+    const saved = localStorage.getItem('leftPanelWidth')
+    return saved ? parseFloat(saved) : 50
+  })
+  const [isDragging, setIsDragging] = useState(false)
 
   useEffect(() => {
     if (isDarkMode) {
@@ -149,6 +154,37 @@ function App() {
     renderDiagram()
   }, [renderDiagram, isDarkMode])
 
+  const handleMouseDown = useCallback(() => {
+    setIsDragging(true)
+  }, [])
+
+  const handleMouseMove = useCallback((e: MouseEvent) => {
+    if (!isDragging) return
+    const windowWidth = window.innerWidth
+    const newLeftWidth = (e.clientX / windowWidth) * 100
+    if (newLeftWidth >= 20 && newLeftWidth <= 80) {
+      setLeftPanelWidth(newLeftWidth)
+    }
+  }, [isDragging])
+
+  const handleMouseUp = useCallback(() => {
+    if (isDragging) {
+      setIsDragging(false)
+      localStorage.setItem('leftPanelWidth', leftPanelWidth.toString())
+    }
+  }, [isDragging, leftPanelWidth])
+
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      return () => {
+        document.removeEventListener('mousemove', handleMouseMove)
+        document.removeEventListener('mouseup', handleMouseUp)
+      }
+    }
+  }, [isDragging, handleMouseMove, handleMouseUp])
+
   return (
     <div style={{ 
       display: 'flex', 
@@ -227,12 +263,12 @@ function App() {
         flex: 1,
         display: 'flex',
         overflow: 'hidden',
+        userSelect: isDragging ? 'none' : 'auto',
       }}>
         <div style={{ 
-          flex: '1 1 50%',
+          width: `${leftPanelWidth}%`,
           display: 'flex',
           flexDirection: 'column',
-          borderRight: isDarkMode ? '1px solid #333' : '1px solid #ddd',
         }}>
           <div style={{ 
             flex: 1,
@@ -408,8 +444,30 @@ function App() {
           </div>
         </div>
 
+        <div
+          onMouseDown={handleMouseDown}
+          style={{
+            width: 6,
+            cursor: 'col-resize',
+            backgroundColor: isDarkMode ? '#333' : '#ddd',
+            flexShrink: 0,
+            position: 'relative',
+            transition: isDragging ? 'none' : 'background-color 0.2s ease',
+          }}
+          onMouseEnter={(e) => {
+            if (!isDragging) {
+              e.currentTarget.style.backgroundColor = isDarkMode ? '#555' : '#bbb'
+            }
+          }}
+          onMouseLeave={(e) => {
+            if (!isDragging) {
+              e.currentTarget.style.backgroundColor = isDarkMode ? '#333' : '#ddd'
+            }
+          }}
+        />
+
         <div style={{ 
-          flex: '1 1 50%',
+          flex: 1,
           display: 'flex',
           flexDirection: 'column',
           backgroundColor: isDarkMode ? '#0f0f0f' : '#f9f9f9',
