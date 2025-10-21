@@ -1,0 +1,15 @@
+{
+  "name": "maestro-validation-tools",
+  "version": "1.0.0",
+  "description": "Validation tools for Maestro CI",
+  "type": "module",
+  "scripts": {
+    "validate": "node validate-mermaid.js"
+  },
+  "dependencies": {
+    "mermaid": "^11.4.1",
+    "jsdom": "^25.0.1",
+    "dompurify": "^3.2.2"
+  }
+}
+
