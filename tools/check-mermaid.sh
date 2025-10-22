@@ -30,7 +30,7 @@ for f in $WORKFLOW_FILES; do
     if ! printf '%s\n' "${EXCLUDE_FILES[@]}" | grep -q "^$f$"; then
         MMD_FILE="${f%.yaml}.mmd"
         
-        if ! MERMAID_OUTPUT=$(uv run maestro mermaid --silent "$f" 2>&1); then
+        if ! MERMAID_OUTPUT=$(PYTHONWARNINGS=ignore uv run maestro mermaid --silent "$f" 2>&1); then
             GEN_RESULT="FAIL ❌"
             VAL_RESULT="SKIP ⏭️"
             fail+=1

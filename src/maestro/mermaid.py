@@ -3,6 +3,8 @@
 # SPDX-License-Identifier: Apache-2.0
 # Copyright © 2025 IBM
 
+import re
+
 
 class Mermaid:
     # kind: sequenceDiagram or flowchart
@@ -30,7 +32,10 @@ class Mermaid:
         else:
             agent_name = str(name)
 
-        return agent_name.replace("-", "_")
+        sanitized = re.sub(r"[^a-zA-Z0-9_]", "_", agent_name)
+        if sanitized and sanitized[0].isdigit():
+            sanitized = f"node_{sanitized}"
+        return sanitized
 
     def __agent_for_step(self, step_name):
         for step in self.workflow["spec"]["template"]["steps"]:
@@ -73,7 +78,11 @@ class Mermaid:
         sb = "sequenceDiagram\n"
         # participants
         for agent in self.__sequence_participants():
-            sb += f"participant {self.__fix_agent_name(agent)}\n"
+            agent_id = self.__fix_agent_name(agent)
+            if agent_id != agent:
+                sb += f'participant {agent_id}["{agent}"]\n'
+            else:
+                sb += f"participant {agent_id}\n"
 
         steps = self.workflow["spec"]["template"].get("steps", [])
         agentL = None
