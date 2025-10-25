@@ -30,6 +30,30 @@ spec:
   instructions: An input is given of a location. Use the OpenMeteo tool to get today's current forecast for the location. Return results in the format - location, temperature in Fahrenheit, and date.
     Example output - New York City, 44.9°F, March 26, 2025
 ```
+
+#### Agent with Model Parameters Example
+```yaml
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: creative-writer
+  labels:
+    app: maestro-example
+spec:
+  model: gpt-4o
+  framework: openai
+  mode: local
+  description: Creative writing agent with custom model parameters
+  instructions: |
+    You are a creative writing assistant. Generate imaginative and 
+    diverse content while maintaining coherence and quality.
+  model_parameters:
+    max_tokens: 2048
+    temperature: 1.2
+    top_p: 0.95
+    presence_penalty: 0.6
+    frequency_penalty: 0.3
+```
 The syntax of the agent definition is defined in the [json schema](https://github.com/AI4quantum/maestro/blob/main/schemas/agent_schema.json).
 
 - **apiVersion**: version of agent definition format.  This must be `maestro/v1alpha1` now.
@@ -43,8 +67,15 @@ The syntax of the agent definition is defined in the [json schema](https://githu
   - **mode**: Remote or Local.  Some agents support remote mode.  Remote is supported by "remote" framework only 
   - **description**: Description of this agent
   - **tools**: array of tool names or mcp server names. In the kubernetes cluster, the MCP servers deployed by `maestro create <tool.yaml>` or `ToolHive` listed here are enabled for this agent.  In the case of the MCP servers, all tools hosted by the server are enabled.  For local deployment, the MCP server can be registered in the file specified by "MCP_SERVER_LIST" environment variable.  The file contents should be a list of MCP servers and each server should have "name", "url", "transport" and "access_token".
-  
   - **instructions**: the instructions for the agent, can be a (multi-line) string, a url, or a file path. The file path is relative to where maestro is run
+  - **model_parameters** (optional): configuration parameters to control the model's behavior
+    - **max_tokens**: Maximum number of tokens for the model's response (integer, minimum: 1)
+    - **temperature**: Controls randomness in the output (number, 0.0 to 2.0). Lower values make output more deterministic, higher values make it more creative
+    - **top_k**: Number of top tokens to consider for sampling (integer, minimum: 1)
+    - **top_p**: Cumulative probability threshold for token sampling (number, 0.0 to 1.0)
+    - **frequency_penalty**: Penalty for token frequency in the output (number, -2.0 to 2.0)
+    - **presence_penalty**: Penalty for token presence in the output (number, -2.0 to 2.0)
+    - **stop_sequences**: Array of sequences that stop the model's output generation
 
 ### Workflow
 Workflow example defined in yaml format is:
