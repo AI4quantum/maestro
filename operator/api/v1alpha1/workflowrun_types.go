@@ -141,19 +141,30 @@ type WorkflowList struct {
 }
 
 // Agent
+type ModelParameters struct {
+	MaxTokens        *int      `json:"max_tokens,omitempty" yaml:"max_tokens,omitempty"`
+	Temperature      *float64  `json:"temperature,omitempty" yaml:"temperature,omitempty"`
+	TopK             *int      `json:"top_k,omitempty" yaml:"top_k,omitempty"`
+	TopP             *float64  `json:"top_p,omitempty" yaml:"top_p,omitempty"`
+	FrequencyPenalty *float64  `json:"frequency_penalty,omitempty" yaml:"frequency_penalty,omitempty"`
+	PresencePenalty  *float64  `json:"presence_penalty,omitempty" yaml:"presence_penalty,omitempty"`
+	StopSequences    []string  `json:"stop_sequences,omitempty" yaml:"stop_sequences,omitempty"`
+}
+
 type AgentSpec struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
-	Description  string   `json:"description,omitempty" yaml:"description,omitempty"`
-	Model        string   `json:"model,omitempty" yaml:"model,omitempty"`
-	Framework    string   `json:"framework,omitempty" yaml:"framework,omitempty"`
-	Mode         string   `json:"mode,omitempty" yaml:"mode,omitempty"`
-	Tools        []string `json:"tools,omitempty" yaml:"tools,omitempty"`
-	Instructions string   `json:"instructions,omitempty" yaml:"instructions,omitempty"`
-	Code         string   `json:"code,omitempty" yaml:"code,omitempty"`
-	Input        string   `json:"input,omitempty" yaml:"input,omitempty"`
-	Output       string   `json:"oputput,omitempty" yaml:"oputput,omitempty"`
-	Url          string   `json:"url,omitempty" yaml:"url,omitempty"`
+	Description     string            `json:"description,omitempty" yaml:"description,omitempty"`
+	Model           string            `json:"model,omitempty" yaml:"model,omitempty"`
+	Framework       string            `json:"framework,omitempty" yaml:"framework,omitempty"`
+	Mode            string            `json:"mode,omitempty" yaml:"mode,omitempty"`
+	Tools           []string          `json:"tools,omitempty" yaml:"tools,omitempty"`
+	Instructions    string            `json:"instructions,omitempty" yaml:"instructions,omitempty"`
+	Code            string            `json:"code,omitempty" yaml:"code,omitempty"`
+	Input           string            `json:"input,omitempty" yaml:"input,omitempty"`
+	Output          string            `json:"oputput,omitempty" yaml:"oputput,omitempty"`
+	Url             string            `json:"url,omitempty" yaml:"url,omitempty"`
+	ModelParameters *ModelParameters  `json:"model_parameters,omitempty" yaml:"model_parameters,omitempty"`
 }
 
 type AgentStatus struct {

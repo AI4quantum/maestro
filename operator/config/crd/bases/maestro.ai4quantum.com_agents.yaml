@@ -52,6 +52,43 @@ spec:
                 type: string
               model:
                 type: string
+              model_parameters:
+                description: Optional model configuration parameters
+                properties:
+                  frequency_penalty:
+                    description: Penalty for token frequency in the output (-2.0 to 2.0)
+                    maximum: 2
+                    minimum: -2
+                    type: number
+                  max_tokens:
+                    description: Maximum number of tokens for the model's response
+                    minimum: 1
+                    type: integer
+                  presence_penalty:
+                    description: Penalty for token presence in the output (-2.0 to 2.0)
+                    maximum: 2
+                    minimum: -2
+                    type: number
+                  stop_sequences:
+                    description: Sequences that stop the model's output generation
+                    items:
+                      type: string
+                    type: array
+                  temperature:
+                    description: Controls randomness in the output (0.0 to 2.0)
+                    maximum: 2
+                    minimum: 0
+                    type: number
+                  top_k:
+                    description: Number of top tokens to consider for sampling
+                    minimum: 1
+                    type: integer
+                  top_p:
+                    description: Cumulative probability threshold for token sampling (0.0 to 1.0)
+                    maximum: 1
+                    minimum: 0
+                    type: number
+                type: object
               oputput:
                 type: string
               tools:
