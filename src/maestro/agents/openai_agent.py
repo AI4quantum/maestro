@@ -85,7 +85,9 @@ class OpenAIAgent(MaestroAgent):
             api_key=self.api_key,
         )
         self.static_tools: List[Tool] = self._initialize_static_tools(spec_dict)
-        self.max_tokens: Optional[int] = self._initialize_max_tokens()
+
+        self.model_params: Dict[str, Any] = self._initialize_model_parameters(spec_dict)
+        self.max_tokens: Optional[int] = self.model_params.get("max_tokens")
         self.extra_headers: Optional[Dict[str, str]] = self._initialize_extra_headers()
         self._configure_agents_library()
 
@@ -162,34 +164,128 @@ class OpenAIAgent(MaestroAgent):
 
         return openai_tools
 
-    # TODO: Large context windows need checking. Including with LitelLM enabled
-    def _initialize_max_tokens(self) -> Optional[int]:
-        """Reads and validates MAESTRO_OPENAI_MAX_TOKENS environment variable."""
-        max_tokens_str = os.getenv("MAESTRO_OPENAI_MAX_TOKENS")
-        if max_tokens_str:
-            try:
-                max_tokens_int = int(max_tokens_str)
-                if max_tokens_int > 0:
+    def _initialize_model_parameters(self, agent_spec: dict) -> Dict[str, Any]:
+        """
+        Initialize model parameters from agent spec or environment variables.
+        Agent spec takes precedence over environment variables.
+
+        Args:
+            agent_spec (dict): The agent spec dictionary from YAML.
+
+        Returns:
+            Dict[str, Any]: Dictionary of model parameters to use.
+        """
+        model_params: Dict[str, Any] = {}
+        spec_params = agent_spec.get("model_parameters", {})
+        max_tokens = spec_params.get("max_tokens")
+        if max_tokens is None:
+            max_tokens_str = os.getenv("MAESTRO_OPENAI_MAX_TOKENS")
+            if max_tokens_str:
+                try:
+                    max_tokens = int(max_tokens_str)
+                    if max_tokens <= 0:
+                        self.print(
+                            f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS must be positive, got '{max_tokens_str}'. Ignoring."
+                        )
+                        max_tokens = None
+                except ValueError:
                     self.print(
-                        f"INFO [OpenAIAgent {self.agent_name}]: Using max_tokens: {max_tokens_int}"
+                        f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS is not a valid integer: '{max_tokens_str}'. Ignoring."
                     )
-                    # Even if set, trace shows openai ignoring, also set OLLAMA_CONTEXT_LENGTH
-                    # https://github.com/ollama/ollama/blob/main/docs/faq.md#how-can-i-specify-the-context-window-size
-                    os.environ["OLLAMA_CONTEXT_LENGTH"] = str(max_tokens_int)
-                    self.print(
-                        f"DEBUG [OpenAIAgent {self.agent_name}]: Set OLLAMA_CONTEXT_LENGTH to {max_tokens_int}"
-                    )
-                    return max_tokens_int
-                else:
-                    self.print(
-                        f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS must be a positive integer, but got '{max_tokens_str}'. Ignoring."
-                    )
-            except ValueError:
+                    max_tokens = None
+        else:
+            # Validate max_tokens from spec
+            if max_tokens <= 0:
                 self.print(
-                    f"WARN [OpenAIAgent {self.agent_name}]: MAESTRO_OPENAI_MAX_TOKENS is not a valid integer: '{max_tokens_str}'. Ignoring."
+                    f"WARN [OpenAIAgent {self.agent_name}]: max_tokens must be positive, got {max_tokens}. Ignoring."
+                )
+                max_tokens = None
+
+        if max_tokens is not None:
+            model_params["max_tokens"] = max_tokens
+            self.print(
+                f"INFO [OpenAIAgent {self.agent_name}]: Using max_tokens: {max_tokens}"
+            )
+            os.environ["OLLAMA_CONTEXT_LENGTH"] = str(max_tokens)
+            self.print(
+                f"DEBUG [OpenAIAgent {self.agent_name}]: Set OLLAMA_CONTEXT_LENGTH to {max_tokens}"
+            )
+
+        temperature = spec_params.get("temperature")
+        if temperature is not None:
+            if 0.0 <= temperature <= 2.0:
+                model_params["temperature"] = temperature
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Using temperature: {temperature}"
+                )
+            else:
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: temperature must be between 0.0 and 2.0, got {temperature}. Ignoring."
                 )
 
-        return None
+        top_p = spec_params.get("top_p")
+        if top_p is not None:
+            if 0.0 <= top_p <= 1.0:
+                model_params["top_p"] = top_p
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Using top_p: {top_p}"
+                )
+            else:
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: top_p must be between 0.0 and 1.0, got {top_p}. Ignoring."
+                )
+
+        frequency_penalty = spec_params.get("frequency_penalty")
+        if frequency_penalty is not None:
+            if -2.0 <= frequency_penalty <= 2.0:
+                model_params["frequency_penalty"] = frequency_penalty
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Using frequency_penalty: {frequency_penalty}"
+                )
+            else:
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: frequency_penalty must be between -2.0 and 2.0, got {frequency_penalty}. Ignoring."
+                )
+
+        presence_penalty = spec_params.get("presence_penalty")
+        if presence_penalty is not None:
+            if -2.0 <= presence_penalty <= 2.0:
+                model_params["presence_penalty"] = presence_penalty
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Using presence_penalty: {presence_penalty}"
+                )
+            else:
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: presence_penalty must be between -2.0 and 2.0, got {presence_penalty}. Ignoring."
+                )
+
+        stop_sequences = spec_params.get("stop_sequences")
+        if stop_sequences is not None:
+            if isinstance(stop_sequences, list) and all(
+                isinstance(s, str) for s in stop_sequences
+            ):
+                model_params["stop"] = stop_sequences
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Using stop_sequences: {stop_sequences}"
+                )
+            else:
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: stop_sequences must be a list of strings. Ignoring."
+                )
+
+        top_k = spec_params.get("top_k")
+        if top_k is not None:
+            if top_k > 0:
+                model_params["top_k"] = top_k
+                self.print(
+                    f"INFO [OpenAIAgent {self.agent_name}]: Using top_k: {top_k} (provider-dependent support)"
+                )
+            else:
+                self.print(
+                    f"WARN [OpenAIAgent {self.agent_name}]: top_k must be positive, got {top_k}. Ignoring."
+                )
+
+        return model_params
 
     def _initialize_extra_headers(self) -> Optional[Dict[str, str]]:
         """Reads and parses MAESTRO_OPENAI_EXTRA_HEADERS environment variable.
@@ -318,12 +414,22 @@ class OpenAIAgent(MaestroAgent):
                     model_to_use = (
                         self.model_name
                     )  # Use the string name for standard OpenAI client
-                # TODO: Extend or make generic for more settings
                 model_settings_dict: Dict[str, Any] = {}
-                if self.max_tokens is not None:
-                    model_settings_dict["max_tokens"] = self.max_tokens
+
+                for param in [
+                    "max_tokens",
+                    "temperature",
+                    "top_p",
+                    "frequency_penalty",
+                    "presence_penalty",
+                    "stop",
+                ]:
+                    if param in self.model_params:
+                        model_settings_dict[param] = self.model_params[param]
+
                 if self.extra_headers is not None:
                     model_settings_dict["extra_headers"] = self.extra_headers
+
                 model_settings_obj = ModelSettings(**model_settings_dict)
 
                 agent_kwargs: Dict[str, Any] = {
@@ -395,8 +501,18 @@ class OpenAIAgent(MaestroAgent):
                     model_to_use = self.model_name
 
                 model_settings_dict: Dict[str, Any] = {}
-                if self.max_tokens is not None:
-                    model_settings_dict["max_tokens"] = self.max_tokens
+
+                for param in [
+                    "max_tokens",
+                    "temperature",
+                    "top_p",
+                    "frequency_penalty",
+                    "presence_penalty",
+                    "stop",
+                ]:
+                    if param in self.model_params:
+                        model_settings_dict[param] = self.model_params[param]
+
                 if self.extra_headers is not None:
                     model_settings_dict["extra_headers"] = self.extra_headers
                 model_settings_obj = ModelSettings(**model_settings_dict)

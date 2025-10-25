@@ -7,7 +7,7 @@ import tempfile
 
 from beeai_framework.adapters.ollama import OllamaChatModel
 from beeai_framework.agents.tool_calling import ToolCallingAgent
-from beeai_framework.backend import ChatModel
+from beeai_framework.backend import ChatModel, ChatModelParameters
 from beeai_framework.backend.utils import find_provider_def
 from beeai_framework.tools.code import PythonTool, LocalPythonStorage, SandboxTool
 
@@ -123,11 +123,123 @@ class BeeAILocalAgent(Agent):
         self.mcp_stack = AsyncExitStack()
         self.agent = None
 
+        # Initialize model parameters from spec
+        spec_dict = agent.get("spec", {})
+        self.model_params = self._initialize_model_parameters(spec_dict)
+
+    def _initialize_model_parameters(self, agent_spec: dict) -> ChatModelParameters:
+        """
+        Initialize model parameters from agent spec.
+
+        Args:
+            agent_spec (dict): The agent spec dictionary from YAML.
+
+        Returns:
+            ChatModelParameters: ChatModelParameters object with configured values.
+        """
+        spec_params = agent_spec.get("model_parameters", {})
+        params_dict = {}
+
+        # temperature
+        temperature = spec_params.get("temperature")
+        if temperature is not None:
+            if 0.0 <= temperature <= 2.0:
+                params_dict["temperature"] = temperature
+                self.print(
+                    f"INFO [BeeAIAgent {self.agent_name}]: Using temperature: {temperature}"
+                )
+            else:
+                self.print(
+                    f"WARN [BeeAIAgent {self.agent_name}]: temperature must be between 0.0 and 2.0, got {temperature}. Ignoring."
+                )
+
+        # max_tokens
+        max_tokens = spec_params.get("max_tokens")
+        if max_tokens is not None:
+            if max_tokens > 0:
+                params_dict["max_tokens"] = max_tokens
+                self.print(
+                    f"INFO [BeeAIAgent {self.agent_name}]: Using max_tokens: {max_tokens}"
+                )
+            else:
+                self.print(
+                    f"WARN [BeeAIAgent {self.agent_name}]: max_tokens must be positive, got {max_tokens}. Ignoring."
+                )
+
+        # top_p
+        top_p = spec_params.get("top_p")
+        if top_p is not None:
+            if 0.0 <= top_p <= 1.0:
+                params_dict["top_p"] = top_p
+                self.print(f"INFO [BeeAIAgent {self.agent_name}]: Using top_p: {top_p}")
+            else:
+                self.print(
+                    f"WARN [BeeAIAgent {self.agent_name}]: top_p must be between 0.0 and 1.0, got {top_p}. Ignoring."
+                )
+
+        # top_k
+        top_k = spec_params.get("top_k")
+        if top_k is not None:
+            if top_k > 0:
+                params_dict["top_k"] = top_k
+                self.print(f"INFO [BeeAIAgent {self.agent_name}]: Using top_k: {top_k}")
+            else:
+                self.print(
+                    f"WARN [BeeAIAgent {self.agent_name}]: top_k must be positive, got {top_k}. Ignoring."
+                )
+
+        # frequency_penalty
+        frequency_penalty = spec_params.get("frequency_penalty")
+        if frequency_penalty is not None:
+            if -2.0 <= frequency_penalty <= 2.0:
+                params_dict["frequency_penalty"] = frequency_penalty
+                self.print(
+                    f"INFO [BeeAIAgent {self.agent_name}]: Using frequency_penalty: {frequency_penalty}"
+                )
+            else:
+                self.print(
+                    f"WARN [BeeAIAgent {self.agent_name}]: frequency_penalty must be between -2.0 and 2.0, got {frequency_penalty}. Ignoring."
+                )
+
+        # presence_penalty
+        presence_penalty = spec_params.get("presence_penalty")
+        if presence_penalty is not None:
+            if -2.0 <= presence_penalty <= 2.0:
+                params_dict["presence_penalty"] = presence_penalty
+                self.print(
+                    f"INFO [BeeAIAgent {self.agent_name}]: Using presence_penalty: {presence_penalty}"
+                )
+            else:
+                self.print(
+                    f"WARN [BeeAIAgent {self.agent_name}]: presence_penalty must be between -2.0 and 2.0, got {presence_penalty}. Ignoring."
+                )
+
+        # stop_sequences (BeeAI uses 'stop' parameter)
+        stop_sequences = spec_params.get("stop_sequences")
+        if stop_sequences is not None:
+            if isinstance(stop_sequences, list) and all(
+                isinstance(s, str) for s in stop_sequences
+            ):
+                params_dict["stop"] = stop_sequences
+                self.print(
+                    f"INFO [BeeAIAgent {self.agent_name}]: Using stop_sequences: {stop_sequences}"
+                )
+            else:
+                self.print(
+                    f"WARN [BeeAIAgent {self.agent_name}]: stop_sequences must be a list of strings. Ignoring."
+                )
+
+        return ChatModelParameters(**params_dict)
+
     async def _create_agent(self):
         if find_provider_def(self.agent_model.split(":")[0]) is not None:
-            llm = ChatModel.from_name(self.agent_model, base_url=self.agent_url)
+            llm = ChatModel.from_name(
+                self.agent_model, base_url=self.agent_url, parameters=self.model_params
+            )
         else:
-            llm = OllamaChatModel(self.agent_model, base_url=self.agent_url)
+            llm = OllamaChatModel(
+                self.agent_model, base_url=self.agent_url, parameters=self.model_params
+            )
 
         templates: dict[str, Any] = {
             "user": user_template_func,
