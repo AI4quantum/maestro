@@ -64,6 +64,60 @@ spec:
 
 It is important to set the `OPENAI_API_KEY` environment variable - see [OpenAI's website](https://platform.openai.com/account/api-keys).
 
+### Configuring Model Parameters
+
+You can fine-tune the behavior of OpenAI agents by specifying model parameters directly in the agent definition. These parameters control various aspects of the model's output generation, such as randomness, token limits, and penalties.
+
+Model parameters can be specified in two ways:
+1. **In the agent YAML** (recommended): Add a `model_parameters` section to your agent spec
+2. **Via environment variables** (legacy): Some parameters like `max_tokens` can still be set via `MAESTRO_OPENAI_MAX_TOKENS`
+
+When both are specified, the agent YAML configuration takes precedence.
+
+#### Supported Model Parameters
+
+- **max_tokens** (integer): Maximum number of tokens for the model's response
+- **temperature** (number, 0.0-2.0): Controls randomness. Lower values (e.g., 0.2) make output more deterministic, higher values (e.g., 1.2) make it more creative
+- **top_p** (number, 0.0-1.0): Cumulative probability threshold for nucleus sampling
+- **top_k** (integer): Number of top tokens to consider (provider-dependent support)
+- **frequency_penalty** (number, -2.0-2.0): Penalizes tokens based on their frequency in the output
+- **presence_penalty** (number, -2.0-2.0): Penalizes tokens based on their presence in the output
+- **stop_sequences** (array of strings): Sequences that stop the model's output generation
+
+#### Example: Creative Writing Agent
+
+```yaml
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: creative-writer
+  labels:
+    app: maestro-example
+spec:
+  model: gpt-oss:latest
+  framework: openai
+  mode: local
+  description: Creative writing agent with high temperature
+  instructions: |
+    You are a creative writing assistant. Generate imaginative and 
+    diverse content while maintaining coherence and quality.
+  model_parameters:
+    max_tokens: 2048
+    temperature: 1.2
+    top_p: 0.95
+    presence_penalty: 0.6
+    frequency_penalty: 0.3
+```
+
+#### Parameter Guidelines
+
+- **For creative tasks**: Use higher temperature (0.7-1.5), higher top_p (0.9-0.95)
+- **For factual/analytical tasks**: Use lower temperature (0.0-0.3), lower top_p (0.1-0.5)
+- **For code generation**: Use temperature around 0.2-0.4 with presence_penalty to avoid repetition
+- **For concise responses**: Set appropriate max_tokens and use stop_sequences
+
+See the `examples/` directory for more complete examples demonstrating different parameter configurations.
+
 This will connect to OpenUI using the [new Responses API](https://platform.openai.com/docs/guides/responses-vs-chat-completions) at `https://api.openai.com/v1`
 
 The full example can be run with:
