@@ -74,6 +74,53 @@
         "url": {
             "type": "string",
             "description": "The (optional) url to send a request to the agent"
+        },
+        "model_parameters": {
+          "type": "object",
+          "description": "Optional model configuration parameters",
+          "properties": {
+            "max_tokens": {
+              "type": "integer",
+              "description": "Maximum number of tokens for the model's response",
+              "minimum": 1
+            },
+            "temperature": {
+              "type": "number",
+              "description": "Controls randomness in the output (0.0 to 2.0)",
+              "minimum": 0.0,
+              "maximum": 2.0
+            },
+            "top_k": {
+              "type": "integer",
+              "description": "Number of top tokens to consider for sampling",
+              "minimum": 1
+            },
+            "top_p": {
+              "type": "number",
+              "description": "Cumulative probability threshold for token sampling (0.0 to 1.0)",
+              "minimum": 0.0,
+              "maximum": 1.0
+            },
+            "frequency_penalty": {
+              "type": "number",
+              "description": "Penalty for token frequency in the output (-2.0 to 2.0)",
+              "minimum": -2.0,
+              "maximum": 2.0
+            },
+            "presence_penalty": {
+              "type": "number",
+              "description": "Penalty for token presence in the output (-2.0 to 2.0)",
+              "minimum": -2.0,
+              "maximum": 2.0
+            },
+            "stop_sequences": {
+              "type": "array",
+              "description": "Sequences that stop the model's output generation",
+              "items": {
+                "type": "string"
+              }
+            }
+          }
         }
       }
     }
