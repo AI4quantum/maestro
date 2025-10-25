@@ -1,0 +1,21 @@
+apiVersion: maestro/v1alpha1
+kind: Agent
+metadata:
+  name: openai_test_deterministic
+  labels:
+    app: testapp_model_params
+spec:
+  model: "gpt-oss:latest"
+  description: OpenAI agent with deterministic parameters (low temperature)
+  instructions: |
+    You are a helpful assistant. Respond concisely and consistently.
+    Echo back the key points from the prompt.
+  framework: openai
+  mode: local
+  model_parameters:
+    max_tokens: 200
+    temperature: 0.0
+    top_p: 0.1
+    frequency_penalty: 0.0
+    presence_penalty: 0.0
+

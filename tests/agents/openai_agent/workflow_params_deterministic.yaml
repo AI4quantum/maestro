@@ -1,0 +1,18 @@
+apiVersion: maestro/v1alpha1
+kind: Workflow
+metadata:
+  name: openai_test_deterministic
+  labels:
+    app: testapp_model_params
+spec:
+  template:
+    metadata:
+      labels:
+        app: testapp_model_params
+    agents:
+      - openai_test_deterministic
+    prompt: Describe the color blue in three words
+    steps:
+      - name: test_deterministic
+        agent: openai_test_deterministic
+
