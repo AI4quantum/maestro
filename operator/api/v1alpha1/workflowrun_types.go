@@ -141,12 +141,17 @@ type WorkflowList struct {
 }
 
 // Agent
+// +kubebuilder:validation:Type=object
 type ModelParameters struct {
 	MaxTokens        *int      `json:"max_tokens,omitempty" yaml:"max_tokens,omitempty"`
+	// +kubebuilder:validation:Type=number
 	Temperature      *float64  `json:"temperature,omitempty" yaml:"temperature,omitempty"`
 	TopK             *int      `json:"top_k,omitempty" yaml:"top_k,omitempty"`
+	// +kubebuilder:validation:Type=number
 	TopP             *float64  `json:"top_p,omitempty" yaml:"top_p,omitempty"`
+	// +kubebuilder:validation:Type=number
 	FrequencyPenalty *float64  `json:"frequency_penalty,omitempty" yaml:"frequency_penalty,omitempty"`
+	// +kubebuilder:validation:Type=number
 	PresencePenalty  *float64  `json:"presence_penalty,omitempty" yaml:"presence_penalty,omitempty"`
 	StopSequences    []string  `json:"stop_sequences,omitempty" yaml:"stop_sequences,omitempty"`
 }
