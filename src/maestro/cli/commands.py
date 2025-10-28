@@ -672,7 +672,6 @@ class MetaAgentsCmd(Command):
                 "True",
                 "--client.toolbarMode",
                 "minimal",
-                f"{os.path.dirname(__file__)}/streamlit_meta_agents_deploy.py",
                 text_file,
             ]
             self.process = subprocess.Popen(sys.argv)
