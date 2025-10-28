@@ -194,7 +194,6 @@ async def deploy_workflow(
                 "True",
                 "--client.toolbarMode",
                 "minimal",
-                f"{os.path.dirname(__file__)}/../cli/streamlit_deploy.py",
                 agents_yaml,
                 workflow_yaml,
             ]

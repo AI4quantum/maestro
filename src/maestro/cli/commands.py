@@ -454,7 +454,6 @@ class DeployCmd(Command):
                 "True",
                 "--client.toolbarMode",
                 "minimal",
-                f"{os.path.dirname(__file__)}/streamlit_deploy.py",
                 self.AGENTS_FILE(),
                 self.WORKFLOW_FILE(),
             ]
