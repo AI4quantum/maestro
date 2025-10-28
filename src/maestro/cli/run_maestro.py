@@ -30,7 +30,6 @@ Options:
   --auto-prompt          Run prompt by default if specified
   --evaluate             Enable optional evaluation (same as MAESTRO_AUTO_EVALUATION=true)
 
-  --streamlit            Deploys locally as streamlit application (default deploy)
   --node-ui              Deploys locally as Node.js UI application
 
   --url                  The deployment URL, default: 127.0.0.1:5000
