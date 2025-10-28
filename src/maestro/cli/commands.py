@@ -532,6 +532,7 @@ class DeployCmd(Command):
     def docker(self):
         return self.args["--docker"]
 
+    @DeprecationWarning
     def streamlit(self):
         return self.args["--streamlit"]
 
