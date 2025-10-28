@@ -443,6 +443,7 @@ class DeployCmd(Command):
         self.args = args
         super().__init__(self.args)
 
+    @DeprecationWarning
     def __deploy_agents_workflow_streamlit(self):
         try:
             sys.argv = [
@@ -502,21 +503,16 @@ class DeployCmd(Command):
                 if not self.silent():
                     Console.ok("Workflow deployed: http://<kubernetes address>:30051")
             else:
-                if self.node_ui():
-                    self.__deploy_agents_workflow_node()
-                    if not self.silent():
-                        api_port = self.port()
-                        ui_port = self.ui_port()
-                        api_host = self.args.get("--host") or "localhost"
-                        Console.ok(
-                            f"Workflow deployed - API: http://{api_host}:{api_port}, UI: http://localhost:{ui_port}"
-                        )
-                else:
-                    self.__deploy_agents_workflow_streamlit()
-                    if not self.silent():
-                        Console.ok(
-                            "Workflow deployed: http://localhost:8501/?embed=true"
-                        )
+                # JS UI version as default
+                self.__deploy_agents_workflow_node()
+                if not self.silent():
+                    api_port = self.port()
+                    ui_port = self.ui_port()
+                    api_host = self.args.get("--host") or "localhost"
+                    Console.ok(
+                        f"Workflow deployed - API: http://{api_host}:{api_port}, UI: http://localhost:{ui_port}"
+                    )
+
         except Exception as e:
             self._check_verbose()
             raise RuntimeError(f"Unable to deploy workflow: {str(e)}") from e
