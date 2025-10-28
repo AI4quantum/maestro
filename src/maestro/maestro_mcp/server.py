@@ -2,7 +2,6 @@ from fastmcp import FastMCP
 
 import json
 import os
-import sys
 import subprocess
 import threading
 import tempfile
@@ -156,14 +155,14 @@ async def serve_container_agent(
 
 @mcp.tool()
 async def deploy_workflow(
-    agents: str, workflow: str, target: str = "streamlit", env: str = ""
+    agents: str, workflow: str, target: str = "node-ui", env: str = ""
 ):
     """Deploy workflow
 
     Args:
         agents: agents yaml file contents
         workflow: workflow yaml file contents
-        target: daploy target type (docker, kubernetes, or streamlit)
+        target: daploy target type (docker, kubernetes, or node-ui)
         env:environment variables set into container. format: list of key=value string.  Each kye=value is separated by ','
     """
     with tempfile.NamedTemporaryFile(mode="w", delete=False) as temp_file:
@@ -185,19 +184,25 @@ async def deploy_workflow(
         os.remove(workflow_yaml)
     else:
         try:
-            sys.argv = [
+            node_deploy_script = f"{os.path.dirname(__file__)}/node_deploy.py"
+            env = os.environ.copy()
+            api_port = 8000
+            ui_port = 5173
+            api_host = "127.0.0.1"
+            env.setdefault("CORS_ALLOW_ORIGINS", f"http://{api_host}:{ui_port}")
+            env["MAESTRO_UI_PORT"] = str(ui_port)  # Keep for UI server
+            cmd_args = [
                 "uv",
                 "run",
-                "streamlit",
-                "run",
-                "--ui.hideTopBar",
-                "True",
-                "--client.toolbarMode",
-                "minimal",
+                "python",
+                node_deploy_script,
                 agents_yaml,
                 workflow_yaml,
+                api_host,
+                str(api_port),
+                str(ui_port),
             ]
-            subprocess.Popen(sys.argv)
+            subprocess.Popen(cmd_args, env=env)
         except Exception as e:
             raise RuntimeError(f"{str(e)}") from e
     return 0
