@@ -100,8 +100,8 @@ uv run ruff check --fix
 
 Maestro provides multiple ways to interact with workflows:
 
-### Streamlit UI (Default)
-Deploy workflows with Streamlit's interactive interface:
+### React UI (Default)
+Deploy workflows with React's interactive interface:
 
 ```bash
 maestro deploy agents.yaml workflow.yaml
