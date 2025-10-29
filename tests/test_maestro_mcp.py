@@ -90,9 +90,9 @@ async def deploy_workflow(session):
     assert not result.isError
     result = await session.call_tool(
         "deploy_workflow",
-        {"agents": agent, "workflow": workflow, "target": "streamlit", "env": ""},
+        {"agents": agent, "workflow": workflow, "target": "node-ui", "env": ""},
     )
-    print(f"streamlit response: {result}")
+    print(f"node-ui response: {result}")
     assert not result.isError
 
 
