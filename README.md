@@ -44,6 +44,28 @@ maestro validate <path>
 maestro serve <agents_file> <workflow_file>
 ```
 
+## MCP Server
+
+Maestro provides an MCP server that supports the maestro-cli provided in the "AI4quantum/maestro-cli" repository.
+
+```bash
+# Start the MCP server on default port 8000
+./start_mcp.sh
+
+# Start the MCP server on a custom port
+./start_mcp.sh 8080
+```
+
+The MCP server exposes the following tools for managing workflows, agents, and deployments through a standardized interface:
+
+- **run_workflow**: Execute a workflow with specified agents
+- **create_agents**: Create agents from definitions
+- **create_tools**: Create tools from definitions
+- **serve_agent**: Serve an agent via API
+- **serve_workflow**: Serve a workflow via API
+- **serve_container_agent**: Deploy an agent as a container in Kubernetes
+- **deploy_workflow**: Deploy a workflow to various targets (docker, kubernetes, or node-ui)
+
 ## Streaming API
 
 Maestro provides real-time streaming capabilities for workflows.
