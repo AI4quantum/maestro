@@ -184,7 +184,7 @@ async def deploy_workflow(
         os.remove(workflow_yaml)
     else:
         try:
-            node_deploy_script = f"{os.path.dirname(__file__)}/node_deploy.py"
+            node_deploy_script = f"{os.path.dirname(__file__)}/../cli//node_deploy.py"
             env = os.environ.copy()
             api_port = 8000
             ui_port = 5173
