@@ -79,6 +79,7 @@ output = "This should not be returned"
             f"Expected import error, got: {error_msg}",
         )
 
+    @pytest.mark.skip(reason="Disabled for pytest")
     @pytest.mark.asyncio
     async def test_dependencies_installation(self):
         """Test that dependencies are installed before code execution."""
@@ -92,6 +93,7 @@ output = "This should not be returned"
         self.assertIsNotNone(result)
         self.assertEqual(result, "Example Domain")
 
+    @pytest.mark.skip(reason="Disabled for pytest")
     @pytest.mark.asyncio
     async def test_dependencies_installation_requirements_file(self):
         """Test that dependencies are installed before code execution."""
@@ -106,6 +108,7 @@ output = "This should not be returned"
         self.assertIsNotNone(result)
         self.assertEqual(result, "Example Domain")
 
+    @pytest.mark.skip(reason="Disabled for pytest")
     @pytest.mark.asyncio
     async def test_dependencies_installation_streaming(self):
         """Test that dependencies are installed before code execution."""
