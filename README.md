@@ -1,3 +1,8 @@
+> ⚠️ **Archived Repository**
+>
+> This project is no longer maintained and has been archived as of April 2026.
+> - No new features or bug fixes will be accepted.
+
 # Maestro
 
 Maestro is a tool for managing and running AI agents and workflows.
